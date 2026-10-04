@@ -1,0 +1,46 @@
+.merchant-reviews-page{min-width:0}
+.merchant-review-summary{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:14px;margin-bottom:20px}
+.merchant-review-summary article{display:grid;gap:8px;min-width:0;padding:18px 20px;border:1px solid var(--kucur-border);border-radius:var(--kucur-card-radius,16px);background:var(--kucur-surface);box-shadow:var(--kucur-shadow-sm,0 1px 2px rgba(15,23,42,.04))}
+.merchant-review-summary span{color:var(--kucur-text-muted);font-size:.78rem;font-weight:700;text-transform:uppercase;letter-spacing:.04em}
+.merchant-review-summary strong{color:var(--kucur-text);font-size:1.8rem;line-height:1}
+.merchant-review-summary small{margin-left:3px;color:var(--kucur-text-muted);font-size:.85rem}
+.merchant-review-toolbar{display:grid;gap:12px;margin-bottom:20px;padding:16px;border:1px solid var(--kucur-border);border-radius:var(--kucur-card-radius,16px);background:var(--kucur-surface)}
+.merchant-review-toolbar>strong{color:var(--kucur-text);font-size:.86rem}
+.merchant-review-toolbar>div{display:flex;flex-wrap:wrap;gap:8px}
+.merchant-review-toolbar button,.merchant-review-card footer button,.merchant-review-error button,.merchant-review-modal footer button{min-height:42px;padding:9px 14px;border:1px solid var(--kucur-border-strong);border-radius:var(--kucur-control-radius,12px);background:var(--kucur-surface);color:var(--kucur-text);font:inherit;font-size:.84rem;font-weight:700;cursor:pointer;transition:border-color .15s ease,background .15s ease,color .15s ease}
+.merchant-review-toolbar button:hover,.merchant-review-card footer button:hover{border-color:var(--kucur-green)}
+.merchant-review-toolbar button.is-active{border-color:var(--kucur-forest);background:var(--kucur-sand);color:var(--kucur-forest)}
+.merchant-review-grid{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:16px}
+.merchant-review-card{display:flex;min-width:0;flex-direction:column;gap:16px;padding:20px;border:1px solid var(--kucur-border);border-radius:var(--kucur-card-radius,16px);background:var(--kucur-surface);box-shadow:var(--kucur-shadow-sm,0 1px 2px rgba(15,23,42,.04))}
+.merchant-review-card>header{display:flex;min-width:0;align-items:flex-start;justify-content:space-between;gap:16px}
+.merchant-review-card>header>div:first-child{display:grid;min-width:0;gap:3px}
+.merchant-review-product{overflow:hidden;color:var(--kucur-green-hover);font-size:.76rem;font-weight:800;text-overflow:ellipsis;text-transform:uppercase;white-space:nowrap}
+.merchant-review-card h2{margin:0;color:var(--kucur-text);font-size:1.05rem}
+.merchant-review-card time{color:var(--kucur-text-muted);font-size:.78rem}
+.merchant-review-card-status{display:grid;flex:none;justify-items:end;gap:7px}
+.merchant-review-stars{color:#d97706;font-size:.95rem;letter-spacing:.08em;white-space:nowrap}
+.merchant-review-stars i{color:var(--kucur-border-strong);font-style:normal}
+.merchant-review-card-status>span:last-child{padding:5px 9px;border-radius:999px;font-size:.7rem;font-weight:800}
+.merchant-review-card-status .is-answered{background:#dcfce7;color:#166534}
+.merchant-review-card-status .is-unanswered{background:#fef3c7;color:#92400e}
+.merchant-review-comment{min-height:44px;margin:0;color:var(--kucur-text);line-height:1.55;overflow-wrap:anywhere}
+.merchant-review-comment.is-empty{color:var(--kucur-text-muted);font-style:italic}
+.merchant-review-photos{display:flex;flex-wrap:wrap;gap:9px}
+.merchant-review-photos .review-photo-button{border:1px solid var(--kucur-border);border-radius:10px;overflow:hidden}
+.merchant-review-photos .review-photo-button img,.merchant-review-photos .review-photo-loading{width:72px;height:72px;border-radius:9px;background:var(--kucur-surface-elevated);object-fit:cover}
+.merchant-review-reply{display:grid;gap:5px;padding:13px 14px;border-left:3px solid var(--kucur-green);border-radius:0 10px 10px 0;background:var(--kucur-surface-elevated)}
+.merchant-review-reply strong{font-size:.78rem}.merchant-review-reply p{margin:0;color:var(--kucur-text-muted);line-height:1.5;overflow-wrap:anywhere}
+.merchant-review-card>footer{display:flex;justify-content:flex-end;margin-top:auto;padding-top:2px}
+.merchant-review-success{margin:0 0 16px;padding:12px 14px;border:1px solid #86efac;border-radius:12px;background:#f0fdf4;color:#166534}
+.merchant-review-error{display:flex;align-items:center;justify-content:space-between;gap:18px;margin-bottom:20px;padding:16px;border:1px solid #fecaca;border-radius:14px;background:#fef2f2;color:#991b1b}.merchant-review-error p{margin:3px 0 0}.merchant-review-error button{border-color:#fca5a5;background:#fff;color:#991b1b}
+.merchant-review-skeleton{display:grid;gap:14px;padding:20px;border:1px solid var(--kucur-border);border-radius:var(--kucur-card-radius,16px);background:var(--kucur-surface)}
+.merchant-review-skeleton i{height:14px;border-radius:999px;background:linear-gradient(90deg,var(--kucur-surface-elevated) 25%,var(--kucur-border) 50%,var(--kucur-surface-elevated) 75%);background-size:200% 100%;animation:merchant-review-shimmer 1.35s infinite}.merchant-review-skeleton i:nth-child(1){width:38%}.merchant-review-skeleton i:nth-child(2){width:58%;height:22px}.merchant-review-skeleton i:nth-child(3){width:92%;height:50px}.merchant-review-skeleton i:nth-child(4){width:28%;height:40px;justify-self:end}
+@keyframes merchant-review-shimmer{to{background-position:-200% 0}}
+.merchant-review-modal,.merchant-review-photo-modal{position:fixed;z-index:1200;inset:0;display:grid;place-items:center;padding:16px;background:rgba(2,6,23,.68);backdrop-filter:blur(5px)}
+.merchant-review-modal form{display:grid;width:min(580px,100%);max-height:calc(100vh - 32px);gap:16px;overflow:auto;padding:20px;border:1px solid var(--kucur-border);border-radius:18px;background:var(--kucur-surface);box-shadow:0 24px 70px rgba(0,0,0,.3)}
+.merchant-review-modal form>header{display:flex;align-items:flex-start;justify-content:space-between;gap:14px}.merchant-review-modal form>header span{color:var(--kucur-green-hover);font-size:.76rem;font-weight:800;text-transform:uppercase}.merchant-review-modal h2{margin:3px 0 0;color:var(--kucur-text);font-size:1.35rem}.merchant-review-modal form>header>button{border:0;background:transparent;color:var(--kucur-text-muted);font-size:1.7rem;line-height:1;cursor:pointer}.merchant-review-modal form>p{margin:0;color:var(--kucur-text-muted)}
+.merchant-review-modal label{display:grid;gap:8px;color:var(--kucur-text);font-weight:700}.merchant-review-modal textarea{width:100%;min-height:132px;resize:vertical;padding:13px;border:1px solid var(--kucur-border-strong);border-radius:12px;outline:none;background:var(--kucur-surface);color:var(--kucur-text);font:inherit;font-weight:400;line-height:1.5}.merchant-review-modal textarea:focus{border-color:var(--kucur-green);box-shadow:0 0 0 3px color-mix(in srgb,var(--kucur-green) 18%,transparent)}.merchant-review-modal label small{color:var(--kucur-text-muted);font-weight:400;text-align:right}.merchant-review-modal-error{padding:10px 12px;border-radius:10px;background:#fef2f2!important;color:#b91c1c!important}.merchant-review-modal footer{display:flex;justify-content:flex-end;gap:9px}.merchant-review-modal footer button.is-primary{border-color:var(--kucur-forest);background:var(--kucur-forest);color:#fff}.merchant-review-modal footer button:disabled{cursor:not-allowed;opacity:.55}
+.merchant-review-photo-modal section{position:relative;display:grid;max-width:min(920px,100%);max-height:calc(100vh - 32px);padding:12px;border:1px solid var(--kucur-border);border-radius:16px;background:var(--kucur-surface)}.merchant-review-photo-modal button{justify-self:end;border:0;background:transparent;color:var(--kucur-text);font-size:1.7rem;cursor:pointer}.merchant-review-photo-modal img{max-width:100%;max-height:calc(100vh - 92px);object-fit:contain}
+.dark .merchant-review-card-status .is-answered{background:#16351e;color:#86efac}.dark .merchant-review-card-status .is-unanswered{background:#3b2c10;color:#fde68a}.dark .merchant-review-success{border-color:#166534;background:#102a18;color:#86efac}.dark .merchant-review-error,.dark .merchant-review-modal-error{border-color:#7f1d1d;background:#2b1212!important;color:#fca5a5!important}.dark .merchant-review-error button{border-color:#7f1d1d;background:var(--kucur-surface);color:#fca5a5}
+@media(max-width:760px){.merchant-review-summary{grid-template-columns:repeat(2,minmax(0,1fr))}.merchant-review-summary article:last-child{grid-column:1/-1}.merchant-review-grid{grid-template-columns:1fr}.merchant-review-toolbar button{flex:1 1 calc(50% - 8px)}.merchant-review-card>header{flex-direction:column}.merchant-review-card-status{width:100%;grid-auto-flow:column;justify-content:space-between;justify-items:start}.merchant-review-card>footer button{width:100%}}
+@media(max-width:420px){.merchant-review-summary article{padding:15px}.merchant-review-summary strong{font-size:1.55rem}.merchant-review-card{padding:16px}.merchant-review-modal form{padding:16px}.merchant-review-modal footer{display:grid;grid-template-columns:1fr 1fr}.merchant-review-modal footer button{padding-inline:8px}}

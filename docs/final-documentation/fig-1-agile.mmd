@@ -1,0 +1,12 @@
+flowchart LR
+  R[Requirements<br/>and Backlog] --> D[Design]
+  D --> I[Development]
+  I --> T[Testing]
+  T --> V[Review and<br/>Feedback]
+  V -->|Accepted increment| C[Release Candidate]
+  V -->|Refine backlog| R
+
+  classDef stage fill:#f7faf7,stroke:#315b3d,color:#183323,stroke-width:1.5px;
+  classDef release fill:#315b3d,stroke:#183323,color:#ffffff,stroke-width:1.5px;
+  class R,D,I,T,V stage;
+  class C release;

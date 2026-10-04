@@ -1,0 +1,27 @@
+import { useEffect, useMemo, useState } from "react";
+import { Link } from "react-router-dom";
+import EmptyState from "../../components/ui/EmptyState";
+import LoadingPanel from "../../components/ui/LoadingPanel";
+import PageHeader from "../../components/ui/PageHeader";
+import Pagination from "../../components/ui/Pagination";
+import StatusBadge from "../../components/ui/StatusBadge";
+import { usePreferences } from "../../context/PreferencesContext";
+import { storeService } from "../../services/storeService";
+import { matchesStatusFilter } from "../../utils/statusFilter";
+import "./AdminOperations.css";
+
+export default function MerchantApproval() {
+  const { formatDate, language, statusLabel, t } = usePreferences();
+  const [stores, setStores] = useState([]); const [loading, setLoading] = useState(true); const [error, setError] = useState(""); const [search, setSearch] = useState(""); const [status, setStatus] = useState("ALL"); const [page, setPage] = useState(1);
+  const c = language === "id" ? { eyebrow: "WORKSPACE ADMIN", title: "Persetujuan Lapak", description: "Tinjau identitas merchant, informasi usaha, dan status setiap pengajuan lapak.", search: "Cari", searchHint: "Nama lapak, pemilik, atau email", status: "Status pengajuan", all: "Semua status", store: "Lapak", owner: "Merchant", category: "Kategori", submitted: "Diajukan", action: "Aksi", review: "Tinjau", load: "Memuat pengajuan lapak", failed: "Pengajuan belum dapat dimuat.", retry: "Coba Lagi", empty: "Tidak ada pengajuan lapak", emptyHint: "Semua pengajuan pada filter ini sudah ditinjau atau belum ada pengajuan baru.", unavailable: "Belum tersedia", ecommerce: "Produk lokal / E-Commerce" } : { eyebrow: "ADMIN WORKSPACE", title: "Store Approvals", description: "Review merchant identity, business information, and the status of each store application.", search: "Search", searchHint: "Store name, owner, or email", status: "Application status", all: "All statuses", store: "Store", owner: "Merchant", category: "Category", submitted: "Submitted", action: "Action", review: "Review", load: "Loading store applications", failed: "Store applications could not be loaded.", retry: "Try Again", empty: "No store applications", emptyHint: "All applications in this view have been reviewed, or no new applications exist.", unavailable: "Unavailable", ecommerce: "Local product / E-Commerce" };
+  const load = async () => { setLoading(true); setError(""); try { setStores(await storeService.applications()); } catch (caught) { setError(caught.message); } finally { setLoading(false); } };
+  useEffect(() => { queueMicrotask(() => void load()); }, []);
+  const rows = useMemo(() => stores.filter((store) => { const query = search.trim().toLowerCase(); return (!query || `${store.name} ${store.merchant?.fullName} ${store.merchant?.email}`.toLowerCase().includes(query)) && matchesStatusFilter(store.approvalStatus, status, ["APPROVED", "REJECTED"]); }), [search, status, stores]);
+  const pageSize = 8; const visibleRows = rows.slice((page - 1) * pageSize, page * pageSize);
+  return <div className="page-container admin-operations-page min-w-0">
+    <PageHeader eyebrow={c.eyebrow} title={c.title} description={c.description} />
+    <section className="card admin-toolbar"><label><span>{c.search}</span><input type="search" value={search} onChange={(event) => { setSearch(event.target.value); setPage(1); }} placeholder={c.searchHint} /></label><label><span>{c.status}</span><select value={status} onChange={(event) => { setStatus(event.target.value); setPage(1); }}><option value="ALL">{c.all}</option><option value="uncompleted">{t("common.uncompleted")}</option>{["PENDING", "APPROVED", "REJECTED"].map((value) => <option value={value} key={value}>{statusLabel(value)}</option>)}</select></label></section>
+    {error && <section className="admin-feedback error" role="alert"><strong>{c.failed}</strong><p>{error}</p><button type="button" onClick={load}>{c.retry}</button></section>}
+    {loading ? <LoadingPanel label={c.load} rows={5} /> : rows.length ? <><div className="admin-table-wrap hidden md:block"><table className="admin-data-table"><thead><tr><th>{c.store}</th><th>{c.owner}</th><th>{c.category}</th><th>{c.submitted}</th><th>{c.status}</th><th>{c.action}</th></tr></thead><tbody>{visibleRows.map((store) => <tr key={store.id}><td><strong>{store.name}</strong><br/><small>{store.location?.address || c.unavailable}</small></td><td>{store.merchant?.fullName || "—"}<br/><small>{store.merchant?.email || "—"}</small></td><td>{c.ecommerce}</td><td>{formatDate(store.createdAt)}</td><td><StatusBadge status={store.approvalStatus} /></td><td><Link className="admin-row-action" to={`/admin/merchant-approval/${store.id}`}>{c.review}</Link></td></tr>)}</tbody></table></div><div className="admin-record-list md:hidden">{visibleRows.map((store) => <article className="card admin-record-card" key={store.id}><div className="admin-record-heading"><div><strong>{store.name}</strong><span>{store.merchant?.fullName || "—"}</span></div><StatusBadge status={store.approvalStatus} /></div><dl><div><dt>{c.category}</dt><dd>{c.ecommerce}</dd></div><div><dt>{c.submitted}</dt><dd>{formatDate(store.createdAt)}</dd></div></dl><Link className="admin-row-action" to={`/admin/merchant-approval/${store.id}`}>{c.review} →</Link></article>)}</div><Pagination page={page} pageSize={pageSize} totalItems={rows.length} onPageChange={setPage}/></> : <EmptyState title={c.empty} description={c.emptyHint} />}
+  </div>;
+}

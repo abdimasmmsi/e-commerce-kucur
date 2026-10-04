@@ -1,0 +1,20 @@
+const test = require("node:test"); const assert = require("node:assert/strict");
+const { ACTIVE_ORDER_STATUSES, TERMINAL_ORDER_STATUSES, availabilityOverlaps, createDeliveryService, deliveryOrderEligible, effectiveCapacity, resolveDeliveryDate } = require("./services/deliveryService");
+
+test("delivery date before cutoff remains current Jakarta day",()=>assert.equal(resolveDeliveryDate("2026-08-27T08:30:00Z","16:00"),"2026-08-27"));
+test("delivery date after cutoff moves to next day",()=>assert.equal(resolveDeliveryDate("2026-08-27T09:15:00Z","16:00"),"2026-08-28"));
+test("delivery date uses Asia Jakarta rather than host timezone",()=>assert.equal(resolveDeliveryDate("2026-08-26T18:00:00Z","16:00"),"2026-08-27"));
+test("profile limit takes precedence when stricter",()=>assert.equal(effectiveCapacity(10,30),10));
+test("platform limit takes precedence when stricter",()=>assert.equal(effectiveCapacity(40,30),30));
+test("open availability overlaps future interval",()=>assert.equal(availabilityOverlaps("2026-08-27","", "2026-08-28","2026-08-29"),true));
+test("separate availability periods do not overlap",()=>assert.equal(availabilityOverlaps("2026-08-20","2026-08-21","2026-08-22","2026-08-23"),false));
+test("paid processing physical order is eligible",()=>assert.equal(deliveryOrderEligible({fulfillmentStatus:"processing",paymentStatus:"paid",deliveryFee:1}),true));
+test("COD pending physical order is eligible without invented payment semantics",()=>assert.equal(deliveryOrderEligible({fulfillmentStatus:"confirmed",paymentStatus:"pending",deliveryFee:1}),true));
+test("cancelled CommerceOrder is excluded",()=>assert.equal(deliveryOrderEligible({fulfillmentStatus:"cancelled",paymentStatus:"paid",deliveryFee:1}),false));
+test("completed CommerceOrder is excluded",()=>assert.equal(deliveryOrderEligible({fulfillmentStatus:"completed",paymentStatus:"paid",deliveryFee:1}),false));
+test("non physical zero fee order is excluded",()=>assert.equal(deliveryOrderEligible({fulfillmentStatus:"processing",paymentStatus:"paid",deliveryFee:0}),false));
+test("active assignment statuses are explicit",()=>assert.deepEqual(ACTIVE_ORDER_STATUSES,["WAITING_PICKUP","PICKED_UP","OUT_FOR_DELIVERY"]));
+test("batch terminal statuses are explicit",()=>assert.deepEqual(TERMINAL_ORDER_STATUSES,["DELIVERED","FAILED","CANCELLED"]));
+test("invalid availability range is rejected",async()=>{const service=createDeliveryService({delivery:{overlappingAvailability:async()=>null}});await assert.rejects(()=>service.createAvailability({startAt:"2026-08-28",endAt:"2026-08-27"},{id:"c"}),e=>e.code==="VALIDATION_ERROR");});
+test("overlapping availability is rejected",async()=>{const service=createDeliveryService({delivery:{overlappingAvailability:async()=>({id:"x"})}});await assert.rejects(()=>service.createAvailability({startAt:"2026-08-27",endAt:"2026-08-28"},{id:"c"}),e=>e.statusCode===409);});
+test("merchant cannot confirm another Store order",async()=>{const service=createDeliveryService({commerce:{findOrder:async()=>({store:{merchantUserId:"other"}})}});await assert.rejects(()=>service.confirmReady("o",{isReady:true},{id:"merchant"}),e=>e.statusCode===403);});

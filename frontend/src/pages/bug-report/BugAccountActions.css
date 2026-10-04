@@ -1,0 +1,36 @@
+.bug-page-actions {
+  display: flex;
+  justify-content: flex-end;
+  margin: 0 0 14px;
+}
+
+.bug-page-actions a,
+.my-bug-create-button {
+  text-decoration: none;
+}
+
+.my-bug-filter {
+  grid-template-columns: minmax(0, 280px) auto;
+  align-items: end;
+  justify-content: space-between;
+  gap: 14px;
+}
+
+.my-bug-create-button {
+  justify-self: end;
+}
+
+@media (max-width: 650px) {
+  .bug-page-actions,
+  .my-bug-filter {
+    display: grid;
+    grid-template-columns: minmax(0, 1fr);
+  }
+
+  .bug-page-actions a,
+  .my-bug-create-button {
+    width: 100%;
+    justify-self: stretch;
+    text-align: center;
+  }
+}

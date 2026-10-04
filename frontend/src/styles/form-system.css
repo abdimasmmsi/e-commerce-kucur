@@ -1,0 +1,113 @@
+/* Shared form rhythm. Keep compact navigation/search forms outside this system. */
+form:not(.customer-nav-search):not(.product-filter-grid) {
+  min-width: 0;
+}
+
+form.card {
+  padding: clamp(22px, 2.2vw, 28px);
+}
+
+form.grid:not(.product-filter-grid),
+.auth-form,
+.account-form,
+.settings-form,
+.bug-form,
+.merchant-apply-form,
+.create-store-form,
+.add-store-form,
+.livein-room-form,
+.stock-form,
+.review-form-component {
+  row-gap: clamp(18px, 1.8vw, 22px);
+}
+
+form:not(.customer-nav-search):not(.product-filter-grid) label {
+  min-width: 0;
+  row-gap: 8px;
+}
+
+form:not(.customer-nav-search):not(.product-filter-grid) label > span:first-child,
+form:not(.customer-nav-search):not(.product-filter-grid) fieldset > legend {
+  line-height: 1.45;
+}
+
+form:not(.customer-nav-search):not(.product-filter-grid)
+  :is(input:not([type="checkbox"]):not([type="radio"]):not([type="range"]), select) {
+  min-height: 46px;
+  padding: 12px 14px;
+}
+
+form:not(.customer-nav-search):not(.product-filter-grid) textarea {
+  min-height: 128px;
+  padding: 13px 14px;
+  line-height: 1.55;
+}
+
+form:not(.customer-nav-search):not(.product-filter-grid) input[type="file"] {
+  padding: 11px 12px;
+  border: 1px solid var(--kucur-border-strong);
+  border-radius: var(--radius-control);
+  background: var(--kucur-surface);
+  color: var(--kucur-text);
+}
+
+form:not(.customer-nav-search):not(.product-filter-grid) label > small {
+  display: block;
+  margin-top: 1px;
+  line-height: 1.5;
+}
+
+form:not(.customer-nav-search):not(.product-filter-grid) fieldset:not(.product-price-range) {
+  min-width: 0;
+  padding: 18px;
+  border-color: var(--kucur-border);
+  border-radius: 12px;
+}
+
+form:not(.customer-nav-search):not(.product-filter-grid) fieldset > legend {
+  padding-inline: 6px;
+  color: var(--kucur-text);
+  font-size: .82rem;
+  font-weight: 750;
+}
+
+form:not(.customer-nav-search):not(.product-filter-grid)
+  :is(.account-form-actions, .auth-actions, .merchant-apply-actions, .create-store-actions, .room-form-actions) {
+  padding-top: 4px;
+}
+
+/* The redesign layer previously flattened this form into edge-to-edge rows. */
+form.bug-form {
+  max-width: 820px;
+  padding: clamp(22px, 2.2vw, 28px);
+  border: 1px solid var(--kucur-border);
+  border-radius: var(--radius-card);
+  background: var(--kucur-surface);
+}
+
+form.bug-form > label {
+  padding-bottom: 0;
+  border-bottom: 0;
+}
+
+/* Composer forms intentionally stay compact while retaining readable spacing. */
+.chat-composer,
+.bug-thread form {
+  row-gap: 12px;
+}
+
+form.chat-composer:not(.product-filter-grid) textarea,
+.bug-thread form:not(.product-filter-grid) textarea {
+  min-height: 92px;
+}
+
+@media (max-width: 520px) {
+  form.card,
+  form.bug-form {
+    padding: 18px;
+  }
+
+  form:not(.customer-nav-search):not(.product-filter-grid) fieldset:not(.product-price-range) {
+    padding: 14px;
+  }
+}

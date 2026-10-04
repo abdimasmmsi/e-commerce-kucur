@@ -1,0 +1,317 @@
+.merchant-workspace,
+.courier-workspace,
+.admin-workspace {
+  width: 100%;
+  max-width: 100%;
+  min-width: 0;
+  min-height: 100vh;
+  background: var(--kucur-bg);
+}
+
+.merchant-layout,
+.courier-layout,
+.admin-layout {
+  display: flex;
+  width: min(100%, 1820px);
+  max-width: 100%;
+  min-width: 0;
+  min-height: calc(100vh - 70px);
+  margin-inline: auto;
+  background: var(--kucur-bg);
+}
+
+.merchant-sidebar,
+.courier-sidebar,
+.admin-sidebar {
+  display: flex;
+  position: sticky;
+  top: 70px;
+  width: 220px;
+  max-width: 220px;
+  min-width: 0;
+  height: calc(100vh - 70px);
+  flex: 0 0 220px;
+  flex-direction: column;
+  padding: 28px 16px 20px;
+  overflow-x: hidden;
+  overflow-y: auto;
+  border-right: 1px solid var(--kucur-border);
+  background: var(--kucur-surface);
+  overscroll-behavior: contain;
+}
+
+.merchant-sidebar-header,
+.courier-sidebar-header,
+.admin-sidebar-header {
+  display: none;
+  align-items: center;
+  justify-content: space-between;
+  min-width: 0;
+  gap: 10px;
+}
+
+.merchant-sidebar-header h2,
+.courier-sidebar-header h2,
+.admin-sidebar-header h2 {
+  min-width: 0;
+  margin: 0;
+  color: var(--kucur-text);
+  font-size: 1.05rem;
+  font-weight: 800;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.merchant-nav,
+.courier-nav,
+.admin-nav {
+  display: flex;
+  width: 100%;
+  max-width: 100%;
+  min-width: 0;
+  flex-direction: column;
+  gap: 5px;
+  margin-top: 0;
+}
+
+.workspace-nav-group {
+  display: grid;
+  min-width: 0;
+  gap: 4px;
+}
+
+.workspace-nav-group + .workspace-nav-group { margin-top: 16px; }
+
+.workspace-nav-group > h3 {
+  margin: 0 10px 5px;
+  color: var(--kucur-text-muted);
+  font-size: .63rem;
+  font-weight: 700;
+  letter-spacing: .1em;
+  text-transform: uppercase;
+}
+
+.workspace-nav-group > a {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  width: 100%;
+  max-width: 100%;
+  min-width: 0;
+  padding: 10px 12px;
+  border: 1px solid transparent;
+  border-radius: 10px;
+  background: transparent;
+  color: var(--kucur-text-muted);
+  font-size: .78rem;
+  font-weight: 600;
+  text-decoration: none;
+}
+
+.workspace-nav-group > a > span:not([class]) {
+  min-width: 0;
+  flex: 1;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.workspace-nav-group > a:hover {
+  border-color: var(--kucur-border);
+  background: var(--kucur-surface-muted);
+  color: var(--kucur-text);
+}
+
+.workspace-nav-group > a.active {
+  border-color: var(--kucur-border);
+  background: var(--kucur-green-soft);
+  color: var(--kucur-text);
+  box-shadow: inset 3px 0 var(--kucur-green);
+  font-weight: 700;
+}
+
+.workspace-nav-icon {
+  width: 17px;
+  height: 17px;
+  flex: 0 0 17px;
+}
+
+.merchant-nav > a,
+.courier-nav > a,
+.admin-nav > a {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 8px;
+  width: 100%;
+  max-width: 100%;
+  min-width: 0;
+  padding: 11px 13px;
+  border: 1px solid transparent;
+  border-radius: 10px;
+  background: transparent;
+  color: var(--kucur-text);
+  font-size: .8rem;
+  font-weight: 700;
+  text-decoration: none;
+  overflow-wrap: anywhere;
+}
+
+.merchant-nav > a:hover,
+.courier-nav > a:hover,
+.admin-nav > a:hover {
+  border-color: var(--kucur-border);
+  background: var(--kucur-surface-muted);
+}
+
+.merchant-nav > a.active,
+.courier-nav > a.active,
+.admin-nav > a.active {
+  border-color: var(--kucur-border);
+  background: var(--kucur-surface-muted);
+  color: var(--kucur-text);
+  font-weight: 700;
+}
+
+.merchant-sidebar > .layout-session-controls,
+.courier-sidebar > .layout-session-controls,
+.admin-sidebar > .layout-session-controls {
+  margin-top: auto;
+}
+
+.merchant-main,
+.courier-main,
+.admin-main {
+  flex: 1 1 0%;
+  width: 100%;
+  max-width: 100%;
+  min-width: 0;
+  padding: 32px clamp(16px, 3vw, 48px);
+  background: var(--kucur-bg);
+}
+
+.merchant-mobile-header,
+.courier-mobile-header,
+.admin-mobile-header {
+  display: none;
+  width: 100%;
+  max-width: 100%;
+  min-width: 0;
+}
+
+@media (max-width: 1024px) {
+  .merchant-sidebar,
+  .courier-sidebar,
+  .admin-sidebar {
+    width: 220px;
+    max-width: 220px;
+    flex-basis: 220px;
+  }
+
+  .merchant-main,
+  .courier-main,
+  .admin-main { padding: 24px; }
+}
+
+@media (max-width: 768px) {
+  .merchant-layout,
+  .courier-layout,
+  .admin-layout { display: block; }
+
+  .merchant-sidebar,
+  .courier-sidebar,
+  .admin-sidebar {
+    position: fixed;
+    inset: 0 auto 0 0;
+    z-index: 1100;
+    width: 280px;
+    max-width: 85vw;
+    height: 100vh;
+    height: 100dvh;
+    overflow-x: hidden;
+    overflow-y: auto;
+    padding: 20px;
+    transform: translateX(-100%);
+    transition: transform .25s ease;
+  }
+
+  .merchant-sidebar-header,
+  .courier-sidebar-header,
+  .admin-sidebar-header {
+    display: flex;
+    margin-bottom: 16px;
+  }
+
+  .merchant-sidebar.open,
+  .courier-sidebar.open,
+  .admin-sidebar.open { transform: translateX(0); }
+
+  .merchant-overlay,
+  .courier-overlay,
+  .admin-overlay {
+    position: fixed;
+    inset: 0;
+    z-index: 1000;
+    display: block;
+    width: 100%;
+    max-width: 100%;
+    padding: 0;
+    border: 0;
+    background: rgba(17,24,39,.32);
+  }
+
+  .merchant-main,
+  .courier-main,
+  .admin-main {
+    width: 100%;
+    max-width: 100%;
+    min-width: 0;
+    margin-left: 0;
+    padding: 16px;
+  }
+
+  .merchant-mobile-header,
+  .courier-mobile-header,
+  .admin-mobile-header {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    margin-bottom: 20px;
+  }
+
+  .merchant-mobile-header strong,
+  .courier-mobile-header strong,
+  .admin-mobile-header strong {
+    min-width: 0;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+  }
+
+  .merchant-menu-button,
+  .courier-menu-button,
+  .admin-menu-button {
+    display: grid;
+    width: 40px;
+    height: 40px;
+    flex: 0 0 40px;
+    place-items: center;
+    padding: 0;
+    border: 1px solid var(--kucur-border);
+    border-radius: 8px;
+    background: var(--kucur-surface);
+    color: var(--kucur-text);
+    font-size: 1.05rem;
+  }
+}
+
+@media (max-width: 390px) {
+  .merchant-main,
+  .courier-main,
+  .admin-main { padding: 12px; }
+
+  .merchant-sidebar,
+  .courier-sidebar,
+  .admin-sidebar { padding: 16px; }
+}

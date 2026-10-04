@@ -1,0 +1,7 @@
+const express = require("express");
+const { createCartController, createCheckoutController, createOrderController } = require("../controllers/commerceController");
+const customerOnly = (auth) => [auth.requireAuth, auth.requireRole("customer")];
+const createCartRoutes = ({ cartService, authMiddleware }) => { const router = express.Router(); const controller = createCartController(cartService); router.use(...customerOnly(authMiddleware)); router.get("/", controller.get); router.post("/items", controller.add); router.patch("/items/:cartItemId", controller.update); router.delete("/items/:cartItemId", controller.remove); return router; };
+const createCheckoutRoutes = ({ commerceService, authMiddleware }) => { const router = express.Router(); const controller = createCheckoutController(commerceService); router.use(...customerOnly(authMiddleware)); router.post("/preview", controller.preview); router.post("/orders", controller.create); return router; };
+const createOrderRoutes = ({ commerceService, authMiddleware }) => { const router = express.Router(); const controller = createOrderController(commerceService); router.use(authMiddleware.requireAuth); router.get("/", controller.list); router.get("/:orderId", controller.get); router.patch("/:orderId/fulfillment", controller.transition); router.post("/:orderId/cancel", controller.cancel); return router; };
+module.exports = { createCartRoutes, createCheckoutRoutes, createOrderRoutes };

@@ -1,0 +1,415 @@
+{
+  "database": "kucur",
+  "capturedAt": "2026-09-03T08:05:14.308Z",
+  "legacyCounts": {
+    "admin_fee_obligations": 5,
+    "admin_fee_settlement_items": 0,
+    "admin_fee_settlements": 0,
+    "audit_records": 117,
+    "cart_items": 0,
+    "carts": 2,
+    "checkout_transactions": 4,
+    "commerce_order_activities": 12,
+    "commerce_order_items": 4,
+    "commerce_orders": 9,
+    "conversation_contexts": 2,
+    "conversation_participants": 12,
+    "conversations": 6,
+    "courier_availabilities": 1,
+    "courier_profiles": 1,
+    "delivery_activities": 15,
+    "delivery_batch_orders": 6,
+    "delivery_batches": 6,
+    "delivery_proofs": 4,
+    "live_in_booking_activities": 0,
+    "live_in_booking_rooms": 1,
+    "live_in_bookings": 1,
+    "live_in_group_offer_rooms": 2,
+    "live_in_group_offers": 1,
+    "live_in_group_requests": 1,
+    "live_in_meal_plans": 1,
+    "live_in_profiles": 1,
+    "live_in_review_targets": 1,
+    "live_in_room_meal_overrides": 1,
+    "live_in_room_night_reservations": 2,
+    "live_in_rooms": 2,
+    "message_reads": 7,
+    "messages": 10,
+    "notifications": 51,
+    "payment_attempts": 5,
+    "pickup_confirmations": 0,
+    "platform_settings": 1,
+    "platform_transactions": 7,
+    "product_images": 0,
+    "product_options": 2,
+    "product_review_targets": 4,
+    "product_variants": 3,
+    "products": 3,
+    "review_photos": 0,
+    "review_replies": 3,
+    "reviews": 6,
+    "roles": 4,
+    "sessions": 98,
+    "stock_reservations": 3,
+    "store_initial_fees": 3,
+    "store_installment_payments": 2,
+    "store_installment_penalties": 11,
+    "store_installments": 10,
+    "store_status_history": 5,
+    "stores": 8,
+    "tourism_booking_activities": 0,
+    "tourism_bookings": 1,
+    "tourism_group_offers": 0,
+    "tourism_group_requests": 1,
+    "tourism_packages": 2,
+    "tourism_review_targets": 1,
+    "tourism_schedules": 2,
+    "user_roles": 7,
+    "users": 5,
+    "voluntary_contributions": 0
+  },
+  "legacy": {
+    "admin_fee_obligations": {
+      "count": 5,
+      "sha256": "926f1ff76af95cb8bf5c9aaf30226aae4d5d921af9a0d86c7fd6fd0ca0c56976"
+    },
+    "admin_fee_settlement_items": {
+      "count": 0,
+      "sha256": "4f53cda18c2baa0c0354bb5f9a3ecbe5ed12ab4d8e11ba873c2f11161202b945"
+    },
+    "admin_fee_settlements": {
+      "count": 0,
+      "sha256": "4f53cda18c2baa0c0354bb5f9a3ecbe5ed12ab4d8e11ba873c2f11161202b945"
+    },
+    "audit_records": {
+      "count": 117,
+      "sha256": "d4c4612e062ccc2320a91dc2969738a89c1f877fa9c737bc25b554e363f72fc0"
+    },
+    "cart_items": {
+      "count": 0,
+      "sha256": "4f53cda18c2baa0c0354bb5f9a3ecbe5ed12ab4d8e11ba873c2f11161202b945"
+    },
+    "carts": {
+      "count": 2,
+      "sha256": "30b30ba4296faffa99253bace794cec23c5b0a60db6f45bcc7751d19e377a4da"
+    },
+    "checkout_transactions": {
+      "count": 4,
+      "sha256": "0b36adf09f5daaebdce19e667b9beccdb010a24d4a99e9df92bb5f9f91f4cf08"
+    },
+    "commerce_order_activities": {
+      "count": 12,
+      "sha256": "606156c0fff8602f70f4a5a4726e06e8ae6e64a3bf7fe2f17524e8da560a8fa6"
+    },
+    "commerce_order_items": {
+      "count": 4,
+      "sha256": "9d468ee89c562dfcd51e3b5a480e9315582ee3212bd98ca476cbc3dd4f9361ee"
+    },
+    "commerce_orders": {
+      "count": 9,
+      "sha256": "46994775d25d2ea32da2508dbe79248b196303889f2bd0d8653fdc5cdcd63496"
+    },
+    "conversation_contexts": {
+      "count": 2,
+      "sha256": "51bfa1cfc9ead74e2cd4c5df392d5c68e0ad7e6ca41bb7c6b31c385e785753e3"
+    },
+    "conversation_participants": {
+      "count": 12,
+      "sha256": "19f14bb45646792c94e64ed93372b623d7dc52cf41a5e9cb3527a4442146cd85"
+    },
+    "conversations": {
+      "count": 6,
+      "sha256": "a43ee1b2c8e2411d81ab0b250e398551a7f6dab19d54aaa755aa2ac49ad46489"
+    },
+    "courier_availabilities": {
+      "count": 1,
+      "sha256": "d41262256e793d2d005ff86da3ec00f1ec35064dd8415ba6c50c43ee5a43089f"
+    },
+    "courier_profiles": {
+      "count": 1,
+      "sha256": "5b223ce8ce543a9d0dadeea09dd2908678a5538a67edcbee26338b7562dc0d59"
+    },
+    "delivery_activities": {
+      "count": 15,
+      "sha256": "3e67f5079a8fbb4be0ba3c339aa0b768e5592749d2ad6dca08af0caf824de50e"
+    },
+    "delivery_batch_orders": {
+      "count": 6,
+      "sha256": "2bcedae0382eb806e19570cb4385b83d89105a97dca9af82785cb4c6a0a15b35"
+    },
+    "delivery_batches": {
+      "count": 6,
+      "sha256": "1aa507ed763d6e4e408c3c6b392cc2108d3d6c313b52f350924052e0fa99a0f4"
+    },
+    "delivery_proofs": {
+      "count": 4,
+      "sha256": "f0c954128cd8865b0b36bf61cb5bcb1160d53e6e1aaec0a764642e12d223ac03"
+    },
+    "live_in_booking_activities": {
+      "count": 0,
+      "sha256": "4f53cda18c2baa0c0354bb5f9a3ecbe5ed12ab4d8e11ba873c2f11161202b945"
+    },
+    "live_in_booking_rooms": {
+      "count": 1,
+      "sha256": "989cc4e3425c0a1b664ba810e70c9b49c281df46cfd142bee308a458dfcc098f"
+    },
+    "live_in_bookings": {
+      "count": 1,
+      "sha256": "7f02b68f2096c1fbdfe3752d2bbd0467160d933b9b1a283870d965c4ef3fd0e5"
+    },
+    "live_in_group_offer_rooms": {
+      "count": 2,
+      "sha256": "06db81d36576533a40b7c073263dd992d051f8343ebf8694ca1bcc58464a9388"
+    },
+    "live_in_group_offers": {
+      "count": 1,
+      "sha256": "54ac05a7374db99de6599ee52f2a56bb0c0612b8d0ccbadbf269cb60348b2210"
+    },
+    "live_in_group_requests": {
+      "count": 1,
+      "sha256": "569ab58bbb28ac8ac49fc05db62a438de5830ea9cfa23c2db6136ed3fdcbc38d"
+    },
+    "live_in_meal_plans": {
+      "count": 1,
+      "sha256": "7ea674309dbb2916d45380611090b471ac663a9edeb45674d89d375e677d4bd8"
+    },
+    "live_in_profiles": {
+      "count": 1,
+      "sha256": "61350d81cb5cab108ff87db7daf83762ea4c2fc74357d95748e62b5991cf5a54"
+    },
+    "live_in_review_targets": {
+      "count": 1,
+      "sha256": "75bb3f4682153f2786f6f4a75f9ace664686953233e14ae08afae88955350d4f"
+    },
+    "live_in_room_meal_overrides": {
+      "count": 1,
+      "sha256": "cbfb1fceefe8333c9b0bf7297ec99d86994b30a68d2d41c639a277ba25538ec1"
+    },
+    "live_in_room_night_reservations": {
+      "count": 2,
+      "sha256": "acacd73c82a623e6e8db92939f1246be553fcf12db25003f8b372afbe326b7d1"
+    },
+    "live_in_rooms": {
+      "count": 2,
+      "sha256": "dc1207ef3c2adf5e608f44cb97661fd8a76f05cea0e508c0772fcd2e0db737fb"
+    },
+    "message_reads": {
+      "count": 7,
+      "sha256": "4aef82663eba3d996b9675a6974c09e5a86f257142c3922c0c6b14e0c77d6ade"
+    },
+    "messages": {
+      "count": 10,
+      "sha256": "e608c67ce6ae9c202777cb214b5ba4ea927948f28597a5fd49716a65770cb74c"
+    },
+    "notifications": {
+      "count": 51,
+      "sha256": "f504fe3226c203885f9de55003685bc24cd0ec8f58dc6cf65ffda8d2bb1da619"
+    },
+    "payment_attempts": {
+      "count": 5,
+      "sha256": "df1949a89860d8211f957f5a0120a5c87e0a9acb9e114ad7520343894838b9f6"
+    },
+    "pickup_confirmations": {
+      "count": 0,
+      "sha256": "4f53cda18c2baa0c0354bb5f9a3ecbe5ed12ab4d8e11ba873c2f11161202b945"
+    },
+    "platform_settings": {
+      "count": 1,
+      "sha256": "0e85284c2b17ab5226f93e898b7ac9693f07733392c940932dff86cc4a75058b"
+    },
+    "platform_transactions": {
+      "count": 7,
+      "sha256": "08df8803c5cc31704aa7d1cc25460fdd0d3bcf0bcbb958c7b68009a4431932ba"
+    },
+    "product_images": {
+      "count": 0,
+      "sha256": "4f53cda18c2baa0c0354bb5f9a3ecbe5ed12ab4d8e11ba873c2f11161202b945"
+    },
+    "product_options": {
+      "count": 2,
+      "sha256": "4761fe6f2ebf9d733e0cccd2f4d6b9192ced61d1902654ab098408399f78476f"
+    },
+    "product_review_targets": {
+      "count": 4,
+      "sha256": "9c63ad69ed6d400ca2c650b5b327492fe28548dd99b4e90d6d8eab005fa78ef0"
+    },
+    "product_variants": {
+      "count": 3,
+      "sha256": "d3234fdf6705feaa7bb84ac177898ab9e52d82a1b4e4b450e40594fefa0f52c2"
+    },
+    "products": {
+      "count": 3,
+      "sha256": "45b031e29c7ca2d7808eedb6c7042067116eec00f78e6784dffc3d57db85836a"
+    },
+    "review_photos": {
+      "count": 0,
+      "sha256": "4f53cda18c2baa0c0354bb5f9a3ecbe5ed12ab4d8e11ba873c2f11161202b945"
+    },
+    "review_replies": {
+      "count": 3,
+      "sha256": "055b0421700e64c4812289dacce7439d7cf3b79a100926e548f7e28c0b5f711c"
+    },
+    "reviews": {
+      "count": 6,
+      "sha256": "c4349e5f9d9235d8659bf42b2001ece92b3e4d20de6200e557227ab7ced44882"
+    },
+    "roles": {
+      "count": 4,
+      "sha256": "cd8409b8ad60622dd0aaff752f80301c9117d4b42bb6462d7cf7e645c46ae069"
+    },
+    "sessions": {
+      "count": 98,
+      "sha256": "72abb26cd572f1ba06fcf6d0bf35b86682f1c9c79b2b0903281c420f8a5334cc"
+    },
+    "stock_reservations": {
+      "count": 3,
+      "sha256": "bada9c810c0c9415da0da3427b9b1ced4aca07d9a99f4c64a04d95409f36897f"
+    },
+    "store_initial_fees": {
+      "count": 3,
+      "sha256": "316aff433c382b0643d7c28bb4ce3e3a49202ef209138edbe4b0f30e366fc78f"
+    },
+    "store_installment_payments": {
+      "count": 2,
+      "sha256": "921945afb1935443821349f3a2f2343d248bf8a41c56a5829ed5302e7b1c039f"
+    },
+    "store_installment_penalties": {
+      "count": 11,
+      "sha256": "9615ed013d83458a704084870f28c4f306f54e7c82bde895f15f7e1e52d23bfb"
+    },
+    "store_installments": {
+      "count": 10,
+      "sha256": "029cd3d4e04cfd5d666f25667a618d253ac202a8e46a3f478a81debd9c74884c"
+    },
+    "store_status_history": {
+      "count": 5,
+      "sha256": "d3bc34ea7a0eb262b6ba505353e719fef56a6611c81f85722837d3facd29b227"
+    },
+    "stores": {
+      "count": 8,
+      "sha256": "cc2f87e56e9b14182c0adb79443c407cf1a501381cd942064bbd649e4e6e8051"
+    },
+    "tourism_booking_activities": {
+      "count": 0,
+      "sha256": "4f53cda18c2baa0c0354bb5f9a3ecbe5ed12ab4d8e11ba873c2f11161202b945"
+    },
+    "tourism_bookings": {
+      "count": 1,
+      "sha256": "0813d7fd3417ff12e6fab7af05bc84a1df3154a192d0df8d660c78f5d0f3d280"
+    },
+    "tourism_group_offers": {
+      "count": 0,
+      "sha256": "4f53cda18c2baa0c0354bb5f9a3ecbe5ed12ab4d8e11ba873c2f11161202b945"
+    },
+    "tourism_group_requests": {
+      "count": 1,
+      "sha256": "02cc36ee18ac2cef94f4064dbebe862157b5db892745b356a489d44030f7f10d"
+    },
+    "tourism_packages": {
+      "count": 2,
+      "sha256": "8e3f49cff3b1afcd9cecc00d31995bbfefbf51e89b184fb26808958b465a069d"
+    },
+    "tourism_review_targets": {
+      "count": 1,
+      "sha256": "9aa050ac13ab57f1c1e4fab0a82c10969a92300a1b669e8cd1b0bef15efe3d93"
+    },
+    "tourism_schedules": {
+      "count": 2,
+      "sha256": "8f15f839cbdc6231986e5e8b0916151f74fd9feddb6b3acc486f5e8a9b1d0ee4"
+    },
+    "user_roles": {
+      "count": 7,
+      "sha256": "e6a241008da46f4e4e1c206ef3f965968b29d4d5bf9e8e662e35026c72a87656"
+    },
+    "users": {
+      "count": 5,
+      "sha256": "5ec223db69f3234b51484873e79f0ea7a1b91d7524e37aabf584c5cd66b72100"
+    },
+    "voluntary_contributions": {
+      "count": 0,
+      "sha256": "4f53cda18c2baa0c0354bb5f9a3ecbe5ed12ab4d8e11ba873c2f11161202b945"
+    }
+  },
+  "targets": {
+    "targetUser": {
+      "count": 5,
+      "sha256": "f6cc482970d37982de3ffb1fcfc1cf1b603fec3532c41faba74faab7c1f748ca"
+    },
+    "targetUserRole": {
+      "count": 7,
+      "sha256": "8a2cd0b3683c67ab49d287735483263bfae511f50ed084fb746cd896dd09eae5"
+    },
+    "targetSession": {
+      "count": 144,
+      "sha256": "4eb67d4c80c61ba41a118ea5f8ba0a85f63e6c421b2884a7c5e8eabc6b463a75"
+    },
+    "targetPlatformSettings": {
+      "count": 1,
+      "sha256": "de979aa4883a6467e5623553d1a3e446b0dc84a31b0c2e5f929e38770648b6cb"
+    },
+    "targetStore": {
+      "count": 6,
+      "sha256": "d66a6d198e9dd210e74941eda0581a0adecad6b361e2cabe2aebfc10cfc7e238"
+    },
+    "targetProduct": {
+      "count": 3,
+      "sha256": "3f9107a26add299bf7717c2745c31ec645573d261ded6a6c998552f77c66522d"
+    },
+    "targetProductVariant": {
+      "count": 3,
+      "sha256": "3f42a4286dc9d9d456c433c0193ee3008ab7aea2a702a003df20e084facb43b9"
+    },
+    "targetCart": {
+      "count": 2,
+      "sha256": "416acabfa5a5d6986f0ef6d8d50499e900802fc1701f14ee6ea13353896b0968"
+    },
+    "targetCartItem": {
+      "count": 0,
+      "sha256": "4f53cda18c2baa0c0354bb5f9a3ecbe5ed12ab4d8e11ba873c2f11161202b945"
+    },
+    "targetCommerceOrder": {
+      "count": 11,
+      "sha256": "67a275e52d714c85088a3560bedc750fbafe28634ab73874a737d814d07063d7"
+    },
+    "targetCommerceOrderItem": {
+      "count": 6,
+      "sha256": "2f975b1bc785b5aee61ca4a3fd6e571306b0d3698c747ae7f12edd98c23a9c5c"
+    },
+    "targetPaymentAttempt": {
+      "count": 7,
+      "sha256": "081a6e42129f6c5545be8af2fa689cd290ec8d76a489baff178b6e103a81e0df"
+    },
+    "targetMerchantFee": {
+      "count": 31,
+      "sha256": "15ef46a35eef334850a5f9226d5456c76880f0e16a9fd0b7baafe4ec28df959c"
+    },
+    "targetCourierProfile": {
+      "count": 1,
+      "sha256": "bb90507ec7f3c45080fccf0353ba443c63007673523947e6a2387518cbe529ae"
+    },
+    "targetDeliveryBatch": {
+      "count": 8,
+      "sha256": "3c10c08959c168b85164a16f4296c5caf9fc18e5e69b118e55dc271335ebc78f"
+    },
+    "targetDeliveryBatchOrder": {
+      "count": 8,
+      "sha256": "1598b596d88e6eb36ef2209218c26fb9f0c4acaa3de1a24b358ccb60b684b0ad"
+    },
+    "targetReview": {
+      "count": 6,
+      "sha256": "841171d59f61784dc72aed0e8748b5dfadcc7c92c43d27dc333b15ca0dba2789"
+    },
+    "targetConversation": {
+      "count": 6,
+      "sha256": "4fe4c2e62da6400c553b5cb071104c6e3766e771988be5b68974076fe14ce1b9"
+    },
+    "targetMessage": {
+      "count": 14,
+      "sha256": "d8e26983f3b04644a310df9f566474517b8bef71ceb2a3b018c569392402d615"
+    },
+    "targetNotification": {
+      "count": 81,
+      "sha256": "8ce92a55be5d0508e27534bb8ccd1067465666fabae87933c4f41ac7da859520"
+    }
+  }
+}

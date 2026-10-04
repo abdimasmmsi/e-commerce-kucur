@@ -1,0 +1,1 @@
+.chat-order-toolbar{display:flex;width:100%;max-width:100%;min-width:0;align-items:center;justify-content:space-between;gap:10px;padding-bottom:10px;border-bottom:1px solid #e5e7eb}.chat-order-toolbar>span{color:#6b7280;font-size:.7rem}@media(max-width:390px){.chat-order-toolbar{align-items:stretch;flex-direction:column}}

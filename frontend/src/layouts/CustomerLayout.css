@@ -1,0 +1,132 @@
+.customer-layout {
+  width: 100%;
+  max-width: 100%;
+  min-width: 0;
+  min-height: 100vh;
+  background: #f7f7f7;
+}
+
+.customer-main {
+  width: min(1200px, calc(100% - 32px));
+  max-width: 100%;
+  min-width: 0;
+  margin: 0 auto;
+  padding: 32px 0 48px;
+}
+
+@media (max-width: 767px) {
+  .customer-main {
+    width: min(100% - 20px, 1200px);
+    padding: 14px 0 calc(78px + env(safe-area-inset-bottom));
+  }
+}
+
+/* Shared overflow guards for all public and customer pages. */
+.customer-main .customer-page,
+.customer-main .page-container,
+.customer-main .customer-home-page,
+.customer-main .customer-detail-content,
+.customer-main .customer-side-panel,
+.customer-main .cart-layout,
+.customer-main .cart-seller-list,
+.customer-main .checkout-layout,
+.customer-main .checkout-content,
+.customer-main .tourism-booking-cards {
+  max-width: 100%;
+  min-width: 0;
+}
+
+.customer-main .customer-toolbar > *,
+.customer-main .customer-catalog-grid > *,
+.customer-main .customer-card-meta > *,
+.customer-main .cart-seller-group article > *,
+.customer-main .checkout-item > *,
+.customer-main .checkout-calculation > div > *,
+.customer-main .customer-info-grid > *,
+.customer-main .tourism-booking-cards article > *,
+.customer-main .customer-notification-list article > * {
+  min-width: 0;
+}
+
+.customer-main .customer-table-wrap {
+  width: 100%;
+  max-width: 100%;
+  min-width: 0;
+  overflow-x: auto;
+  overscroll-behavior-x: contain;
+  -webkit-overflow-scrolling: touch;
+}
+
+.customer-main .customer-table {
+  max-width: none;
+}
+
+.customer-main h1,
+.customer-main h2,
+.customer-main h3,
+.customer-main p,
+.customer-main strong,
+.customer-main span,
+.customer-main a,
+.customer-main button {
+  overflow-wrap: anywhere;
+}
+
+@media (max-width: 650px) {
+  .customer-main .customer-toolbar,
+  .customer-main .customer-info-grid,
+  .customer-main .customer-card-actions {
+    grid-template-columns: minmax(0, 1fr);
+  }
+
+  .customer-main .customer-catalog-grid,
+  .customer-main .tourism-booking-cards {
+    grid-template-columns: repeat(auto-fit, minmax(min(240px, 100%), 1fr));
+  }
+
+  .customer-main .customer-card-meta,
+  .customer-main .seller-subtotal,
+  .customer-main .cart-summary > div,
+  .customer-main .checkout-item,
+  .customer-main .checkout-calculation > div,
+  .customer-main .checkout-summary > div:not(.customer-notice),
+  .customer-main .tourism-booking-cards article > div:not(.customer-row-actions) {
+    align-items: flex-start;
+    flex-wrap: wrap;
+  }
+
+  .customer-main .customer-card-meta strong,
+  .customer-main .seller-subtotal strong,
+  .customer-main .cart-summary strong,
+  .customer-main .checkout-item strong,
+  .customer-main .checkout-calculation strong,
+  .customer-main .checkout-summary strong,
+  .customer-main .tourism-booking-cards article > div > strong {
+    min-width: 0;
+    text-align: right;
+  }
+}
+
+@media (max-width: 390px) {
+  .customer-main {
+    width: calc(100% - 16px);
+  }
+
+  .customer-main .card {
+    padding: 16px;
+  }
+
+  .customer-main .customer-catalog-grid,
+  .customer-main .tourism-booking-cards {
+    grid-template-columns: minmax(0, 1fr);
+  }
+
+  .customer-main .customer-status {
+    max-width: 100%;
+    white-space: normal;
+  }
+
+  .customer-main .customer-card-image {
+    margin-inline: -16px;
+  }
+}

@@ -1,0 +1,5 @@
+ALTER TABLE "stores"
+ADD COLUMN "phone" VARCHAR(20),
+ADD COLUMN "image" VARCHAR(1000),
+ADD COLUMN "location_source" VARCHAR(16) NOT NULL DEFAULT 'local',
+ADD COLUMN "location_ref" VARCHAR(255);

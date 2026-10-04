@@ -1,0 +1,156 @@
+{
+  "generatedAt": "2026-09-01T10:53:58.971Z",
+  "mode": "READ_ONLY",
+  "domains": [
+    {
+      "domain": "AUTH",
+      "operation": "users.all",
+      "recordsCompared": 5,
+      "matches": true,
+      "expectedNormalizedDifferences": 0,
+      "unexpectedMismatches": 0
+    },
+    {
+      "domain": "AUTH",
+      "operation": "sessions.all",
+      "recordsCompared": 97,
+      "matches": true,
+      "expectedNormalizedDifferences": 0,
+      "unexpectedMismatches": 0
+    },
+    {
+      "domain": "AUTH",
+      "operation": "users.findByEmail:00000000-0000-4000-8000-000000000001",
+      "recordsCompared": 1,
+      "matches": true,
+      "expectedNormalizedDifferences": 0,
+      "unexpectedMismatches": 0
+    },
+    {
+      "domain": "AUTH",
+      "operation": "users.findByEmail:00000000-0000-4000-8000-000000000002",
+      "recordsCompared": 1,
+      "matches": true,
+      "expectedNormalizedDifferences": 0,
+      "unexpectedMismatches": 0
+    },
+    {
+      "domain": "AUTH",
+      "operation": "users.findByEmail:00000000-0000-4000-8000-000000000003",
+      "recordsCompared": 1,
+      "matches": true,
+      "expectedNormalizedDifferences": 0,
+      "unexpectedMismatches": 0
+    },
+    {
+      "domain": "AUTH",
+      "operation": "users.findByEmail:00000000-0000-4000-8000-000000000004",
+      "recordsCompared": 1,
+      "matches": true,
+      "expectedNormalizedDifferences": 0,
+      "unexpectedMismatches": 0
+    },
+    {
+      "domain": "AUTH",
+      "operation": "users.findByEmail:00000000-0000-4000-8000-000000000005",
+      "recordsCompared": 1,
+      "matches": true,
+      "expectedNormalizedDifferences": 0,
+      "unexpectedMismatches": 0
+    },
+    {
+      "domain": "STORE",
+      "operation": "stores.list",
+      "recordsCompared": 6,
+      "matches": true,
+      "expectedNormalizedDifferences": 1,
+      "unexpectedMismatches": 0
+    },
+    {
+      "domain": "PRODUCT",
+      "operation": "products.list",
+      "recordsCompared": 3,
+      "matches": true,
+      "expectedNormalizedDifferences": 0,
+      "unexpectedMismatches": 0
+    },
+    {
+      "domain": "CART",
+      "operation": "carts.all",
+      "recordsCompared": 2,
+      "matches": true,
+      "expectedNormalizedDifferences": 0,
+      "unexpectedMismatches": 0
+    },
+    {
+      "domain": "COMMERCE",
+      "operation": "orders.all",
+      "recordsCompared": 9,
+      "matches": true,
+      "expectedNormalizedDifferences": 6,
+      "unexpectedMismatches": 0
+    },
+    {
+      "domain": "PAYMENT",
+      "operation": "payments.retained-count-xor",
+      "recordsCompared": 1,
+      "matches": true,
+      "expectedNormalizedDifferences": 0,
+      "unexpectedMismatches": 0
+    },
+    {
+      "domain": "FINANCE",
+      "operation": "merchant-fees.economic-state",
+      "recordsCompared": 1,
+      "matches": true,
+      "expectedNormalizedDifferences": 0,
+      "unexpectedMismatches": 0
+    },
+    {
+      "domain": "DELIVERY",
+      "operation": "courier.profiles",
+      "recordsCompared": 1,
+      "matches": true,
+      "expectedNormalizedDifferences": 0,
+      "unexpectedMismatches": 0
+    },
+    {
+      "domain": "DELIVERY",
+      "operation": "batches.assignments",
+      "recordsCompared": 6,
+      "matches": true,
+      "expectedNormalizedDifferences": 0,
+      "unexpectedMismatches": 0
+    },
+    {
+      "domain": "REVIEW",
+      "operation": "reviews.product",
+      "recordsCompared": 4,
+      "matches": true,
+      "expectedNormalizedDifferences": 0,
+      "unexpectedMismatches": 0
+    },
+    {
+      "domain": "CHAT",
+      "operation": "conversations.messages",
+      "recordsCompared": 6,
+      "matches": true,
+      "expectedNormalizedDifferences": 0,
+      "unexpectedMismatches": 0
+    },
+    {
+      "domain": "NOTIFICATION",
+      "operation": "notifications.retained",
+      "recordsCompared": 49,
+      "matches": true,
+      "expectedNormalizedDifferences": 3,
+      "unexpectedMismatches": 0
+    }
+  ],
+  "summary": {
+    "operations": 18,
+    "recordsCompared": 195,
+    "expectedNormalizedDifferences": 10,
+    "unexpectedMismatches": 0
+  }
+}

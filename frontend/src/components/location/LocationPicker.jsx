@@ -1,0 +1,30 @@
+import { useState } from "react";
+import LeafletMap from "./LeafletMap";
+import { normalizeLocation, validateLocationCoordinates } from "../../utils/location";
+import { usePreferences } from "../../context/PreferencesContext";
+
+export default function LocationPicker({ value, onChange, labelTitle = "Nama lokasi", addressTitle = "Alamat / deskripsi lokasi" }) {
+  const { t } = usePreferences();
+  const location = { ...normalizeLocation(value), ...(value && typeof value === "object" ? value : {}) };
+  const [geoMessage, setGeoMessage] = useState("");
+  const coordinateError = validateLocationCoordinates(location);
+  const update = (changes) => onChange({ ...location, ...changes });
+  const selectPoint = ({ latitude, longitude }) => { update({ latitude: Number(latitude.toFixed(6)), longitude: Number(longitude.toFixed(6)) }); setGeoMessage(""); };
+  const useMyLocation = () => {
+    if (!navigator.geolocation) return setGeoMessage(t("locationPicker.unsupported"));
+    setGeoMessage(t("locationPicker.locating"));
+    navigator.geolocation.getCurrentPosition((position) => { selectPoint(position.coords); setGeoMessage(t("locationPicker.applied")); }, () => setGeoMessage(t("locationPicker.unavailable")), { enableHighAccuracy: true, timeout: 10000 });
+  };
+  const parsedLatitude = Number(location.latitude); const parsedLongitude = Number(location.longitude);
+  const mapLatitude = Number.isFinite(parsedLatitude) && parsedLatitude >= -90 && parsedLatitude <= 90 && location.latitude !== "" ? parsedLatitude : null;
+  const mapLongitude = Number.isFinite(parsedLongitude) && parsedLongitude >= -180 && parsedLongitude <= 180 && location.longitude !== "" ? parsedLongitude : null;
+  return <section className="col-span-full grid min-w-0 gap-4 rounded-2xl border border-[var(--kucur-border)] bg-[var(--kucur-surface-elevated)] p-4">
+    <div><h2 className="font-bold text-[var(--kucur-text)]">{t("locationPicker.title")}</h2><p className="mt-1 text-sm text-[var(--kucur-text-muted)]">{t("locationPicker.hint")}</p></div>
+    <div className="grid min-w-0 gap-3 sm:grid-cols-2"><label className="grid min-w-0 gap-1.5 text-sm font-semibold"><span>{labelTitle}</span><input className="w-full rounded-xl border border-[var(--kucur-border-strong)] bg-[var(--kucur-surface)] px-3 py-2.5" value={location.label ?? ""} onChange={(event) => update({ label: event.target.value })} /></label><label className="grid min-w-0 gap-1.5 text-sm font-semibold"><span>{addressTitle}</span><textarea className="w-full rounded-xl border border-[var(--kucur-border-strong)] bg-[var(--kucur-surface)] px-3 py-2.5" rows="2" value={location.address ?? ""} onChange={(event) => update({ address: event.target.value })} /></label><label className="grid min-w-0 gap-1.5 text-sm font-semibold"><span>{t("locationPicker.latitude")}</span><input className="w-full rounded-xl border border-[var(--kucur-border-strong)] bg-[var(--kucur-surface)] px-3 py-2.5" type="number" step="any" value={location.latitude ?? ""} onChange={(event) => update({ latitude: event.target.value })} placeholder={t("locationPicker.optional")} /></label><label className="grid min-w-0 gap-1.5 text-sm font-semibold"><span>{t("locationPicker.longitude")}</span><input className="w-full rounded-xl border border-[var(--kucur-border-strong)] bg-[var(--kucur-surface)] px-3 py-2.5" type="number" step="any" value={location.longitude ?? ""} onChange={(event) => update({ longitude: event.target.value })} placeholder={t("locationPicker.optional")} /></label></div>
+    {coordinateError && <p className="rounded-xl bg-rose-50 p-3 text-sm text-rose-700" role="alert">{coordinateError}</p>}
+    <div className="min-w-0 max-w-full overflow-hidden rounded-xl border border-[var(--kucur-border-strong)] bg-[var(--kucur-surface)]"><LeafletMap latitude={mapLatitude} longitude={mapLongitude} label={location.label} editable onSelect={selectPoint} /></div>
+    {mapLatitude === null || mapLongitude === null ? <p className="text-sm text-[var(--kucur-text-muted)]">{t("locationPicker.noPoint")}</p> : <p className="break-words text-sm font-medium text-emerald-800 dark:text-emerald-300">{t("locationPicker.coordinates", { latitude: mapLatitude.toFixed(6), longitude: mapLongitude.toFixed(6) })}</p>}
+    {geoMessage && <p className="text-sm text-[var(--kucur-text-muted)]" role="status">{geoMessage}</p>}
+    <div className="flex flex-wrap gap-2"><button className="rounded-xl border border-[var(--kucur-border-strong)] bg-[var(--kucur-surface)] px-3 py-2 text-sm font-semibold" type="button" onClick={useMyLocation}>{t("locationPicker.useMine")}</button><button className="rounded-xl border border-rose-200 bg-[var(--kucur-surface)] px-3 py-2 text-sm font-semibold text-rose-700 dark:text-rose-300" type="button" onClick={() => update({ latitude: null, longitude: null })} disabled={mapLatitude === null && mapLongitude === null}>{t("locationPicker.clear")}</button></div>
+  </section>;
+}

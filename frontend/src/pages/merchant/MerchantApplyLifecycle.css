@@ -1,0 +1,14 @@
+.merchant-application-status-actions{display:flex!important;justify-content:flex-end!important}
+.merchant-application-status-actions button{padding:10px 14px;border:1px solid #dc2626;border-radius:9px;background:#fff;color:#b91c1c;font:inherit;font-size:.78rem;font-weight:800;cursor:pointer}
+.merchant-application-status-actions button:hover{background:#fef2f2}
+.merchant-application-history{display:grid;gap:18px;margin-top:20px}
+.merchant-application-history-list{display:grid;gap:10px}
+.merchant-application-history-list article{display:grid;min-width:0;gap:5px;padding:14px;border:1px solid var(--kucur-border);border-radius:11px;background:var(--kucur-bg)}
+.merchant-application-history-list article>div{display:flex;min-width:0;align-items:center;justify-content:space-between;gap:12px}
+.merchant-application-history-list p,.merchant-application-history-list small,.merchant-application-history-empty{margin:0;color:var(--kucur-text-muted);font-size:.75rem;overflow-wrap:anywhere}
+.merchant-application-history-list small{display:block}
+.merchant-history-status{flex:0 0 auto;padding:5px 8px;border-radius:999px;background:#fef3c7;color:#92400e;font-size:.67rem;font-weight:800;text-transform:uppercase}
+.merchant-history-status.approved{background:#dcfce7;color:#166534}
+.merchant-history-status.rejected,.merchant-history-status.cancelled{background:#fee2e2;color:#991b1b}
+.merchant-history-reason{color:#991b1b!important}
+@media(max-width:520px){.merchant-application-history-list article>div{align-items:flex-start;flex-direction:column}}

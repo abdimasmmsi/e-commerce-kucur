@@ -1,0 +1,2268 @@
+{
+  "generatedAt": "2026-08-31T00:00:00.000Z",
+  "purpose": "Deterministic legacy-to-final-20-table backfill manifest",
+  "sourceInventory": {
+    "admin_fee_obligations": 5,
+    "admin_fee_settlement_items": 0,
+    "admin_fee_settlements": 0,
+    "audit_records": 117,
+    "cart_items": 0,
+    "carts": 2,
+    "checkout_transactions": 4,
+    "commerce_order_activities": 12,
+    "commerce_order_items": 4,
+    "commerce_orders": 9,
+    "conversation_contexts": 2,
+    "conversation_participants": 12,
+    "conversations": 6,
+    "courier_availabilities": 1,
+    "courier_profiles": 1,
+    "delivery_activities": 15,
+    "delivery_batch_orders": 6,
+    "delivery_batches": 6,
+    "delivery_proofs": 4,
+    "live_in_booking_activities": 0,
+    "live_in_booking_rooms": 1,
+    "live_in_bookings": 1,
+    "live_in_group_offer_rooms": 2,
+    "live_in_group_offers": 1,
+    "live_in_group_requests": 1,
+    "live_in_meal_plans": 1,
+    "live_in_profiles": 1,
+    "live_in_review_targets": 1,
+    "live_in_room_meal_overrides": 1,
+    "live_in_room_night_reservations": 2,
+    "live_in_rooms": 2,
+    "message_reads": 7,
+    "messages": 10,
+    "notifications": 51,
+    "payment_attempts": 5,
+    "pickup_confirmations": 0,
+    "platform_settings": 1,
+    "platform_transactions": 7,
+    "product_images": 0,
+    "product_options": 2,
+    "product_review_targets": 4,
+    "product_variants": 3,
+    "products": 3,
+    "review_photos": 0,
+    "review_replies": 3,
+    "reviews": 6,
+    "roles": 4,
+    "sessions": 97,
+    "stock_reservations": 3,
+    "store_initial_fees": 3,
+    "store_installment_payments": 2,
+    "store_installment_penalties": 11,
+    "store_installments": 10,
+    "store_status_history": 5,
+    "stores": 8,
+    "tourism_booking_activities": 0,
+    "tourism_bookings": 1,
+    "tourism_group_offers": 0,
+    "tourism_group_requests": 1,
+    "tourism_packages": 2,
+    "tourism_review_targets": 1,
+    "tourism_schedules": 2,
+    "user_roles": 7,
+    "users": 5,
+    "voluntary_contributions": 0
+  },
+  "targetCounts": {
+    "targetUser": 5,
+    "targetUserRole": 7,
+    "targetSession": 97,
+    "targetPlatformSettings": 1,
+    "targetStore": 6,
+    "targetProduct": 3,
+    "targetProductVariant": 3,
+    "targetCart": 2,
+    "targetCartItem": 0,
+    "targetCommerceOrder": 9,
+    "targetCommerceOrderItem": 4,
+    "targetMerchantFee": 29,
+    "targetPaymentAttempt": 5,
+    "targetCourierProfile": 1,
+    "targetDeliveryBatch": 6,
+    "targetDeliveryBatchOrder": 6,
+    "targetReview": 4,
+    "targetConversation": 6,
+    "targetMessage": 10,
+    "targetNotification": 49
+  },
+  "normalizations": {
+    "checkoutIdempotency": [
+      {
+        "orderId": "71000000-0000-4000-8000-000000000001",
+        "original": "qa-finance-seed",
+        "normalized": "qa-finance-seed"
+      },
+      {
+        "orderId": "78000000-0000-4000-8000-000000000001",
+        "original": "qa-finance-seed",
+        "normalized": "qa-finance-seed:legacy:000000000001"
+      },
+      {
+        "orderId": "78000000-0000-4000-8000-000000000002",
+        "original": "qa-finance-seed",
+        "normalized": "qa-finance-seed:legacy:000000000002"
+      },
+      {
+        "orderId": "78000000-0000-4000-8000-000000000003",
+        "original": "qa-finance-seed",
+        "normalized": "qa-finance-seed:legacy:000000000003"
+      },
+      {
+        "orderId": "42000000-0000-4000-8000-000000000001",
+        "original": "qa-finance-seed",
+        "normalized": "qa-finance-seed"
+      },
+      {
+        "orderId": "42000000-0000-4000-8000-000000000002",
+        "original": "qa-finance-seed",
+        "normalized": "qa-finance-seed:legacy:000000000002"
+      }
+    ],
+    "inferredStockLifecycle": {
+      "commerceOrderItemId": "72000000-0000-4000-8000-000000000001",
+      "stockStatus": "CONSUMED",
+      "reservedAt": "2026-08-26T18:01:49.511Z",
+      "consumedAt": "2026-08-27T08:31:21.518Z",
+      "releasedAt": null,
+      "timestampSource": "CommerceOrder.createdAt/updatedAt"
+    }
+  },
+  "validations": {
+    "counts": {
+      "targetUser": 5,
+      "targetUserRole": 7,
+      "targetSession": 97,
+      "targetPlatformSettings": 1,
+      "targetStore": 6,
+      "targetProduct": 3,
+      "targetProductVariant": 3,
+      "targetCart": 2,
+      "targetCartItem": 0,
+      "targetCommerceOrder": 9,
+      "targetCommerceOrderItem": 4,
+      "targetMerchantFee": 29,
+      "targetPaymentAttempt": 5,
+      "targetCourierProfile": 1,
+      "targetDeliveryBatch": 6,
+      "targetDeliveryBatchOrder": 6,
+      "targetReview": 4,
+      "targetConversation": 6,
+      "targetMessage": 10,
+      "targetNotification": 49
+    },
+    "duplicateOrderScopes": 0,
+    "paymentXorViolations": 0,
+    "merchantFeeCycles": 0,
+    "collectibleTotal": 325981.8,
+    "stock": {
+      "consumed": 5,
+      "productStock": 35,
+      "reserved": 0,
+      "variantStock": 13
+    },
+    "invalidNotificationFees": 0
+  },
+  "idempotentRerunInserted": {
+    "targetUser": 0,
+    "targetUserRole": 0,
+    "targetSession": 0,
+    "targetPlatformSettings": 0,
+    "targetStore": 0,
+    "targetProduct": 0,
+    "targetProductVariant": 0,
+    "targetCart": 0,
+    "targetCartItem": 0,
+    "targetCommerceOrder": 0,
+    "targetCommerceOrderItem": 0,
+    "targetMerchantFee": 0,
+    "targetPaymentAttempt": 0,
+    "targetCourierProfile": 0,
+    "targetDeliveryBatch": 0,
+    "targetDeliveryBatchOrder": 0,
+    "targetReview": 0,
+    "targetConversation": 0,
+    "targetMessage": 0,
+    "targetNotification": 0
+  },
+  "archives": [
+    {
+      "sourceTable": "stores",
+      "sourceId": "51000000-0000-4000-8000-000000000001",
+      "reason": "ARCHIVE_TOURISM",
+      "validation": "PASS"
+    },
+    {
+      "sourceTable": "stores",
+      "sourceId": "61000000-0000-4000-8000-000000000001",
+      "reason": "ARCHIVE_LIVE_IN",
+      "validation": "PASS"
+    },
+    {
+      "sourceTable": "payment_attempts",
+      "sourceId": "51082c94-8048-468a-857e-33638c9523b9",
+      "reason": "ARCHIVE_LIVE_IN",
+      "validation": "PASS"
+    },
+    {
+      "sourceTable": "payment_attempts",
+      "sourceId": "58fea003-f8bc-4cde-841d-37bed84dc82e",
+      "reason": "ARCHIVE_TOURISM",
+      "validation": "PASS"
+    },
+    {
+      "sourceTable": "reviews",
+      "sourceId": "73000000-0000-4000-8000-000000000002",
+      "reason": "ARCHIVE_TOURISM",
+      "validation": "PASS"
+    },
+    {
+      "sourceTable": "reviews",
+      "sourceId": "73000000-0000-4000-8000-000000000003",
+      "reason": "ARCHIVE_LIVE_IN",
+      "validation": "PASS"
+    },
+    {
+      "sourceTable": "notifications",
+      "sourceId": "74000000-0000-4000-8000-000000000002",
+      "reason": "ARCHIVE_TOURISM_GROUP_REQUEST",
+      "validation": "PASS"
+    },
+    {
+      "sourceTable": "notifications",
+      "sourceId": "74000000-0000-4000-8000-000000000005",
+      "reason": "ARCHIVE_TOURISM_BOOKING",
+      "validation": "PASS"
+    }
+  ],
+  "mappings": [
+    {
+      "sourceTable": "users",
+      "sourceId": "00000000-0000-4000-8000-000000000001",
+      "targetTable": "User",
+      "targetId": "00000000-0000-4000-8000-000000000001",
+      "rule": "PRESERVE_ID_STATUS_TO_IS_ACTIVE",
+      "validation": "PASS"
+    },
+    {
+      "sourceTable": "users",
+      "sourceId": "00000000-0000-4000-8000-000000000002",
+      "targetTable": "User",
+      "targetId": "00000000-0000-4000-8000-000000000002",
+      "rule": "PRESERVE_ID_STATUS_TO_IS_ACTIVE",
+      "validation": "PASS"
+    },
+    {
+      "sourceTable": "users",
+      "sourceId": "00000000-0000-4000-8000-000000000003",
+      "targetTable": "User",
+      "targetId": "00000000-0000-4000-8000-000000000003",
+      "rule": "PRESERVE_ID_STATUS_TO_IS_ACTIVE",
+      "validation": "PASS"
+    },
+    {
+      "sourceTable": "users",
+      "sourceId": "00000000-0000-4000-8000-000000000004",
+      "targetTable": "User",
+      "targetId": "00000000-0000-4000-8000-000000000004",
+      "rule": "PRESERVE_ID_STATUS_TO_IS_ACTIVE",
+      "validation": "PASS"
+    },
+    {
+      "sourceTable": "users",
+      "sourceId": "00000000-0000-4000-8000-000000000005",
+      "targetTable": "User",
+      "targetId": "00000000-0000-4000-8000-000000000005",
+      "rule": "PRESERVE_ID_STATUS_TO_IS_ACTIVE",
+      "validation": "PASS"
+    },
+    {
+      "sourceTable": "user_roles",
+      "sourceId": "00000000-0000-4000-8000-000000000001",
+      "targetTable": "UserRole",
+      "targetId": "00000000-0000-4000-8000-000000000001",
+      "rule": "ROLE_LOOKUP_TO_ENUM",
+      "validation": "PASS"
+    },
+    {
+      "sourceTable": "user_roles",
+      "sourceId": "00000000-0000-4000-8000-000000000002",
+      "targetTable": "UserRole",
+      "targetId": "00000000-0000-4000-8000-000000000002",
+      "rule": "ROLE_LOOKUP_TO_ENUM",
+      "validation": "PASS"
+    },
+    {
+      "sourceTable": "user_roles",
+      "sourceId": "00000000-0000-4000-8000-000000000003",
+      "targetTable": "UserRole",
+      "targetId": "00000000-0000-4000-8000-000000000003",
+      "rule": "ROLE_LOOKUP_TO_ENUM",
+      "validation": "PASS"
+    },
+    {
+      "sourceTable": "user_roles",
+      "sourceId": "00000000-0000-4000-8000-000000000003",
+      "targetTable": "UserRole",
+      "targetId": "00000000-0000-4000-8000-000000000003",
+      "rule": "ROLE_LOOKUP_TO_ENUM",
+      "validation": "PASS"
+    },
+    {
+      "sourceTable": "user_roles",
+      "sourceId": "00000000-0000-4000-8000-000000000004",
+      "targetTable": "UserRole",
+      "targetId": "00000000-0000-4000-8000-000000000004",
+      "rule": "ROLE_LOOKUP_TO_ENUM",
+      "validation": "PASS"
+    },
+    {
+      "sourceTable": "user_roles",
+      "sourceId": "00000000-0000-4000-8000-000000000004",
+      "targetTable": "UserRole",
+      "targetId": "00000000-0000-4000-8000-000000000004",
+      "rule": "ROLE_LOOKUP_TO_ENUM",
+      "validation": "PASS"
+    },
+    {
+      "sourceTable": "user_roles",
+      "sourceId": "00000000-0000-4000-8000-000000000005",
+      "targetTable": "UserRole",
+      "targetId": "00000000-0000-4000-8000-000000000005",
+      "rule": "ROLE_LOOKUP_TO_ENUM",
+      "validation": "PASS"
+    },
+    {
+      "sourceTable": "sessions",
+      "sourceId": "022d2d9a-0992-4659-bab1-3a7d323c5e5b",
+      "targetTable": "Session",
+      "targetId": "022d2d9a-0992-4659-bab1-3a7d323c5e5b",
+      "rule": "PRESERVE_SESSION",
+      "validation": "PASS"
+    },
+    {
+      "sourceTable": "sessions",
+      "sourceId": "031c681a-82b0-459b-83b4-46389351999b",
+      "targetTable": "Session",
+      "targetId": "031c681a-82b0-459b-83b4-46389351999b",
+      "rule": "PRESERVE_SESSION",
+      "validation": "PASS"
+    },
+    {
+      "sourceTable": "sessions",
+      "sourceId": "0a04a1c2-083f-4e72-86ea-3674a2606dee",
+      "targetTable": "Session",
+      "targetId": "0a04a1c2-083f-4e72-86ea-3674a2606dee",
+      "rule": "PRESERVE_SESSION",
+      "validation": "PASS"
+    },
+    {
+      "sourceTable": "sessions",
+      "sourceId": "0a19bc78-2560-41be-875f-ba108125fd1f",
+      "targetTable": "Session",
+      "targetId": "0a19bc78-2560-41be-875f-ba108125fd1f",
+      "rule": "PRESERVE_SESSION",
+      "validation": "PASS"
+    },
+    {
+      "sourceTable": "sessions",
+      "sourceId": "0c246d6e-a128-4533-9592-ff1555108a25",
+      "targetTable": "Session",
+      "targetId": "0c246d6e-a128-4533-9592-ff1555108a25",
+      "rule": "PRESERVE_SESSION",
+      "validation": "PASS"
+    },
+    {
+      "sourceTable": "sessions",
+      "sourceId": "0d485e64-5478-4c0e-9522-367c7e5547ce",
+      "targetTable": "Session",
+      "targetId": "0d485e64-5478-4c0e-9522-367c7e5547ce",
+      "rule": "PRESERVE_SESSION",
+      "validation": "PASS"
+    },
+    {
+      "sourceTable": "sessions",
+      "sourceId": "0fec6c5c-a0d7-4a38-a664-2c4eeaf8ee92",
+      "targetTable": "Session",
+      "targetId": "0fec6c5c-a0d7-4a38-a664-2c4eeaf8ee92",
+      "rule": "PRESERVE_SESSION",
+      "validation": "PASS"
+    },
+    {
+      "sourceTable": "sessions",
+      "sourceId": "174ee416-bd44-4eda-b4bb-2e22ceab2cd8",
+      "targetTable": "Session",
+      "targetId": "174ee416-bd44-4eda-b4bb-2e22ceab2cd8",
+      "rule": "PRESERVE_SESSION",
+      "validation": "PASS"
+    },
+    {
+      "sourceTable": "sessions",
+      "sourceId": "194e7fe1-2d65-4006-97fa-89409e37be22",
+      "targetTable": "Session",
+      "targetId": "194e7fe1-2d65-4006-97fa-89409e37be22",
+      "rule": "PRESERVE_SESSION",
+      "validation": "PASS"
+    },
+    {
+      "sourceTable": "sessions",
+      "sourceId": "1a98fbdd-4656-4025-9107-a578997859a1",
+      "targetTable": "Session",
+      "targetId": "1a98fbdd-4656-4025-9107-a578997859a1",
+      "rule": "PRESERVE_SESSION",
+      "validation": "PASS"
+    },
+    {
+      "sourceTable": "sessions",
+      "sourceId": "2231754e-9aab-4dcc-b0a4-9e8f7bb4475d",
+      "targetTable": "Session",
+      "targetId": "2231754e-9aab-4dcc-b0a4-9e8f7bb4475d",
+      "rule": "PRESERVE_SESSION",
+      "validation": "PASS"
+    },
+    {
+      "sourceTable": "sessions",
+      "sourceId": "26fad2ad-3930-4c9b-90d0-1ca7d95151d2",
+      "targetTable": "Session",
+      "targetId": "26fad2ad-3930-4c9b-90d0-1ca7d95151d2",
+      "rule": "PRESERVE_SESSION",
+      "validation": "PASS"
+    },
+    {
+      "sourceTable": "sessions",
+      "sourceId": "2adb8df3-6a9c-4f63-b7d4-43c86958cd20",
+      "targetTable": "Session",
+      "targetId": "2adb8df3-6a9c-4f63-b7d4-43c86958cd20",
+      "rule": "PRESERVE_SESSION",
+      "validation": "PASS"
+    },
+    {
+      "sourceTable": "sessions",
+      "sourceId": "2f53b393-a029-4ddd-83b4-306fb66d41cf",
+      "targetTable": "Session",
+      "targetId": "2f53b393-a029-4ddd-83b4-306fb66d41cf",
+      "rule": "PRESERVE_SESSION",
+      "validation": "PASS"
+    },
+    {
+      "sourceTable": "sessions",
+      "sourceId": "34479f05-0c13-4345-8fd8-d2843d832035",
+      "targetTable": "Session",
+      "targetId": "34479f05-0c13-4345-8fd8-d2843d832035",
+      "rule": "PRESERVE_SESSION",
+      "validation": "PASS"
+    },
+    {
+      "sourceTable": "sessions",
+      "sourceId": "36200210-f439-42e6-928f-aac00167580a",
+      "targetTable": "Session",
+      "targetId": "36200210-f439-42e6-928f-aac00167580a",
+      "rule": "PRESERVE_SESSION",
+      "validation": "PASS"
+    },
+    {
+      "sourceTable": "sessions",
+      "sourceId": "3aeab6bf-826d-402a-81cf-b29c9f0ba0fc",
+      "targetTable": "Session",
+      "targetId": "3aeab6bf-826d-402a-81cf-b29c9f0ba0fc",
+      "rule": "PRESERVE_SESSION",
+      "validation": "PASS"
+    },
+    {
+      "sourceTable": "sessions",
+      "sourceId": "3cbf5a8c-595d-4037-b473-939bd4dc9600",
+      "targetTable": "Session",
+      "targetId": "3cbf5a8c-595d-4037-b473-939bd4dc9600",
+      "rule": "PRESERVE_SESSION",
+      "validation": "PASS"
+    },
+    {
+      "sourceTable": "sessions",
+      "sourceId": "3e57c79b-6ae3-43df-8bb5-ab22d81c7457",
+      "targetTable": "Session",
+      "targetId": "3e57c79b-6ae3-43df-8bb5-ab22d81c7457",
+      "rule": "PRESERVE_SESSION",
+      "validation": "PASS"
+    },
+    {
+      "sourceTable": "sessions",
+      "sourceId": "3f8c747d-247f-4174-8837-9e7bf5aec85b",
+      "targetTable": "Session",
+      "targetId": "3f8c747d-247f-4174-8837-9e7bf5aec85b",
+      "rule": "PRESERVE_SESSION",
+      "validation": "PASS"
+    },
+    {
+      "sourceTable": "sessions",
+      "sourceId": "41b06264-7faf-4391-ab8d-047db90a852a",
+      "targetTable": "Session",
+      "targetId": "41b06264-7faf-4391-ab8d-047db90a852a",
+      "rule": "PRESERVE_SESSION",
+      "validation": "PASS"
+    },
+    {
+      "sourceTable": "sessions",
+      "sourceId": "4376aaa2-a90f-431b-b455-9c40b1e1f7ae",
+      "targetTable": "Session",
+      "targetId": "4376aaa2-a90f-431b-b455-9c40b1e1f7ae",
+      "rule": "PRESERVE_SESSION",
+      "validation": "PASS"
+    },
+    {
+      "sourceTable": "sessions",
+      "sourceId": "44d2e8c0-59b0-4d83-a0cf-c002f2832867",
+      "targetTable": "Session",
+      "targetId": "44d2e8c0-59b0-4d83-a0cf-c002f2832867",
+      "rule": "PRESERVE_SESSION",
+      "validation": "PASS"
+    },
+    {
+      "sourceTable": "sessions",
+      "sourceId": "459a6c4e-84ee-46dd-9b7f-0e2e6d84f5f8",
+      "targetTable": "Session",
+      "targetId": "459a6c4e-84ee-46dd-9b7f-0e2e6d84f5f8",
+      "rule": "PRESERVE_SESSION",
+      "validation": "PASS"
+    },
+    {
+      "sourceTable": "sessions",
+      "sourceId": "46a9c64d-465f-4a95-9765-ffca154c135a",
+      "targetTable": "Session",
+      "targetId": "46a9c64d-465f-4a95-9765-ffca154c135a",
+      "rule": "PRESERVE_SESSION",
+      "validation": "PASS"
+    },
+    {
+      "sourceTable": "sessions",
+      "sourceId": "478eefca-d761-44de-8edd-d610f8774c8d",
+      "targetTable": "Session",
+      "targetId": "478eefca-d761-44de-8edd-d610f8774c8d",
+      "rule": "PRESERVE_SESSION",
+      "validation": "PASS"
+    },
+    {
+      "sourceTable": "sessions",
+      "sourceId": "4c2e9494-0d83-415b-ab66-99e6eacdc87b",
+      "targetTable": "Session",
+      "targetId": "4c2e9494-0d83-415b-ab66-99e6eacdc87b",
+      "rule": "PRESERVE_SESSION",
+      "validation": "PASS"
+    },
+    {
+      "sourceTable": "sessions",
+      "sourceId": "51fdd737-e1d7-49a0-98ce-61febe25453e",
+      "targetTable": "Session",
+      "targetId": "51fdd737-e1d7-49a0-98ce-61febe25453e",
+      "rule": "PRESERVE_SESSION",
+      "validation": "PASS"
+    },
+    {
+      "sourceTable": "sessions",
+      "sourceId": "528f60bf-df67-4c79-9e05-906cfa02d340",
+      "targetTable": "Session",
+      "targetId": "528f60bf-df67-4c79-9e05-906cfa02d340",
+      "rule": "PRESERVE_SESSION",
+      "validation": "PASS"
+    },
+    {
+      "sourceTable": "sessions",
+      "sourceId": "530d3c52-b8aa-4b2a-bb8d-0f6537a55c4d",
+      "targetTable": "Session",
+      "targetId": "530d3c52-b8aa-4b2a-bb8d-0f6537a55c4d",
+      "rule": "PRESERVE_SESSION",
+      "validation": "PASS"
+    },
+    {
+      "sourceTable": "sessions",
+      "sourceId": "539a8afd-98e3-4373-9e32-bb36d1a7fe41",
+      "targetTable": "Session",
+      "targetId": "539a8afd-98e3-4373-9e32-bb36d1a7fe41",
+      "rule": "PRESERVE_SESSION",
+      "validation": "PASS"
+    },
+    {
+      "sourceTable": "sessions",
+      "sourceId": "54215552-8db2-418c-afd4-28e94b9e0205",
+      "targetTable": "Session",
+      "targetId": "54215552-8db2-418c-afd4-28e94b9e0205",
+      "rule": "PRESERVE_SESSION",
+      "validation": "PASS"
+    },
+    {
+      "sourceTable": "sessions",
+      "sourceId": "5bac5e10-40f1-4d7a-90eb-9621cdcdf5ff",
+      "targetTable": "Session",
+      "targetId": "5bac5e10-40f1-4d7a-90eb-9621cdcdf5ff",
+      "rule": "PRESERVE_SESSION",
+      "validation": "PASS"
+    },
+    {
+      "sourceTable": "sessions",
+      "sourceId": "67798a56-50b7-4186-bdfe-25473e08f938",
+      "targetTable": "Session",
+      "targetId": "67798a56-50b7-4186-bdfe-25473e08f938",
+      "rule": "PRESERVE_SESSION",
+      "validation": "PASS"
+    },
+    {
+      "sourceTable": "sessions",
+      "sourceId": "6b4874de-4e5d-4c47-9c97-62263a2d34b1",
+      "targetTable": "Session",
+      "targetId": "6b4874de-4e5d-4c47-9c97-62263a2d34b1",
+      "rule": "PRESERVE_SESSION",
+      "validation": "PASS"
+    },
+    {
+      "sourceTable": "sessions",
+      "sourceId": "6d070721-806e-4378-bb30-8954f03a4038",
+      "targetTable": "Session",
+      "targetId": "6d070721-806e-4378-bb30-8954f03a4038",
+      "rule": "PRESERVE_SESSION",
+      "validation": "PASS"
+    },
+    {
+      "sourceTable": "sessions",
+      "sourceId": "716abc0c-128c-4029-8a75-d702f7107beb",
+      "targetTable": "Session",
+      "targetId": "716abc0c-128c-4029-8a75-d702f7107beb",
+      "rule": "PRESERVE_SESSION",
+      "validation": "PASS"
+    },
+    {
+      "sourceTable": "sessions",
+      "sourceId": "757aaa64-08af-487b-a840-ca0089b56178",
+      "targetTable": "Session",
+      "targetId": "757aaa64-08af-487b-a840-ca0089b56178",
+      "rule": "PRESERVE_SESSION",
+      "validation": "PASS"
+    },
+    {
+      "sourceTable": "sessions",
+      "sourceId": "758a9e18-dd9c-4fde-8b26-2601907938e2",
+      "targetTable": "Session",
+      "targetId": "758a9e18-dd9c-4fde-8b26-2601907938e2",
+      "rule": "PRESERVE_SESSION",
+      "validation": "PASS"
+    },
+    {
+      "sourceTable": "sessions",
+      "sourceId": "767d026c-c188-449e-bddf-dfedeb00c3cd",
+      "targetTable": "Session",
+      "targetId": "767d026c-c188-449e-bddf-dfedeb00c3cd",
+      "rule": "PRESERVE_SESSION",
+      "validation": "PASS"
+    },
+    {
+      "sourceTable": "sessions",
+      "sourceId": "77f02fe5-5127-4cfa-bc67-1a506cb785dd",
+      "targetTable": "Session",
+      "targetId": "77f02fe5-5127-4cfa-bc67-1a506cb785dd",
+      "rule": "PRESERVE_SESSION",
+      "validation": "PASS"
+    },
+    {
+      "sourceTable": "sessions",
+      "sourceId": "7831634f-4496-413e-98f0-f41e47e0e088",
+      "targetTable": "Session",
+      "targetId": "7831634f-4496-413e-98f0-f41e47e0e088",
+      "rule": "PRESERVE_SESSION",
+      "validation": "PASS"
+    },
+    {
+      "sourceTable": "sessions",
+      "sourceId": "7eb03753-6cf8-473b-989d-5b61a0113df8",
+      "targetTable": "Session",
+      "targetId": "7eb03753-6cf8-473b-989d-5b61a0113df8",
+      "rule": "PRESERVE_SESSION",
+      "validation": "PASS"
+    },
+    {
+      "sourceTable": "sessions",
+      "sourceId": "808778b0-e634-48a3-88e4-285befb37319",
+      "targetTable": "Session",
+      "targetId": "808778b0-e634-48a3-88e4-285befb37319",
+      "rule": "PRESERVE_SESSION",
+      "validation": "PASS"
+    },
+    {
+      "sourceTable": "sessions",
+      "sourceId": "80b2a623-5618-4014-9531-0b564974f84c",
+      "targetTable": "Session",
+      "targetId": "80b2a623-5618-4014-9531-0b564974f84c",
+      "rule": "PRESERVE_SESSION",
+      "validation": "PASS"
+    },
+    {
+      "sourceTable": "sessions",
+      "sourceId": "81860d18-00a7-412c-aa36-8a12a25d75c0",
+      "targetTable": "Session",
+      "targetId": "81860d18-00a7-412c-aa36-8a12a25d75c0",
+      "rule": "PRESERVE_SESSION",
+      "validation": "PASS"
+    },
+    {
+      "sourceTable": "sessions",
+      "sourceId": "83fbf656-dc6e-41fe-9993-09dbbe4f4552",
+      "targetTable": "Session",
+      "targetId": "83fbf656-dc6e-41fe-9993-09dbbe4f4552",
+      "rule": "PRESERVE_SESSION",
+      "validation": "PASS"
+    },
+    {
+      "sourceTable": "sessions",
+      "sourceId": "842cf7af-6820-4f4f-912c-fbc6a5ea86d2",
+      "targetTable": "Session",
+      "targetId": "842cf7af-6820-4f4f-912c-fbc6a5ea86d2",
+      "rule": "PRESERVE_SESSION",
+      "validation": "PASS"
+    },
+    {
+      "sourceTable": "sessions",
+      "sourceId": "88573866-b72d-408e-a276-1b58bd560dcd",
+      "targetTable": "Session",
+      "targetId": "88573866-b72d-408e-a276-1b58bd560dcd",
+      "rule": "PRESERVE_SESSION",
+      "validation": "PASS"
+    },
+    {
+      "sourceTable": "sessions",
+      "sourceId": "8860c6c6-9204-4db9-bfb4-fad59adb561c",
+      "targetTable": "Session",
+      "targetId": "8860c6c6-9204-4db9-bfb4-fad59adb561c",
+      "rule": "PRESERVE_SESSION",
+      "validation": "PASS"
+    },
+    {
+      "sourceTable": "sessions",
+      "sourceId": "8f13b2c6-fa23-42cc-94ad-b23a2a15b23a",
+      "targetTable": "Session",
+      "targetId": "8f13b2c6-fa23-42cc-94ad-b23a2a15b23a",
+      "rule": "PRESERVE_SESSION",
+      "validation": "PASS"
+    },
+    {
+      "sourceTable": "sessions",
+      "sourceId": "8ff297a5-3713-48b5-bc5a-2abca4edb4d7",
+      "targetTable": "Session",
+      "targetId": "8ff297a5-3713-48b5-bc5a-2abca4edb4d7",
+      "rule": "PRESERVE_SESSION",
+      "validation": "PASS"
+    },
+    {
+      "sourceTable": "sessions",
+      "sourceId": "935cd404-3ea0-4084-a0d7-29e4eb3022b8",
+      "targetTable": "Session",
+      "targetId": "935cd404-3ea0-4084-a0d7-29e4eb3022b8",
+      "rule": "PRESERVE_SESSION",
+      "validation": "PASS"
+    },
+    {
+      "sourceTable": "sessions",
+      "sourceId": "954f5d3f-c493-4b28-9527-b0e8493a3221",
+      "targetTable": "Session",
+      "targetId": "954f5d3f-c493-4b28-9527-b0e8493a3221",
+      "rule": "PRESERVE_SESSION",
+      "validation": "PASS"
+    },
+    {
+      "sourceTable": "sessions",
+      "sourceId": "989da065-03aa-4c23-b3c3-fc6813707496",
+      "targetTable": "Session",
+      "targetId": "989da065-03aa-4c23-b3c3-fc6813707496",
+      "rule": "PRESERVE_SESSION",
+      "validation": "PASS"
+    },
+    {
+      "sourceTable": "sessions",
+      "sourceId": "9a2c92c2-2cfa-4423-afd0-4b676300f892",
+      "targetTable": "Session",
+      "targetId": "9a2c92c2-2cfa-4423-afd0-4b676300f892",
+      "rule": "PRESERVE_SESSION",
+      "validation": "PASS"
+    },
+    {
+      "sourceTable": "sessions",
+      "sourceId": "9c64df2e-7580-4502-b8d3-1920db85224b",
+      "targetTable": "Session",
+      "targetId": "9c64df2e-7580-4502-b8d3-1920db85224b",
+      "rule": "PRESERVE_SESSION",
+      "validation": "PASS"
+    },
+    {
+      "sourceTable": "sessions",
+      "sourceId": "9d6aa021-61bf-4f0d-8ab0-892999ac8773",
+      "targetTable": "Session",
+      "targetId": "9d6aa021-61bf-4f0d-8ab0-892999ac8773",
+      "rule": "PRESERVE_SESSION",
+      "validation": "PASS"
+    },
+    {
+      "sourceTable": "sessions",
+      "sourceId": "9f739778-1a01-4e51-9f8e-35704a782d40",
+      "targetTable": "Session",
+      "targetId": "9f739778-1a01-4e51-9f8e-35704a782d40",
+      "rule": "PRESERVE_SESSION",
+      "validation": "PASS"
+    },
+    {
+      "sourceTable": "sessions",
+      "sourceId": "9fd188a9-1ac6-486a-ac07-5897343a61e1",
+      "targetTable": "Session",
+      "targetId": "9fd188a9-1ac6-486a-ac07-5897343a61e1",
+      "rule": "PRESERVE_SESSION",
+      "validation": "PASS"
+    },
+    {
+      "sourceTable": "sessions",
+      "sourceId": "a0bc8605-6ff8-4118-821d-a197fd1ccbf2",
+      "targetTable": "Session",
+      "targetId": "a0bc8605-6ff8-4118-821d-a197fd1ccbf2",
+      "rule": "PRESERVE_SESSION",
+      "validation": "PASS"
+    },
+    {
+      "sourceTable": "sessions",
+      "sourceId": "a22464e9-44a2-4e53-8f5e-07a4f950a938",
+      "targetTable": "Session",
+      "targetId": "a22464e9-44a2-4e53-8f5e-07a4f950a938",
+      "rule": "PRESERVE_SESSION",
+      "validation": "PASS"
+    },
+    {
+      "sourceTable": "sessions",
+      "sourceId": "a5a81d1f-de04-4173-853e-48586de5db49",
+      "targetTable": "Session",
+      "targetId": "a5a81d1f-de04-4173-853e-48586de5db49",
+      "rule": "PRESERVE_SESSION",
+      "validation": "PASS"
+    },
+    {
+      "sourceTable": "sessions",
+      "sourceId": "aa57fe23-02c2-461a-8ef5-25dbb5bb9811",
+      "targetTable": "Session",
+      "targetId": "aa57fe23-02c2-461a-8ef5-25dbb5bb9811",
+      "rule": "PRESERVE_SESSION",
+      "validation": "PASS"
+    },
+    {
+      "sourceTable": "sessions",
+      "sourceId": "ae419821-a551-4317-83ec-eae81e9546bb",
+      "targetTable": "Session",
+      "targetId": "ae419821-a551-4317-83ec-eae81e9546bb",
+      "rule": "PRESERVE_SESSION",
+      "validation": "PASS"
+    },
+    {
+      "sourceTable": "sessions",
+      "sourceId": "af320f71-8d54-4e1d-aca9-e2d62a7bc737",
+      "targetTable": "Session",
+      "targetId": "af320f71-8d54-4e1d-aca9-e2d62a7bc737",
+      "rule": "PRESERVE_SESSION",
+      "validation": "PASS"
+    },
+    {
+      "sourceTable": "sessions",
+      "sourceId": "af5d8258-9b09-45e5-92c6-fc2b4d0d215e",
+      "targetTable": "Session",
+      "targetId": "af5d8258-9b09-45e5-92c6-fc2b4d0d215e",
+      "rule": "PRESERVE_SESSION",
+      "validation": "PASS"
+    },
+    {
+      "sourceTable": "sessions",
+      "sourceId": "b22ecf1e-ddfe-4b1e-9aa1-2b57030622ec",
+      "targetTable": "Session",
+      "targetId": "b22ecf1e-ddfe-4b1e-9aa1-2b57030622ec",
+      "rule": "PRESERVE_SESSION",
+      "validation": "PASS"
+    },
+    {
+      "sourceTable": "sessions",
+      "sourceId": "b6968c5e-6c43-4904-9cba-25446b4f4617",
+      "targetTable": "Session",
+      "targetId": "b6968c5e-6c43-4904-9cba-25446b4f4617",
+      "rule": "PRESERVE_SESSION",
+      "validation": "PASS"
+    },
+    {
+      "sourceTable": "sessions",
+      "sourceId": "be212fb0-cf49-4751-a7c2-9a7d0ad289a0",
+      "targetTable": "Session",
+      "targetId": "be212fb0-cf49-4751-a7c2-9a7d0ad289a0",
+      "rule": "PRESERVE_SESSION",
+      "validation": "PASS"
+    },
+    {
+      "sourceTable": "sessions",
+      "sourceId": "c5bf944c-feee-4c4f-993f-cfb83d6fac99",
+      "targetTable": "Session",
+      "targetId": "c5bf944c-feee-4c4f-993f-cfb83d6fac99",
+      "rule": "PRESERVE_SESSION",
+      "validation": "PASS"
+    },
+    {
+      "sourceTable": "sessions",
+      "sourceId": "c60d0d9f-afd5-42f3-a782-8ceadedf0a8c",
+      "targetTable": "Session",
+      "targetId": "c60d0d9f-afd5-42f3-a782-8ceadedf0a8c",
+      "rule": "PRESERVE_SESSION",
+      "validation": "PASS"
+    },
+    {
+      "sourceTable": "sessions",
+      "sourceId": "c832b08a-2889-40ff-a701-b9281135b7b9",
+      "targetTable": "Session",
+      "targetId": "c832b08a-2889-40ff-a701-b9281135b7b9",
+      "rule": "PRESERVE_SESSION",
+      "validation": "PASS"
+    },
+    {
+      "sourceTable": "sessions",
+      "sourceId": "c9a28c29-528c-4488-b515-acfc3ba7ef05",
+      "targetTable": "Session",
+      "targetId": "c9a28c29-528c-4488-b515-acfc3ba7ef05",
+      "rule": "PRESERVE_SESSION",
+      "validation": "PASS"
+    },
+    {
+      "sourceTable": "sessions",
+      "sourceId": "cb3b9993-4f75-47c8-bfc3-adacaac582a3",
+      "targetTable": "Session",
+      "targetId": "cb3b9993-4f75-47c8-bfc3-adacaac582a3",
+      "rule": "PRESERVE_SESSION",
+      "validation": "PASS"
+    },
+    {
+      "sourceTable": "sessions",
+      "sourceId": "cebc695a-ccab-48e1-9d4a-1868eb894258",
+      "targetTable": "Session",
+      "targetId": "cebc695a-ccab-48e1-9d4a-1868eb894258",
+      "rule": "PRESERVE_SESSION",
+      "validation": "PASS"
+    },
+    {
+      "sourceTable": "sessions",
+      "sourceId": "d0eee422-2b25-449b-8940-a16e691ea21b",
+      "targetTable": "Session",
+      "targetId": "d0eee422-2b25-449b-8940-a16e691ea21b",
+      "rule": "PRESERVE_SESSION",
+      "validation": "PASS"
+    },
+    {
+      "sourceTable": "sessions",
+      "sourceId": "d175f379-971f-4a44-971c-679ff4f58351",
+      "targetTable": "Session",
+      "targetId": "d175f379-971f-4a44-971c-679ff4f58351",
+      "rule": "PRESERVE_SESSION",
+      "validation": "PASS"
+    },
+    {
+      "sourceTable": "sessions",
+      "sourceId": "d1c5bdaa-2da1-4e1c-841e-aae61126056a",
+      "targetTable": "Session",
+      "targetId": "d1c5bdaa-2da1-4e1c-841e-aae61126056a",
+      "rule": "PRESERVE_SESSION",
+      "validation": "PASS"
+    },
+    {
+      "sourceTable": "sessions",
+      "sourceId": "d2fe4258-1c26-45aa-be7d-ff5848fb846a",
+      "targetTable": "Session",
+      "targetId": "d2fe4258-1c26-45aa-be7d-ff5848fb846a",
+      "rule": "PRESERVE_SESSION",
+      "validation": "PASS"
+    },
+    {
+      "sourceTable": "sessions",
+      "sourceId": "d327e890-b0d3-4a87-961f-36b81e0af7ad",
+      "targetTable": "Session",
+      "targetId": "d327e890-b0d3-4a87-961f-36b81e0af7ad",
+      "rule": "PRESERVE_SESSION",
+      "validation": "PASS"
+    },
+    {
+      "sourceTable": "sessions",
+      "sourceId": "debaa925-e8c4-4fff-bb1c-19f63095e71c",
+      "targetTable": "Session",
+      "targetId": "debaa925-e8c4-4fff-bb1c-19f63095e71c",
+      "rule": "PRESERVE_SESSION",
+      "validation": "PASS"
+    },
+    {
+      "sourceTable": "sessions",
+      "sourceId": "df141f62-e302-4fe9-983b-0e1605532311",
+      "targetTable": "Session",
+      "targetId": "df141f62-e302-4fe9-983b-0e1605532311",
+      "rule": "PRESERVE_SESSION",
+      "validation": "PASS"
+    },
+    {
+      "sourceTable": "sessions",
+      "sourceId": "e16a8a73-350f-40a2-8a17-9022fcf6ae4f",
+      "targetTable": "Session",
+      "targetId": "e16a8a73-350f-40a2-8a17-9022fcf6ae4f",
+      "rule": "PRESERVE_SESSION",
+      "validation": "PASS"
+    },
+    {
+      "sourceTable": "sessions",
+      "sourceId": "e5842e37-044f-48ba-97a9-c70e7125ea36",
+      "targetTable": "Session",
+      "targetId": "e5842e37-044f-48ba-97a9-c70e7125ea36",
+      "rule": "PRESERVE_SESSION",
+      "validation": "PASS"
+    },
+    {
+      "sourceTable": "sessions",
+      "sourceId": "e66164bb-d309-469f-bc69-d308afcdd9ff",
+      "targetTable": "Session",
+      "targetId": "e66164bb-d309-469f-bc69-d308afcdd9ff",
+      "rule": "PRESERVE_SESSION",
+      "validation": "PASS"
+    },
+    {
+      "sourceTable": "sessions",
+      "sourceId": "e67c3a78-be61-4875-a137-51dbf2ea80fd",
+      "targetTable": "Session",
+      "targetId": "e67c3a78-be61-4875-a137-51dbf2ea80fd",
+      "rule": "PRESERVE_SESSION",
+      "validation": "PASS"
+    },
+    {
+      "sourceTable": "sessions",
+      "sourceId": "ea47b5a9-dc06-4afe-ace2-9bc723c708ac",
+      "targetTable": "Session",
+      "targetId": "ea47b5a9-dc06-4afe-ace2-9bc723c708ac",
+      "rule": "PRESERVE_SESSION",
+      "validation": "PASS"
+    },
+    {
+      "sourceTable": "sessions",
+      "sourceId": "eba3f927-736b-4cb9-8689-1dea896d8e8b",
+      "targetTable": "Session",
+      "targetId": "eba3f927-736b-4cb9-8689-1dea896d8e8b",
+      "rule": "PRESERVE_SESSION",
+      "validation": "PASS"
+    },
+    {
+      "sourceTable": "sessions",
+      "sourceId": "ebd8e239-bc8a-4f6b-b4a0-1335a424ef00",
+      "targetTable": "Session",
+      "targetId": "ebd8e239-bc8a-4f6b-b4a0-1335a424ef00",
+      "rule": "PRESERVE_SESSION",
+      "validation": "PASS"
+    },
+    {
+      "sourceTable": "sessions",
+      "sourceId": "ec57f996-4818-4fd1-9372-c14165698986",
+      "targetTable": "Session",
+      "targetId": "ec57f996-4818-4fd1-9372-c14165698986",
+      "rule": "PRESERVE_SESSION",
+      "validation": "PASS"
+    },
+    {
+      "sourceTable": "sessions",
+      "sourceId": "ef25163e-e1fc-4008-9087-4ae9a6f103f2",
+      "targetTable": "Session",
+      "targetId": "ef25163e-e1fc-4008-9087-4ae9a6f103f2",
+      "rule": "PRESERVE_SESSION",
+      "validation": "PASS"
+    },
+    {
+      "sourceTable": "sessions",
+      "sourceId": "f429a567-46bc-4b47-a9f5-e0b9de8eb625",
+      "targetTable": "Session",
+      "targetId": "f429a567-46bc-4b47-a9f5-e0b9de8eb625",
+      "rule": "PRESERVE_SESSION",
+      "validation": "PASS"
+    },
+    {
+      "sourceTable": "sessions",
+      "sourceId": "fd9b07b2-e276-4022-8816-3d4ac0c93ee8",
+      "targetTable": "Session",
+      "targetId": "fd9b07b2-e276-4022-8816-3d4ac0c93ee8",
+      "rule": "PRESERVE_SESSION",
+      "validation": "PASS"
+    },
+    {
+      "sourceTable": "sessions",
+      "sourceId": "fea371ca-24e5-4814-aa2b-f690d9c48008",
+      "targetTable": "Session",
+      "targetId": "fea371ca-24e5-4814-aa2b-f690d9c48008",
+      "rule": "PRESERVE_SESSION",
+      "validation": "PASS"
+    },
+    {
+      "sourceTable": "sessions",
+      "sourceId": "ff220060-0978-4ef3-86e0-959cbe0d6266",
+      "targetTable": "Session",
+      "targetId": "ff220060-0978-4ef3-86e0-959cbe0d6266",
+      "rule": "PRESERVE_SESSION",
+      "validation": "PASS"
+    },
+    {
+      "sourceTable": "sessions",
+      "sourceId": "ffa61707-6d1f-49ef-9ade-75cd35da15f3",
+      "targetTable": "Session",
+      "targetId": "ffa61707-6d1f-49ef-9ade-75cd35da15f3",
+      "rule": "PRESERVE_SESSION",
+      "validation": "PASS"
+    },
+    {
+      "sourceTable": "platform_settings",
+      "sourceId": "active",
+      "targetTable": "PlatformSettings",
+      "targetId": "active",
+      "rule": "ECOMMERCE_FIELDS_ONLY",
+      "validation": "PASS"
+    },
+    {
+      "sourceTable": "stores",
+      "sourceId": "10000000-0000-4000-8000-000000000001",
+      "targetTable": "Store",
+      "targetId": "10000000-0000-4000-8000-000000000001",
+      "rule": "PRODUCT_STORE_STATUS_NORMALIZATION",
+      "validation": "PASS"
+    },
+    {
+      "sourceTable": "stores",
+      "sourceId": "10000000-0000-4000-8000-000000000002",
+      "targetTable": "Store",
+      "targetId": "10000000-0000-4000-8000-000000000002",
+      "rule": "PRODUCT_STORE_STATUS_NORMALIZATION",
+      "validation": "PASS"
+    },
+    {
+      "sourceTable": "stores",
+      "sourceId": "11000000-0000-4000-8000-000000000001",
+      "targetTable": "Store",
+      "targetId": "11000000-0000-4000-8000-000000000001",
+      "rule": "PRODUCT_STORE_STATUS_NORMALIZATION",
+      "validation": "PASS"
+    },
+    {
+      "sourceTable": "stores",
+      "sourceId": "11000000-0000-4000-8000-000000000002",
+      "targetTable": "Store",
+      "targetId": "11000000-0000-4000-8000-000000000002",
+      "rule": "PRODUCT_STORE_STATUS_NORMALIZATION",
+      "validation": "PASS"
+    },
+    {
+      "sourceTable": "stores",
+      "sourceId": "11000000-0000-4000-8000-000000000003",
+      "targetTable": "Store",
+      "targetId": "11000000-0000-4000-8000-000000000003",
+      "rule": "PRODUCT_STORE_STATUS_NORMALIZATION",
+      "validation": "PASS"
+    },
+    {
+      "sourceTable": "stores",
+      "sourceId": "12000000-0000-4000-8000-000000000001",
+      "targetTable": "Store",
+      "targetId": "12000000-0000-4000-8000-000000000001",
+      "rule": "PRODUCT_STORE_STATUS_NORMALIZATION",
+      "validation": "PASS"
+    },
+    {
+      "sourceTable": "products",
+      "sourceId": "20000000-0000-4000-8000-000000000001",
+      "targetTable": "Product",
+      "targetId": "20000000-0000-4000-8000-000000000001",
+      "rule": "CHILDREN_TO_ORDERED_JSON",
+      "validation": "PASS"
+    },
+    {
+      "sourceTable": "products",
+      "sourceId": "20000000-0000-4000-8000-000000000002",
+      "targetTable": "Product",
+      "targetId": "20000000-0000-4000-8000-000000000002",
+      "rule": "CHILDREN_TO_ORDERED_JSON",
+      "validation": "PASS"
+    },
+    {
+      "sourceTable": "products",
+      "sourceId": "20000000-0000-4000-8000-000000000003",
+      "targetTable": "Product",
+      "targetId": "20000000-0000-4000-8000-000000000003",
+      "rule": "CHILDREN_TO_ORDERED_JSON",
+      "validation": "PASS"
+    },
+    {
+      "sourceTable": "product_variants",
+      "sourceId": "22000000-0000-4000-8000-000000000001",
+      "targetTable": "ProductVariant",
+      "targetId": "22000000-0000-4000-8000-000000000001",
+      "rule": "OPTIONS_TO_SELECTED_OPTIONS",
+      "validation": "PASS"
+    },
+    {
+      "sourceTable": "product_variants",
+      "sourceId": "22000000-0000-4000-8000-000000000002",
+      "targetTable": "ProductVariant",
+      "targetId": "22000000-0000-4000-8000-000000000002",
+      "rule": "OPTIONS_TO_SELECTED_OPTIONS",
+      "validation": "PASS"
+    },
+    {
+      "sourceTable": "product_variants",
+      "sourceId": "22000000-0000-4000-8000-000000000003",
+      "targetTable": "ProductVariant",
+      "targetId": "22000000-0000-4000-8000-000000000003",
+      "rule": "OPTIONS_TO_SELECTED_OPTIONS",
+      "validation": "PASS"
+    },
+    {
+      "sourceTable": "carts",
+      "sourceId": "2e2af607-9772-48a1-ba66-a328928879bf",
+      "targetTable": "Cart",
+      "targetId": "2e2af607-9772-48a1-ba66-a328928879bf",
+      "rule": "PRESERVE_CART",
+      "validation": "PASS"
+    },
+    {
+      "sourceTable": "carts",
+      "sourceId": "c883a74e-5721-46a6-9afd-1e7b8a3d14c7",
+      "targetTable": "Cart",
+      "targetId": "c883a74e-5721-46a6-9afd-1e7b8a3d14c7",
+      "rule": "PRESERVE_CART",
+      "validation": "PASS"
+    },
+    {
+      "sourceTable": "commerce_orders",
+      "sourceId": "42000000-0000-4000-8000-000000000001",
+      "targetTable": "CommerceOrder",
+      "targetId": "42000000-0000-4000-8000-000000000001",
+      "rule": "CHECKOUT_ACTIVITY_STATUS_NORMALIZATION",
+      "validation": "PASS"
+    },
+    {
+      "sourceTable": "commerce_orders",
+      "sourceId": "42000000-0000-4000-8000-000000000002",
+      "targetTable": "CommerceOrder",
+      "targetId": "42000000-0000-4000-8000-000000000002",
+      "rule": "CHECKOUT_ACTIVITY_STATUS_NORMALIZATION",
+      "validation": "PASS"
+    },
+    {
+      "sourceTable": "commerce_orders",
+      "sourceId": "71000000-0000-4000-8000-000000000001",
+      "targetTable": "CommerceOrder",
+      "targetId": "71000000-0000-4000-8000-000000000001",
+      "rule": "CHECKOUT_ACTIVITY_STATUS_NORMALIZATION",
+      "validation": "PASS"
+    },
+    {
+      "sourceTable": "commerce_orders",
+      "sourceId": "78000000-0000-4000-8000-000000000001",
+      "targetTable": "CommerceOrder",
+      "targetId": "78000000-0000-4000-8000-000000000001",
+      "rule": "CHECKOUT_ACTIVITY_STATUS_NORMALIZATION",
+      "validation": "PASS"
+    },
+    {
+      "sourceTable": "commerce_orders",
+      "sourceId": "78000000-0000-4000-8000-000000000002",
+      "targetTable": "CommerceOrder",
+      "targetId": "78000000-0000-4000-8000-000000000002",
+      "rule": "CHECKOUT_ACTIVITY_STATUS_NORMALIZATION",
+      "validation": "PASS"
+    },
+    {
+      "sourceTable": "commerce_orders",
+      "sourceId": "78000000-0000-4000-8000-000000000003",
+      "targetTable": "CommerceOrder",
+      "targetId": "78000000-0000-4000-8000-000000000003",
+      "rule": "CHECKOUT_ACTIVITY_STATUS_NORMALIZATION",
+      "validation": "PASS"
+    },
+    {
+      "sourceTable": "commerce_orders",
+      "sourceId": "33fc8a51-f8df-46aa-9d0b-5dd5ebdfbacb",
+      "targetTable": "CommerceOrder",
+      "targetId": "33fc8a51-f8df-46aa-9d0b-5dd5ebdfbacb",
+      "rule": "CHECKOUT_ACTIVITY_STATUS_NORMALIZATION",
+      "validation": "PASS"
+    },
+    {
+      "sourceTable": "commerce_orders",
+      "sourceId": "5fe0f565-440f-4e9c-b408-dfac61080b8c",
+      "targetTable": "CommerceOrder",
+      "targetId": "5fe0f565-440f-4e9c-b408-dfac61080b8c",
+      "rule": "CHECKOUT_ACTIVITY_STATUS_NORMALIZATION",
+      "validation": "PASS"
+    },
+    {
+      "sourceTable": "commerce_orders",
+      "sourceId": "3584a496-db1b-41ce-93d7-9b0ac6cd1141",
+      "targetTable": "CommerceOrder",
+      "targetId": "3584a496-db1b-41ce-93d7-9b0ac6cd1141",
+      "rule": "CHECKOUT_ACTIVITY_STATUS_NORMALIZATION",
+      "validation": "PASS"
+    },
+    {
+      "sourceTable": "commerce_order_items",
+      "sourceId": "152ebbc6-cef0-4d08-b6d7-ddbb8e12922e",
+      "targetTable": "CommerceOrderItem",
+      "targetId": "152ebbc6-cef0-4d08-b6d7-ddbb8e12922e",
+      "rule": "RESERVATION_TO_STOCK_LIFECYCLE",
+      "validation": "PASS"
+    },
+    {
+      "sourceTable": "commerce_order_items",
+      "sourceId": "72000000-0000-4000-8000-000000000001",
+      "targetTable": "CommerceOrderItem",
+      "targetId": "72000000-0000-4000-8000-000000000001",
+      "rule": "RESERVATION_TO_STOCK_LIFECYCLE",
+      "validation": "PASS"
+    },
+    {
+      "sourceTable": "commerce_order_items",
+      "sourceId": "84ee8d6c-e0e0-47d9-b05c-def25400d9bd",
+      "targetTable": "CommerceOrderItem",
+      "targetId": "84ee8d6c-e0e0-47d9-b05c-def25400d9bd",
+      "rule": "RESERVATION_TO_STOCK_LIFECYCLE",
+      "validation": "PASS"
+    },
+    {
+      "sourceTable": "commerce_order_items",
+      "sourceId": "d397a56a-a9ab-4eb7-b6d6-2981161fc147",
+      "targetTable": "CommerceOrderItem",
+      "targetId": "d397a56a-a9ab-4eb7-b6d6-2981161fc147",
+      "rule": "RESERVATION_TO_STOCK_LIFECYCLE",
+      "validation": "PASS"
+    },
+    {
+      "sourceTable": "legacy_finance",
+      "sourceId": "31000000-0000-4000-8000-000000000001",
+      "targetTable": "MerchantFee",
+      "targetId": "31000000-0000-4000-8000-000000000001",
+      "rule": "FINANCE_TABLES_TO_HIERARCHY",
+      "validation": "PASS"
+    },
+    {
+      "sourceTable": "legacy_finance",
+      "sourceId": "31000000-0000-4000-8000-000000000002",
+      "targetTable": "MerchantFee",
+      "targetId": "31000000-0000-4000-8000-000000000002",
+      "rule": "FINANCE_TABLES_TO_HIERARCHY",
+      "validation": "PASS"
+    },
+    {
+      "sourceTable": "legacy_finance",
+      "sourceId": "31000000-0000-4000-8000-000000000003",
+      "targetTable": "MerchantFee",
+      "targetId": "31000000-0000-4000-8000-000000000003",
+      "rule": "FINANCE_TABLES_TO_HIERARCHY",
+      "validation": "PASS"
+    },
+    {
+      "sourceTable": "legacy_finance",
+      "sourceId": "32010000-0000-4000-8000-000000000001",
+      "targetTable": "MerchantFee",
+      "targetId": "32010000-0000-4000-8000-000000000001",
+      "rule": "FINANCE_TABLES_TO_HIERARCHY",
+      "validation": "PASS"
+    },
+    {
+      "sourceTable": "legacy_finance",
+      "sourceId": "32030000-0000-4000-8000-000000000001",
+      "targetTable": "MerchantFee",
+      "targetId": "32030000-0000-4000-8000-000000000001",
+      "rule": "FINANCE_TABLES_TO_HIERARCHY",
+      "validation": "PASS"
+    },
+    {
+      "sourceTable": "legacy_finance",
+      "sourceId": "32030000-0000-4000-8000-000000000002",
+      "targetTable": "MerchantFee",
+      "targetId": "32030000-0000-4000-8000-000000000002",
+      "rule": "FINANCE_TABLES_TO_HIERARCHY",
+      "validation": "PASS"
+    },
+    {
+      "sourceTable": "legacy_finance",
+      "sourceId": "32030000-0000-4000-8000-000000000003",
+      "targetTable": "MerchantFee",
+      "targetId": "32030000-0000-4000-8000-000000000003",
+      "rule": "FINANCE_TABLES_TO_HIERARCHY",
+      "validation": "PASS"
+    },
+    {
+      "sourceTable": "legacy_finance",
+      "sourceId": "32060000-0000-4000-8000-000000000001",
+      "targetTable": "MerchantFee",
+      "targetId": "32060000-0000-4000-8000-000000000001",
+      "rule": "FINANCE_TABLES_TO_HIERARCHY",
+      "validation": "PASS"
+    },
+    {
+      "sourceTable": "legacy_finance",
+      "sourceId": "32060000-0000-4000-8000-000000000002",
+      "targetTable": "MerchantFee",
+      "targetId": "32060000-0000-4000-8000-000000000002",
+      "rule": "FINANCE_TABLES_TO_HIERARCHY",
+      "validation": "PASS"
+    },
+    {
+      "sourceTable": "legacy_finance",
+      "sourceId": "32060000-0000-4000-8000-000000000003",
+      "targetTable": "MerchantFee",
+      "targetId": "32060000-0000-4000-8000-000000000003",
+      "rule": "FINANCE_TABLES_TO_HIERARCHY",
+      "validation": "PASS"
+    },
+    {
+      "sourceTable": "legacy_finance",
+      "sourceId": "32060000-0000-4000-8000-000000000004",
+      "targetTable": "MerchantFee",
+      "targetId": "32060000-0000-4000-8000-000000000004",
+      "rule": "FINANCE_TABLES_TO_HIERARCHY",
+      "validation": "PASS"
+    },
+    {
+      "sourceTable": "legacy_finance",
+      "sourceId": "32060000-0000-4000-8000-000000000005",
+      "targetTable": "MerchantFee",
+      "targetId": "32060000-0000-4000-8000-000000000005",
+      "rule": "FINANCE_TABLES_TO_HIERARCHY",
+      "validation": "PASS"
+    },
+    {
+      "sourceTable": "legacy_finance",
+      "sourceId": "32060000-0000-4000-8000-000000000006",
+      "targetTable": "MerchantFee",
+      "targetId": "32060000-0000-4000-8000-000000000006",
+      "rule": "FINANCE_TABLES_TO_HIERARCHY",
+      "validation": "PASS"
+    },
+    {
+      "sourceTable": "legacy_finance",
+      "sourceId": "290f0b27-c8cf-422c-b675-a104ed7b4cf5",
+      "targetTable": "MerchantFee",
+      "targetId": "290f0b27-c8cf-422c-b675-a104ed7b4cf5",
+      "rule": "FINANCE_TABLES_TO_HIERARCHY",
+      "validation": "PASS"
+    },
+    {
+      "sourceTable": "legacy_finance",
+      "sourceId": "3cfdb59d-accb-4f68-874b-7ef78406ce14",
+      "targetTable": "MerchantFee",
+      "targetId": "3cfdb59d-accb-4f68-874b-7ef78406ce14",
+      "rule": "FINANCE_TABLES_TO_HIERARCHY",
+      "validation": "PASS"
+    },
+    {
+      "sourceTable": "legacy_finance",
+      "sourceId": "41cf72e6-69e0-4065-bb6a-bd58bbb37208",
+      "targetTable": "MerchantFee",
+      "targetId": "41cf72e6-69e0-4065-bb6a-bd58bbb37208",
+      "rule": "FINANCE_TABLES_TO_HIERARCHY",
+      "validation": "PASS"
+    },
+    {
+      "sourceTable": "legacy_finance",
+      "sourceId": "7df12d31-809f-4921-ba86-7b7a051fc4c9",
+      "targetTable": "MerchantFee",
+      "targetId": "7df12d31-809f-4921-ba86-7b7a051fc4c9",
+      "rule": "FINANCE_TABLES_TO_HIERARCHY",
+      "validation": "PASS"
+    },
+    {
+      "sourceTable": "legacy_finance",
+      "sourceId": "7f48f1b6-921d-4128-91f4-240ba7e92107",
+      "targetTable": "MerchantFee",
+      "targetId": "7f48f1b6-921d-4128-91f4-240ba7e92107",
+      "rule": "FINANCE_TABLES_TO_HIERARCHY",
+      "validation": "PASS"
+    },
+    {
+      "sourceTable": "legacy_finance",
+      "sourceId": "9946d217-3f50-43be-95d9-33efc8c0eb5d",
+      "targetTable": "MerchantFee",
+      "targetId": "9946d217-3f50-43be-95d9-33efc8c0eb5d",
+      "rule": "FINANCE_TABLES_TO_HIERARCHY",
+      "validation": "PASS"
+    },
+    {
+      "sourceTable": "legacy_finance",
+      "sourceId": "a7f5df1a-6c28-4d63-b462-cdefeb26e38c",
+      "targetTable": "MerchantFee",
+      "targetId": "a7f5df1a-6c28-4d63-b462-cdefeb26e38c",
+      "rule": "FINANCE_TABLES_TO_HIERARCHY",
+      "validation": "PASS"
+    },
+    {
+      "sourceTable": "legacy_finance",
+      "sourceId": "d156c6cc-ea03-4069-b897-dda1fe506794",
+      "targetTable": "MerchantFee",
+      "targetId": "d156c6cc-ea03-4069-b897-dda1fe506794",
+      "rule": "FINANCE_TABLES_TO_HIERARCHY",
+      "validation": "PASS"
+    },
+    {
+      "sourceTable": "legacy_finance",
+      "sourceId": "d67276a1-bb2c-4648-9531-6828915954b4",
+      "targetTable": "MerchantFee",
+      "targetId": "d67276a1-bb2c-4648-9531-6828915954b4",
+      "rule": "FINANCE_TABLES_TO_HIERARCHY",
+      "validation": "PASS"
+    },
+    {
+      "sourceTable": "legacy_finance",
+      "sourceId": "e2f38ee0-787d-4fdf-887b-771f96f45278",
+      "targetTable": "MerchantFee",
+      "targetId": "e2f38ee0-787d-4fdf-887b-771f96f45278",
+      "rule": "FINANCE_TABLES_TO_HIERARCHY",
+      "validation": "PASS"
+    },
+    {
+      "sourceTable": "legacy_finance",
+      "sourceId": "fd8b3891-2448-41e4-ae97-8441c35930cf",
+      "targetTable": "MerchantFee",
+      "targetId": "fd8b3891-2448-41e4-ae97-8441c35930cf",
+      "rule": "FINANCE_TABLES_TO_HIERARCHY",
+      "validation": "PASS"
+    },
+    {
+      "sourceTable": "legacy_finance",
+      "sourceId": "44000000-0000-4000-8000-000000000001",
+      "targetTable": "MerchantFee",
+      "targetId": "44000000-0000-4000-8000-000000000001",
+      "rule": "FINANCE_TABLES_TO_HIERARCHY",
+      "validation": "PASS"
+    },
+    {
+      "sourceTable": "legacy_finance",
+      "sourceId": "44000000-0000-4000-8000-000000000002",
+      "targetTable": "MerchantFee",
+      "targetId": "44000000-0000-4000-8000-000000000002",
+      "rule": "FINANCE_TABLES_TO_HIERARCHY",
+      "validation": "PASS"
+    },
+    {
+      "sourceTable": "legacy_finance",
+      "sourceId": "9373bb1f-3c6f-4e3b-8eb1-2669a359f519",
+      "targetTable": "MerchantFee",
+      "targetId": "9373bb1f-3c6f-4e3b-8eb1-2669a359f519",
+      "rule": "FINANCE_TABLES_TO_HIERARCHY",
+      "validation": "PASS"
+    },
+    {
+      "sourceTable": "legacy_finance",
+      "sourceId": "9c540f01-7baa-4660-97b4-0bf0f8eb80a0",
+      "targetTable": "MerchantFee",
+      "targetId": "9c540f01-7baa-4660-97b4-0bf0f8eb80a0",
+      "rule": "FINANCE_TABLES_TO_HIERARCHY",
+      "validation": "PASS"
+    },
+    {
+      "sourceTable": "legacy_finance",
+      "sourceId": "c7bbf8e6-8fa9-47c3-952e-ec588686d284",
+      "targetTable": "MerchantFee",
+      "targetId": "c7bbf8e6-8fa9-47c3-952e-ec588686d284",
+      "rule": "FINANCE_TABLES_TO_HIERARCHY",
+      "validation": "PASS"
+    },
+    {
+      "sourceTable": "payment_sources",
+      "sourceId": "5de9dd1e-d90b-4719-b9bf-6b55f3e409f9",
+      "targetTable": "PaymentAttempt",
+      "targetId": "5de9dd1e-d90b-4719-b9bf-6b55f3e409f9",
+      "rule": "ORDER_OR_MERCHANT_FEE_XOR",
+      "validation": "PASS"
+    },
+    {
+      "sourceTable": "payment_sources",
+      "sourceId": "6f45c0f2-b85b-47e5-a0c2-057ba532f3fe",
+      "targetTable": "PaymentAttempt",
+      "targetId": "6f45c0f2-b85b-47e5-a0c2-057ba532f3fe",
+      "rule": "ORDER_OR_MERCHANT_FEE_XOR",
+      "validation": "PASS"
+    },
+    {
+      "sourceTable": "payment_sources",
+      "sourceId": "f55404e0-93ee-4d87-8239-6398b181d954",
+      "targetTable": "PaymentAttempt",
+      "targetId": "f55404e0-93ee-4d87-8239-6398b181d954",
+      "rule": "ORDER_OR_MERCHANT_FEE_XOR",
+      "validation": "PASS"
+    },
+    {
+      "sourceTable": "payment_sources",
+      "sourceId": "2384c1f9-77a6-4778-9390-393c89b7b1b8",
+      "targetTable": "PaymentAttempt",
+      "targetId": "2384c1f9-77a6-4778-9390-393c89b7b1b8",
+      "rule": "ORDER_OR_MERCHANT_FEE_XOR",
+      "validation": "PASS"
+    },
+    {
+      "sourceTable": "payment_sources",
+      "sourceId": "f3b8bb3d-5046-44d8-bc94-803559d98c46",
+      "targetTable": "PaymentAttempt",
+      "targetId": "f3b8bb3d-5046-44d8-bc94-803559d98c46",
+      "rule": "ORDER_OR_MERCHANT_FEE_XOR",
+      "validation": "PASS"
+    },
+    {
+      "sourceTable": "courier_profiles",
+      "sourceId": "00000000-0000-4000-8000-000000000005",
+      "targetTable": "CourierProfile",
+      "targetId": "00000000-0000-4000-8000-000000000005",
+      "rule": "AVAILABILITY_TO_SCALARS_AND_HISTORY",
+      "validation": "PASS"
+    },
+    {
+      "sourceTable": "delivery_batches",
+      "sourceId": "13ceb045-9b62-4ef1-8667-878530c8147e",
+      "targetTable": "DeliveryBatch",
+      "targetId": "13ceb045-9b62-4ef1-8667-878530c8147e",
+      "rule": "PRESERVE_BATCH",
+      "validation": "PASS"
+    },
+    {
+      "sourceTable": "delivery_batches",
+      "sourceId": "629fa160-f686-4545-b787-6f05bd65d0cc",
+      "targetTable": "DeliveryBatch",
+      "targetId": "629fa160-f686-4545-b787-6f05bd65d0cc",
+      "rule": "PRESERVE_BATCH",
+      "validation": "PASS"
+    },
+    {
+      "sourceTable": "delivery_batches",
+      "sourceId": "79000000-0000-4000-8000-000000000001",
+      "targetTable": "DeliveryBatch",
+      "targetId": "79000000-0000-4000-8000-000000000001",
+      "rule": "PRESERVE_BATCH",
+      "validation": "PASS"
+    },
+    {
+      "sourceTable": "delivery_batches",
+      "sourceId": "79000000-0000-4000-8000-000000000002",
+      "targetTable": "DeliveryBatch",
+      "targetId": "79000000-0000-4000-8000-000000000002",
+      "rule": "PRESERVE_BATCH",
+      "validation": "PASS"
+    },
+    {
+      "sourceTable": "delivery_batches",
+      "sourceId": "79000000-0000-4000-8000-000000000003",
+      "targetTable": "DeliveryBatch",
+      "targetId": "79000000-0000-4000-8000-000000000003",
+      "rule": "PRESERVE_BATCH",
+      "validation": "PASS"
+    },
+    {
+      "sourceTable": "delivery_batches",
+      "sourceId": "e1ed81a0-5887-4dc4-b1ef-76bbbd85aad2",
+      "targetTable": "DeliveryBatch",
+      "targetId": "e1ed81a0-5887-4dc4-b1ef-76bbbd85aad2",
+      "rule": "PRESERVE_BATCH",
+      "validation": "PASS"
+    },
+    {
+      "sourceTable": "delivery_batch_orders",
+      "sourceId": "0908244e-0d3d-4b37-ab13-aeeaee4e1890",
+      "targetTable": "DeliveryBatchOrder",
+      "targetId": "0908244e-0d3d-4b37-ab13-aeeaee4e1890",
+      "rule": "PROOF_PICKUP_ACTIVITY_FLATTEN",
+      "validation": "PASS"
+    },
+    {
+      "sourceTable": "delivery_batch_orders",
+      "sourceId": "7a000000-0000-4000-8000-000000000001",
+      "targetTable": "DeliveryBatchOrder",
+      "targetId": "7a000000-0000-4000-8000-000000000001",
+      "rule": "PROOF_PICKUP_ACTIVITY_FLATTEN",
+      "validation": "PASS"
+    },
+    {
+      "sourceTable": "delivery_batch_orders",
+      "sourceId": "7a000000-0000-4000-8000-000000000002",
+      "targetTable": "DeliveryBatchOrder",
+      "targetId": "7a000000-0000-4000-8000-000000000002",
+      "rule": "PROOF_PICKUP_ACTIVITY_FLATTEN",
+      "validation": "PASS"
+    },
+    {
+      "sourceTable": "delivery_batch_orders",
+      "sourceId": "7a000000-0000-4000-8000-000000000003",
+      "targetTable": "DeliveryBatchOrder",
+      "targetId": "7a000000-0000-4000-8000-000000000003",
+      "rule": "PROOF_PICKUP_ACTIVITY_FLATTEN",
+      "validation": "PASS"
+    },
+    {
+      "sourceTable": "delivery_batch_orders",
+      "sourceId": "afc4f6ab-eaf4-4efb-bc3b-bc6c56d67d4a",
+      "targetTable": "DeliveryBatchOrder",
+      "targetId": "afc4f6ab-eaf4-4efb-bc3b-bc6c56d67d4a",
+      "rule": "PROOF_PICKUP_ACTIVITY_FLATTEN",
+      "validation": "PASS"
+    },
+    {
+      "sourceTable": "delivery_batch_orders",
+      "sourceId": "c4662d7c-72d8-4a11-b402-f5230b255dcc",
+      "targetTable": "DeliveryBatchOrder",
+      "targetId": "c4662d7c-72d8-4a11-b402-f5230b255dcc",
+      "rule": "PROOF_PICKUP_ACTIVITY_FLATTEN",
+      "validation": "PASS"
+    },
+    {
+      "sourceTable": "reviews",
+      "sourceId": "0286fb84-28fb-4e28-b490-e6f36a0cb713",
+      "targetTable": "Review",
+      "targetId": "0286fb84-28fb-4e28-b490-e6f36a0cb713",
+      "rule": "PRODUCT_REVIEW_CHILDREN_FLATTEN",
+      "validation": "PASS"
+    },
+    {
+      "sourceTable": "reviews",
+      "sourceId": "58112130-f2c4-492e-989b-c94800720689",
+      "targetTable": "Review",
+      "targetId": "58112130-f2c4-492e-989b-c94800720689",
+      "rule": "PRODUCT_REVIEW_CHILDREN_FLATTEN",
+      "validation": "PASS"
+    },
+    {
+      "sourceTable": "reviews",
+      "sourceId": "73000000-0000-4000-8000-000000000001",
+      "targetTable": "Review",
+      "targetId": "73000000-0000-4000-8000-000000000001",
+      "rule": "PRODUCT_REVIEW_CHILDREN_FLATTEN",
+      "validation": "PASS"
+    },
+    {
+      "sourceTable": "reviews",
+      "sourceId": "76d786b9-6dbc-4ab9-b4a2-0ff9610a0a8c",
+      "targetTable": "Review",
+      "targetId": "76d786b9-6dbc-4ab9-b4a2-0ff9610a0a8c",
+      "rule": "PRODUCT_REVIEW_CHILDREN_FLATTEN",
+      "validation": "PASS"
+    },
+    {
+      "sourceTable": "conversations",
+      "sourceId": "75000000-0000-4000-8000-000000000001",
+      "targetTable": "Conversation",
+      "targetId": "75000000-0000-4000-8000-000000000001",
+      "rule": "PARTICIPANTS_CONTEXT_FLATTEN",
+      "validation": "PASS"
+    },
+    {
+      "sourceTable": "conversations",
+      "sourceId": "75000000-0000-4000-8000-000000000002",
+      "targetTable": "Conversation",
+      "targetId": "75000000-0000-4000-8000-000000000002",
+      "rule": "PARTICIPANTS_CONTEXT_FLATTEN",
+      "validation": "PASS"
+    },
+    {
+      "sourceTable": "conversations",
+      "sourceId": "75000000-0000-4000-8000-000000000003",
+      "targetTable": "Conversation",
+      "targetId": "75000000-0000-4000-8000-000000000003",
+      "rule": "PARTICIPANTS_CONTEXT_FLATTEN",
+      "validation": "PASS"
+    },
+    {
+      "sourceTable": "conversations",
+      "sourceId": "75000000-0000-4000-8000-000000000004",
+      "targetTable": "Conversation",
+      "targetId": "75000000-0000-4000-8000-000000000004",
+      "rule": "PARTICIPANTS_CONTEXT_FLATTEN",
+      "validation": "PASS"
+    },
+    {
+      "sourceTable": "conversations",
+      "sourceId": "75000000-0000-4000-8000-000000000005",
+      "targetTable": "Conversation",
+      "targetId": "75000000-0000-4000-8000-000000000005",
+      "rule": "PARTICIPANTS_CONTEXT_FLATTEN",
+      "validation": "PASS"
+    },
+    {
+      "sourceTable": "conversations",
+      "sourceId": "75000000-0000-4000-8000-000000000006",
+      "targetTable": "Conversation",
+      "targetId": "75000000-0000-4000-8000-000000000006",
+      "rule": "PARTICIPANTS_CONTEXT_FLATTEN",
+      "validation": "PASS"
+    },
+    {
+      "sourceTable": "messages",
+      "sourceId": "354ac934-2b5d-44c7-8232-2e585f72f44b",
+      "targetTable": "Message",
+      "targetId": "354ac934-2b5d-44c7-8232-2e585f72f44b",
+      "rule": "RECIPIENT_READ_TO_READ_AT",
+      "validation": "PASS"
+    },
+    {
+      "sourceTable": "messages",
+      "sourceId": "5f61c9d3-28ff-401d-abe8-914aaaf55ac5",
+      "targetTable": "Message",
+      "targetId": "5f61c9d3-28ff-401d-abe8-914aaaf55ac5",
+      "rule": "RECIPIENT_READ_TO_READ_AT",
+      "validation": "PASS"
+    },
+    {
+      "sourceTable": "messages",
+      "sourceId": "76000000-0000-4000-8000-000000000001",
+      "targetTable": "Message",
+      "targetId": "76000000-0000-4000-8000-000000000001",
+      "rule": "RECIPIENT_READ_TO_READ_AT",
+      "validation": "PASS"
+    },
+    {
+      "sourceTable": "messages",
+      "sourceId": "76000000-0000-4000-8000-000000000002",
+      "targetTable": "Message",
+      "targetId": "76000000-0000-4000-8000-000000000002",
+      "rule": "RECIPIENT_READ_TO_READ_AT",
+      "validation": "PASS"
+    },
+    {
+      "sourceTable": "messages",
+      "sourceId": "76000000-0000-4000-8000-000000000003",
+      "targetTable": "Message",
+      "targetId": "76000000-0000-4000-8000-000000000003",
+      "rule": "RECIPIENT_READ_TO_READ_AT",
+      "validation": "PASS"
+    },
+    {
+      "sourceTable": "messages",
+      "sourceId": "76000000-0000-4000-8000-000000000004",
+      "targetTable": "Message",
+      "targetId": "76000000-0000-4000-8000-000000000004",
+      "rule": "RECIPIENT_READ_TO_READ_AT",
+      "validation": "PASS"
+    },
+    {
+      "sourceTable": "messages",
+      "sourceId": "76000000-0000-4000-8000-000000000005",
+      "targetTable": "Message",
+      "targetId": "76000000-0000-4000-8000-000000000005",
+      "rule": "RECIPIENT_READ_TO_READ_AT",
+      "validation": "PASS"
+    },
+    {
+      "sourceTable": "messages",
+      "sourceId": "76000000-0000-4000-8000-000000000006",
+      "targetTable": "Message",
+      "targetId": "76000000-0000-4000-8000-000000000006",
+      "rule": "RECIPIENT_READ_TO_READ_AT",
+      "validation": "PASS"
+    },
+    {
+      "sourceTable": "messages",
+      "sourceId": "9a635409-bf4d-4584-8d4c-b79293bb1ad4",
+      "targetTable": "Message",
+      "targetId": "9a635409-bf4d-4584-8d4c-b79293bb1ad4",
+      "rule": "RECIPIENT_READ_TO_READ_AT",
+      "validation": "PASS"
+    },
+    {
+      "sourceTable": "messages",
+      "sourceId": "f8aa0034-86c6-458c-be7b-1619c7ad655c",
+      "targetTable": "Message",
+      "targetId": "f8aa0034-86c6-458c-be7b-1619c7ad655c",
+      "rule": "RECIPIENT_READ_TO_READ_AT",
+      "validation": "PASS"
+    },
+    {
+      "sourceTable": "notifications",
+      "sourceId": "04ccb49d-e2a8-428d-93e9-498fbbf92be4",
+      "targetTable": "Notification",
+      "targetId": "04ccb49d-e2a8-428d-93e9-498fbbf92be4",
+      "rule": "ARCHIVE_DOMAIN_AND_NORMALIZE_FEE_ENTITY",
+      "validation": "PASS"
+    },
+    {
+      "sourceTable": "notifications",
+      "sourceId": "0bed4bbe-1229-4763-8b9d-9b0364a4cf85",
+      "targetTable": "Notification",
+      "targetId": "0bed4bbe-1229-4763-8b9d-9b0364a4cf85",
+      "rule": "ARCHIVE_DOMAIN_AND_NORMALIZE_FEE_ENTITY",
+      "validation": "PASS"
+    },
+    {
+      "sourceTable": "notifications",
+      "sourceId": "1b886d21-c33c-43b0-8f99-6f45166ee578",
+      "targetTable": "Notification",
+      "targetId": "1b886d21-c33c-43b0-8f99-6f45166ee578",
+      "rule": "ARCHIVE_DOMAIN_AND_NORMALIZE_FEE_ENTITY",
+      "validation": "PASS"
+    },
+    {
+      "sourceTable": "notifications",
+      "sourceId": "1d98aaae-c904-4630-b239-39965af33f31",
+      "targetTable": "Notification",
+      "targetId": "1d98aaae-c904-4630-b239-39965af33f31",
+      "rule": "ARCHIVE_DOMAIN_AND_NORMALIZE_FEE_ENTITY",
+      "validation": "PASS"
+    },
+    {
+      "sourceTable": "notifications",
+      "sourceId": "2b669893-5ecd-4e53-8e84-beac7f188b76",
+      "targetTable": "Notification",
+      "targetId": "2b669893-5ecd-4e53-8e84-beac7f188b76",
+      "rule": "ARCHIVE_DOMAIN_AND_NORMALIZE_FEE_ENTITY",
+      "validation": "PASS"
+    },
+    {
+      "sourceTable": "notifications",
+      "sourceId": "3055be8d-9aab-436a-a733-213c93d9aa79",
+      "targetTable": "Notification",
+      "targetId": "3055be8d-9aab-436a-a733-213c93d9aa79",
+      "rule": "ARCHIVE_DOMAIN_AND_NORMALIZE_FEE_ENTITY",
+      "validation": "PASS"
+    },
+    {
+      "sourceTable": "notifications",
+      "sourceId": "474bc893-5538-488f-a92c-08dbd792b0f6",
+      "targetTable": "Notification",
+      "targetId": "474bc893-5538-488f-a92c-08dbd792b0f6",
+      "rule": "ARCHIVE_DOMAIN_AND_NORMALIZE_FEE_ENTITY",
+      "validation": "PASS"
+    },
+    {
+      "sourceTable": "notifications",
+      "sourceId": "4ac5558f-ace7-4603-b6d5-f5763d8a7320",
+      "targetTable": "Notification",
+      "targetId": "4ac5558f-ace7-4603-b6d5-f5763d8a7320",
+      "rule": "ARCHIVE_DOMAIN_AND_NORMALIZE_FEE_ENTITY",
+      "validation": "PASS"
+    },
+    {
+      "sourceTable": "notifications",
+      "sourceId": "4cce599a-150b-4f35-b730-1a2d1cdfb91c",
+      "targetTable": "Notification",
+      "targetId": "4cce599a-150b-4f35-b730-1a2d1cdfb91c",
+      "rule": "ARCHIVE_DOMAIN_AND_NORMALIZE_FEE_ENTITY",
+      "validation": "PASS"
+    },
+    {
+      "sourceTable": "notifications",
+      "sourceId": "5266d118-ed13-4cb8-b28d-9e8223163a2e",
+      "targetTable": "Notification",
+      "targetId": "5266d118-ed13-4cb8-b28d-9e8223163a2e",
+      "rule": "ARCHIVE_DOMAIN_AND_NORMALIZE_FEE_ENTITY",
+      "validation": "PASS"
+    },
+    {
+      "sourceTable": "notifications",
+      "sourceId": "5625f76e-a451-48ec-872f-f562af5520df",
+      "targetTable": "Notification",
+      "targetId": "5625f76e-a451-48ec-872f-f562af5520df",
+      "rule": "ARCHIVE_DOMAIN_AND_NORMALIZE_FEE_ENTITY",
+      "validation": "PASS"
+    },
+    {
+      "sourceTable": "notifications",
+      "sourceId": "5a7e1c76-500d-4e14-a5c1-5ef2843b4326",
+      "targetTable": "Notification",
+      "targetId": "5a7e1c76-500d-4e14-a5c1-5ef2843b4326",
+      "rule": "ARCHIVE_DOMAIN_AND_NORMALIZE_FEE_ENTITY",
+      "validation": "PASS"
+    },
+    {
+      "sourceTable": "notifications",
+      "sourceId": "5e814995-b12f-445d-8a04-9c6bfd2e1468",
+      "targetTable": "Notification",
+      "targetId": "5e814995-b12f-445d-8a04-9c6bfd2e1468",
+      "rule": "ARCHIVE_DOMAIN_AND_NORMALIZE_FEE_ENTITY",
+      "validation": "PASS"
+    },
+    {
+      "sourceTable": "notifications",
+      "sourceId": "5ec2e8b3-b408-4753-a029-dd16d4ce1184",
+      "targetTable": "Notification",
+      "targetId": "5ec2e8b3-b408-4753-a029-dd16d4ce1184",
+      "rule": "ARCHIVE_DOMAIN_AND_NORMALIZE_FEE_ENTITY",
+      "validation": "PASS"
+    },
+    {
+      "sourceTable": "notifications",
+      "sourceId": "68b4edad-106b-48db-ad25-c3f530d82f27",
+      "targetTable": "Notification",
+      "targetId": "68b4edad-106b-48db-ad25-c3f530d82f27",
+      "rule": "ARCHIVE_DOMAIN_AND_NORMALIZE_FEE_ENTITY",
+      "validation": "PASS"
+    },
+    {
+      "sourceTable": "notifications",
+      "sourceId": "7149de51-e2f3-4a95-b637-999d44f63ca3",
+      "targetTable": "Notification",
+      "targetId": "7149de51-e2f3-4a95-b637-999d44f63ca3",
+      "rule": "ARCHIVE_DOMAIN_AND_NORMALIZE_FEE_ENTITY",
+      "validation": "PASS"
+    },
+    {
+      "sourceTable": "notifications",
+      "sourceId": "71d253ae-11a3-4979-9719-c0a6fe7095a5",
+      "targetTable": "Notification",
+      "targetId": "71d253ae-11a3-4979-9719-c0a6fe7095a5",
+      "rule": "ARCHIVE_DOMAIN_AND_NORMALIZE_FEE_ENTITY",
+      "validation": "PASS"
+    },
+    {
+      "sourceTable": "notifications",
+      "sourceId": "74000000-0000-4000-8000-000000000001",
+      "targetTable": "Notification",
+      "targetId": "74000000-0000-4000-8000-000000000001",
+      "rule": "ARCHIVE_DOMAIN_AND_NORMALIZE_FEE_ENTITY",
+      "validation": "PASS"
+    },
+    {
+      "sourceTable": "notifications",
+      "sourceId": "74000000-0000-4000-8000-000000000003",
+      "targetTable": "Notification",
+      "targetId": "74000000-0000-4000-8000-000000000003",
+      "rule": "ARCHIVE_DOMAIN_AND_NORMALIZE_FEE_ENTITY",
+      "validation": "PASS"
+    },
+    {
+      "sourceTable": "notifications",
+      "sourceId": "74000000-0000-4000-8000-000000000004",
+      "targetTable": "Notification",
+      "targetId": "74000000-0000-4000-8000-000000000004",
+      "rule": "ARCHIVE_DOMAIN_AND_NORMALIZE_FEE_ENTITY",
+      "validation": "PASS"
+    },
+    {
+      "sourceTable": "notifications",
+      "sourceId": "74000000-0000-4000-8000-000000000006",
+      "targetTable": "Notification",
+      "targetId": "74000000-0000-4000-8000-000000000006",
+      "rule": "ARCHIVE_DOMAIN_AND_NORMALIZE_FEE_ENTITY",
+      "validation": "PASS"
+    },
+    {
+      "sourceTable": "notifications",
+      "sourceId": "7494e7de-1d2b-4e09-8ff1-2e610d548a7d",
+      "targetTable": "Notification",
+      "targetId": "7494e7de-1d2b-4e09-8ff1-2e610d548a7d",
+      "rule": "ARCHIVE_DOMAIN_AND_NORMALIZE_FEE_ENTITY",
+      "validation": "PASS"
+    },
+    {
+      "sourceTable": "notifications",
+      "sourceId": "7900e472-8123-4036-a173-d4d613f9f5ae",
+      "targetTable": "Notification",
+      "targetId": "7900e472-8123-4036-a173-d4d613f9f5ae",
+      "rule": "ARCHIVE_DOMAIN_AND_NORMALIZE_FEE_ENTITY",
+      "validation": "PASS"
+    },
+    {
+      "sourceTable": "notifications",
+      "sourceId": "7ed396e5-3725-499f-b187-b0fcd7d4f8aa",
+      "targetTable": "Notification",
+      "targetId": "7ed396e5-3725-499f-b187-b0fcd7d4f8aa",
+      "rule": "ARCHIVE_DOMAIN_AND_NORMALIZE_FEE_ENTITY",
+      "validation": "PASS"
+    },
+    {
+      "sourceTable": "notifications",
+      "sourceId": "84e91ef5-1d9b-4cf9-bc4d-2cdb2229c143",
+      "targetTable": "Notification",
+      "targetId": "84e91ef5-1d9b-4cf9-bc4d-2cdb2229c143",
+      "rule": "ARCHIVE_DOMAIN_AND_NORMALIZE_FEE_ENTITY",
+      "validation": "PASS"
+    },
+    {
+      "sourceTable": "notifications",
+      "sourceId": "8b7a9298-fcec-4f3f-9306-522418b19517",
+      "targetTable": "Notification",
+      "targetId": "8b7a9298-fcec-4f3f-9306-522418b19517",
+      "rule": "ARCHIVE_DOMAIN_AND_NORMALIZE_FEE_ENTITY",
+      "validation": "PASS"
+    },
+    {
+      "sourceTable": "notifications",
+      "sourceId": "915143f2-3c6c-4147-a95e-446cb49c9a1e",
+      "targetTable": "Notification",
+      "targetId": "915143f2-3c6c-4147-a95e-446cb49c9a1e",
+      "rule": "ARCHIVE_DOMAIN_AND_NORMALIZE_FEE_ENTITY",
+      "validation": "PASS"
+    },
+    {
+      "sourceTable": "notifications",
+      "sourceId": "91ac7429-b8fe-48b0-9178-4bc199b349f0",
+      "targetTable": "Notification",
+      "targetId": "91ac7429-b8fe-48b0-9178-4bc199b349f0",
+      "rule": "ARCHIVE_DOMAIN_AND_NORMALIZE_FEE_ENTITY",
+      "validation": "PASS"
+    },
+    {
+      "sourceTable": "notifications",
+      "sourceId": "964409b6-6589-485b-8c27-d1ebbad3187e",
+      "targetTable": "Notification",
+      "targetId": "964409b6-6589-485b-8c27-d1ebbad3187e",
+      "rule": "ARCHIVE_DOMAIN_AND_NORMALIZE_FEE_ENTITY",
+      "validation": "PASS"
+    },
+    {
+      "sourceTable": "notifications",
+      "sourceId": "99930e78-bf6e-4992-ab3e-1079245ecf59",
+      "targetTable": "Notification",
+      "targetId": "99930e78-bf6e-4992-ab3e-1079245ecf59",
+      "rule": "ARCHIVE_DOMAIN_AND_NORMALIZE_FEE_ENTITY",
+      "validation": "PASS"
+    },
+    {
+      "sourceTable": "notifications",
+      "sourceId": "a14ca122-949d-47d5-96ef-0b07661d372e",
+      "targetTable": "Notification",
+      "targetId": "a14ca122-949d-47d5-96ef-0b07661d372e",
+      "rule": "ARCHIVE_DOMAIN_AND_NORMALIZE_FEE_ENTITY",
+      "validation": "PASS"
+    },
+    {
+      "sourceTable": "notifications",
+      "sourceId": "b4eaeaf7-9d70-4407-89d5-955cb1a4aa1a",
+      "targetTable": "Notification",
+      "targetId": "b4eaeaf7-9d70-4407-89d5-955cb1a4aa1a",
+      "rule": "ARCHIVE_DOMAIN_AND_NORMALIZE_FEE_ENTITY",
+      "validation": "PASS"
+    },
+    {
+      "sourceTable": "notifications",
+      "sourceId": "b7f1c99a-fdc0-4aa5-903c-f410b77e4d75",
+      "targetTable": "Notification",
+      "targetId": "b7f1c99a-fdc0-4aa5-903c-f410b77e4d75",
+      "rule": "ARCHIVE_DOMAIN_AND_NORMALIZE_FEE_ENTITY",
+      "validation": "PASS"
+    },
+    {
+      "sourceTable": "notifications",
+      "sourceId": "b80d7e5e-bb03-4feb-a73d-c20f37b99da3",
+      "targetTable": "Notification",
+      "targetId": "b80d7e5e-bb03-4feb-a73d-c20f37b99da3",
+      "rule": "ARCHIVE_DOMAIN_AND_NORMALIZE_FEE_ENTITY",
+      "validation": "PASS"
+    },
+    {
+      "sourceTable": "notifications",
+      "sourceId": "bb005510-9cc6-4c74-a2ac-9161fe655644",
+      "targetTable": "Notification",
+      "targetId": "bb005510-9cc6-4c74-a2ac-9161fe655644",
+      "rule": "ARCHIVE_DOMAIN_AND_NORMALIZE_FEE_ENTITY",
+      "validation": "PASS"
+    },
+    {
+      "sourceTable": "notifications",
+      "sourceId": "c043c576-18f5-4222-b3a6-da2f843e52df",
+      "targetTable": "Notification",
+      "targetId": "c043c576-18f5-4222-b3a6-da2f843e52df",
+      "rule": "ARCHIVE_DOMAIN_AND_NORMALIZE_FEE_ENTITY",
+      "validation": "PASS"
+    },
+    {
+      "sourceTable": "notifications",
+      "sourceId": "c13ac6a9-c79b-40be-b7e0-2f1002c81438",
+      "targetTable": "Notification",
+      "targetId": "c13ac6a9-c79b-40be-b7e0-2f1002c81438",
+      "rule": "ARCHIVE_DOMAIN_AND_NORMALIZE_FEE_ENTITY",
+      "validation": "PASS"
+    },
+    {
+      "sourceTable": "notifications",
+      "sourceId": "c37c957e-1eab-4d41-8724-513e473734f0",
+      "targetTable": "Notification",
+      "targetId": "c37c957e-1eab-4d41-8724-513e473734f0",
+      "rule": "ARCHIVE_DOMAIN_AND_NORMALIZE_FEE_ENTITY",
+      "validation": "PASS"
+    },
+    {
+      "sourceTable": "notifications",
+      "sourceId": "cb6924be-b8b7-40ad-8a21-9db7347f12cc",
+      "targetTable": "Notification",
+      "targetId": "cb6924be-b8b7-40ad-8a21-9db7347f12cc",
+      "rule": "ARCHIVE_DOMAIN_AND_NORMALIZE_FEE_ENTITY",
+      "validation": "PASS"
+    },
+    {
+      "sourceTable": "notifications",
+      "sourceId": "cca1fd52-0736-454d-a695-6728cba63485",
+      "targetTable": "Notification",
+      "targetId": "cca1fd52-0736-454d-a695-6728cba63485",
+      "rule": "ARCHIVE_DOMAIN_AND_NORMALIZE_FEE_ENTITY",
+      "validation": "PASS"
+    },
+    {
+      "sourceTable": "notifications",
+      "sourceId": "d5819bb6-9bcc-4c13-be81-ac29633835eb",
+      "targetTable": "Notification",
+      "targetId": "d5819bb6-9bcc-4c13-be81-ac29633835eb",
+      "rule": "ARCHIVE_DOMAIN_AND_NORMALIZE_FEE_ENTITY",
+      "validation": "PASS"
+    },
+    {
+      "sourceTable": "notifications",
+      "sourceId": "d87fbef6-6285-4091-ae3e-67cf9f437399",
+      "targetTable": "Notification",
+      "targetId": "d87fbef6-6285-4091-ae3e-67cf9f437399",
+      "rule": "ARCHIVE_DOMAIN_AND_NORMALIZE_FEE_ENTITY",
+      "validation": "PASS"
+    },
+    {
+      "sourceTable": "notifications",
+      "sourceId": "e035a8d7-909f-4e8a-9de7-fca5644de8a6",
+      "targetTable": "Notification",
+      "targetId": "e035a8d7-909f-4e8a-9de7-fca5644de8a6",
+      "rule": "ARCHIVE_DOMAIN_AND_NORMALIZE_FEE_ENTITY",
+      "validation": "PASS"
+    },
+    {
+      "sourceTable": "notifications",
+      "sourceId": "e0a0a63b-619c-4af5-a0e4-c69464298a1a",
+      "targetTable": "Notification",
+      "targetId": "e0a0a63b-619c-4af5-a0e4-c69464298a1a",
+      "rule": "ARCHIVE_DOMAIN_AND_NORMALIZE_FEE_ENTITY",
+      "validation": "PASS"
+    },
+    {
+      "sourceTable": "notifications",
+      "sourceId": "e282fc6a-01fa-4ca3-a684-f538aceaf42b",
+      "targetTable": "Notification",
+      "targetId": "e282fc6a-01fa-4ca3-a684-f538aceaf42b",
+      "rule": "ARCHIVE_DOMAIN_AND_NORMALIZE_FEE_ENTITY",
+      "validation": "PASS"
+    },
+    {
+      "sourceTable": "notifications",
+      "sourceId": "e3351a28-323e-4034-aa7f-008a4bffb2f8",
+      "targetTable": "Notification",
+      "targetId": "e3351a28-323e-4034-aa7f-008a4bffb2f8",
+      "rule": "ARCHIVE_DOMAIN_AND_NORMALIZE_FEE_ENTITY",
+      "validation": "PASS"
+    },
+    {
+      "sourceTable": "notifications",
+      "sourceId": "e997bd6a-0197-41fa-a5e5-15f3bf5c7296",
+      "targetTable": "Notification",
+      "targetId": "e997bd6a-0197-41fa-a5e5-15f3bf5c7296",
+      "rule": "ARCHIVE_DOMAIN_AND_NORMALIZE_FEE_ENTITY",
+      "validation": "PASS"
+    },
+    {
+      "sourceTable": "notifications",
+      "sourceId": "f5d41da4-9ea0-47c6-8ba2-08a93cf9d9be",
+      "targetTable": "Notification",
+      "targetId": "f5d41da4-9ea0-47c6-8ba2-08a93cf9d9be",
+      "rule": "ARCHIVE_DOMAIN_AND_NORMALIZE_FEE_ENTITY",
+      "validation": "PASS"
+    },
+    {
+      "sourceTable": "notifications",
+      "sourceId": "fd699c65-9ea3-4f9c-8367-81d5aa9959ff",
+      "targetTable": "Notification",
+      "targetId": "fd699c65-9ea3-4f9c-8367-81d5aa9959ff",
+      "rule": "ARCHIVE_DOMAIN_AND_NORMALIZE_FEE_ENTITY",
+      "validation": "PASS"
+    }
+  ]
+}

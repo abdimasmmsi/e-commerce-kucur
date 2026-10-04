@@ -1,0 +1,416 @@
+:root {
+  --kucur-green: #3fd324;
+  --kucur-green-hover: #34b91d;
+  --kucur-green-soft: #edfaea;
+  --kucur-forest: #11200f;
+  --kucur-forest-dark: #0a1509;
+  --kucur-navy: #000718;
+  --kucur-bg: #f5f8f5;
+  --kucur-surface: #fff;
+  --kucur-surface-muted: #f1f5f1;
+  --kucur-text: #08110b;
+  --kucur-text-muted: #607064;
+  --kucur-border: #dce6dc;
+  --kucur-border-strong: #c5d3c5;
+  --kucur-success: #238b20;
+  --kucur-warning: #a86912;
+  --kucur-danger: #b83b3b;
+  --kucur-info: #2563a8;
+  --kucur-ink: var(--kucur-text);
+  --kucur-leaf: var(--kucur-green);
+  --kucur-clay: var(--kucur-green);
+  --kucur-clay-dark: var(--kucur-green-hover);
+  --kucur-clay-soft: #9bea8d;
+  --kucur-sand: var(--kucur-green-soft);
+  --kucur-cream: var(--kucur-bg);
+  --kucur-paper: var(--kucur-surface);
+  --kucur-muted: var(--kucur-text-muted);
+  --radius-control: 9px;
+  --radius-card: 14px;
+  --radius-large: 16px;
+  --shadow-soft: 0 2px 12px rgb(17 32 15 / 6%);
+  --kucur-shadow-sm: 0 2px 12px rgb(17 32 15 / 6%);
+  --shadow-menu: 0 18px 48px rgb(0 7 24 / 16%);
+  --ui-color-text: var(--kucur-text);
+  --ui-color-muted: var(--kucur-text-muted);
+  --ui-color-border: var(--kucur-border);
+  --ui-color-surface: var(--kucur-surface);
+  --ui-color-soft: var(--kucur-bg);
+  --ui-color-primary: var(--kucur-green);
+}
+
+html { color-scheme: light; background: var(--kucur-bg); }
+body, #root { background: var(--kucur-bg); color: var(--kucur-text); }
+body { font-family: "Segoe UI Variable", "Inter", "Segoe UI", Arial, sans-serif; }
+h1, h2, h3, h4, strong { color: var(--kucur-text); }
+a:focus-visible, button:focus-visible, input:focus-visible, select:focus-visible, textarea:focus-visible { outline-color: rgb(63 211 36 / 32%); }
+
+.card { border-color: var(--kucur-border); border-radius: var(--radius-card); background: var(--kucur-surface); box-shadow: var(--shadow-soft); }
+.card:hover { box-shadow: 0 5px 18px rgb(17 32 15 / 9%); }
+.primary-button, button.primary-button, a.primary-button { border-color: var(--kucur-green); background: var(--kucur-green); color: var(--kucur-navy); font-weight: 750; }
+.primary-button:hover, button.primary-button:hover, a.primary-button:hover { border-color: var(--kucur-green-hover); background: var(--kucur-green-hover); color: var(--kucur-navy); }
+.secondary-button, button.secondary-button, a.secondary-button { border-color: var(--kucur-border-strong); background: var(--kucur-surface); color: var(--kucur-text); }
+.secondary-button:hover, button.secondary-button:hover, a.secondary-button:hover { border-color: var(--kucur-green); background: var(--kucur-green-soft); color: var(--kucur-forest); }
+
+input:not([type="checkbox"]):not([type="radio"]):not([type="range"]):not([type="file"]), select, textarea { border-color: var(--kucur-border-strong); background: var(--kucur-surface); color: var(--kucur-text); }
+input:not([type="checkbox"]):not([type="radio"]):not([type="range"]):not([type="file"]):focus, select:focus, textarea:focus { border-color: var(--kucur-green-hover); box-shadow: 0 0 0 3px rgb(63 211 36 / 14%); }
+label>span:first-child, .field-group label { color: #39483c; }
+
+.page-header { border-color: var(--kucur-border); }
+.page-header::before { border-color: var(--kucur-green); }
+.page-header p { color: var(--kucur-text-muted); }
+.page-container table { background: var(--kucur-surface); }
+.page-container th { background: var(--kucur-green-soft); color: #354438; }
+.page-container tr:hover td { background: #f8fbf8; }
+[class*="table-wrap"], [class*="table-wrapper"] { border-color: var(--kucur-border)!important; box-shadow: var(--shadow-soft)!important; }
+
+.app-header { border-color: var(--kucur-border); background: rgb(255 255 255 / 96%); }
+.app-logo { background: var(--kucur-forest); color: #fff; }
+.app-nav-links a:hover, .app-nav-links a.active, .guest-auth-actions a:hover { color: var(--kucur-text); }
+.app-nav-links a.active::after { background: var(--kucur-green); }
+.guest-auth-actions .register-link { background: var(--kucur-green); color: var(--kucur-navy); font-weight: 750; }
+.notification-button, .profile-menu-trigger, .profile-dropdown { border-color: var(--kucur-border); background: var(--kucur-surface); }
+.notification-button:hover, .profile-menu-trigger:hover, .profile-dropdown>a:hover, .profile-menu-section>a:hover { background: var(--kucur-green-soft); }
+.profile-avatar { background: var(--kucur-green-soft); color: var(--kucur-forest); }
+
+.customer-layout, .account-layout, .merchant-layout, .courier-layout, .admin-layout { background: var(--kucur-bg); }
+.merchant-sidebar, .courier-sidebar, .admin-sidebar { border-color: var(--kucur-border); background: var(--kucur-surface); }
+.merchant-role-panel, .courier-role-panel, .admin-role-panel { border-color: var(--kucur-border); background: var(--kucur-bg); }
+.merchant-nav a, .courier-nav a, .admin-nav a { color: #334136; }
+.merchant-nav a:hover, .courier-nav a:hover, .admin-nav a:hover { background: var(--kucur-green-soft); color: var(--kucur-forest); }
+.merchant-nav a.active, .courier-nav a.active, .admin-nav a.active, .merchant-store-nav-list a.active { background: var(--kucur-green-soft); color: var(--kucur-forest); font-weight: 750; box-shadow: inset 3px 0 var(--kucur-green); }
+.merchant-main, .courier-main, .admin-main { background: var(--kucur-bg); }
+.merchant-mobile-header, .courier-mobile-header, .admin-mobile-header { border-color: var(--kucur-border); background: var(--kucur-surface); }
+
+.bg-emerald-600, .bg-emerald-700 { background-color: var(--kucur-green)!important; color: var(--kucur-navy)!important; }
+.hover\:bg-emerald-700:hover, .hover\:bg-emerald-800:hover { background-color: var(--kucur-green-hover)!important; }
+.text-emerald-700, .text-emerald-800 { color: var(--kucur-forest)!important; }
+.border-emerald-200, .border-emerald-300 { border-color: #bde8b5!important; }
+.bg-emerald-50, .bg-emerald-50\/70 { background-color: var(--kucur-green-soft)!important; }
+.ring-emerald-100, .ring-emerald-200 { --tw-ring-color: rgb(63 211 36 / 20%)!important; }
+
+.customer-bottom-nav { border-color: var(--kucur-border)!important; background: var(--kucur-surface)!important; box-shadow: 0 -3px 16px rgb(17 32 15 / 8%)!important; }
+.customer-bottom-nav a { color: #39443b!important; }
+.customer-bottom-nav a.active { color: var(--kucur-green-hover)!important; }
+.customer-bottom-nav a.active::before { background: var(--kucur-green)!important; }
+.home-hero-highlight { color: var(--kucur-green); font-style: normal; }
+.customer-home-hero .primary-button { border-color: var(--kucur-green); background: var(--kucur-green); color: var(--kucur-navy); }
+.customer-home-hero .primary-button:hover { border-color: var(--kucur-green-hover); background: var(--kucur-green-hover); }
+.customer-home-hero .secondary-button { border-color: rgb(255 255 255 / 42%); background: transparent; color: #fff; }
+
+@media(max-width:767px){
+  .app-header { border-bottom: 1px solid var(--kucur-border)!important; background: rgb(255 255 255 / 97%)!important; background-image: none!important; box-shadow: 0 2px 12px rgb(17 32 15 / 6%); }
+  .app-header-inner { min-height: 62px!important; padding: 8px 10px!important; }
+  .customer-mobile-header { grid-template-columns: minmax(0,1fr)!important; gap: 7px!important; }
+  .customer-mobile-search { min-height: 44px!important; border: 1px solid var(--kucur-border-strong)!important; border-radius: var(--radius-control)!important; background: var(--kucur-bg)!important; color: var(--kucur-forest)!important; box-shadow: none!important; }
+  .customer-mobile-search:focus-within { border-color: var(--kucur-green-hover)!important; box-shadow: 0 0 0 3px rgb(63 211 36 / 12%)!important; }
+  .customer-mobile-cart, .customer-mobile-notification .notification-button { width: 42px!important; height: 42px!important; min-width: 42px!important; min-height: 42px!important; border: 0!important; background: transparent!important; color: var(--kucur-forest)!important; box-shadow: none!important; }
+  .customer-mobile-cart strong, .customer-mobile-notification .notification-button>strong { border-color: #fff!important; background: var(--kucur-green)!important; color: var(--kucur-navy)!important; }
+  .customer-main { background: var(--kucur-bg); }
+  .home-explore-grid, .home-feature-section, .customer-login-cta { border-color: var(--kucur-border)!important; background: var(--kucur-surface)!important; box-shadow: var(--shadow-soft)!important; }
+  .home-explore-grid small { background: var(--kucur-green-soft)!important; color: var(--kucur-forest)!important; }
+  .home-section-heading>a, .home-catalog-card .customer-card-price { color: var(--kucur-forest)!important; }
+  .home-catalog-card .customer-card-actions a { border-color: var(--kucur-green)!important; background: var(--kucur-green)!important; color: var(--kucur-navy)!important; }
+}
+
+[data-theme="dark"], .dark {
+  color-scheme: dark;
+  --kucur-bg: #0b0e0a;
+  --kucur-surface: #121810;
+  --kucur-text: #f8fafc;
+  --kucur-text-secondary: #d4ddd3;
+  --kucur-text-muted: #94a3b8;
+  --kucur-border: rgba(75,238,43,.18);
+  --kucur-border-strong: rgba(75,238,43,.32);
+  --kucur-green-soft: #1d3519;
+  --ui-color-soft: #152713;
+  --kucur-surface-elevated: #192116;
+  --kucur-surface-muted: #192116;
+  --kucur-input: #10150e;
+  --kucur-hover: #202a1c;
+  --kucur-overlay: rgba(0,0,0,.65);
+}
+[data-theme="dark"] body, [data-theme="dark"] #root, .dark body, .dark #root { background: var(--kucur-bg); color: var(--kucur-text); }
+[data-theme="dark"] .app-header, [data-theme="dark"] .card, [data-theme="dark"] .merchant-sidebar, [data-theme="dark"] .courier-sidebar, [data-theme="dark"] .admin-sidebar, .dark .app-header, .dark .card, .dark .merchant-sidebar, .dark .courier-sidebar, .dark .admin-sidebar { background: var(--kucur-surface); }
+.dark h1,.dark h2,.dark h3,.dark h4,.dark .page-header h1,.dark .customer-catalog-card h2{color:var(--kucur-text)}
+.dark p,.dark small,.dark .customer-card-meta,.dark .home-card-label{color:var(--kucur-text-muted)}
+.dark .bg-slate-100{background-color:var(--kucur-surface-elevated)!important}.dark .hover\:bg-slate-100:hover{background-color:var(--kucur-hover)!important}
+.dark .text-slate-800{color:var(--kucur-text)!important}.dark .text-slate-400{color:var(--kucur-text-muted)!important}
+.dark .border-slate-100{border-color:var(--kucur-border)!important}.dark .divide-slate-100>*+*,.dark .divide-slate-200>*+*{border-color:var(--kucur-border)!important}
+.dark input:not([type="checkbox"]):not([type="radio"]):not([type="range"]):not([type="file"]),.dark select,.dark textarea{border-color:var(--kucur-border-strong);background:var(--kucur-input);color:var(--kucur-text)}.dark input::placeholder,.dark textarea::placeholder{color:#819282}.dark select option{background:var(--kucur-surface-elevated);color:var(--kucur-text)}
+.dark .secondary-button,.dark button.secondary-button,.dark a.secondary-button{border-color:var(--kucur-border-strong);background:var(--kucur-surface-elevated);color:var(--kucur-text)}.dark .secondary-button:hover{border-color:var(--kucur-green);background:var(--kucur-hover)}
+.dark .notification-button,.dark .profile-menu-trigger,.dark .profile-dropdown,.dark [role="dialog"],.dark [class*="modal-backdrop"] [role="dialog"]{border-color:var(--kucur-border);background:var(--kucur-surface-elevated);color:var(--kucur-text)}.dark [class*="modal-backdrop"]{background:var(--kucur-overlay)}
+.dark .profile-dropdown>a,.dark .profile-menu-section>a,.dark .profile-logout-button{background:transparent;color:var(--kucur-text)}.dark .profile-dropdown>a:hover,.dark .profile-menu-section>a:hover{background:var(--kucur-hover)}
+.dark .customer-bottom-nav{border-color:var(--kucur-border)!important;background:var(--kucur-surface-elevated)!important}.dark .customer-bottom-nav>a,.dark .customer-bottom-notification>button{color:#c5d0c5}.dark .customer-bottom-nav>a.active,.dark .customer-bottom-notification>button.active{color:var(--kucur-green)}
+.dark .customer-mobile-search{border-color:var(--kucur-border-strong)!important;background:var(--kucur-input)!important}.dark .customer-mobile-search input{color:var(--kucur-text)!important}.dark .customer-mobile-cart,.dark .customer-mobile-notification .notification-button{color:var(--kucur-text)!important}
+.dark .page-container table,.dark .customer-table-wrap{background:var(--kucur-surface)}.dark .page-container th{background:var(--kucur-surface-elevated);color:var(--kucur-text)}.dark .page-container td{border-color:var(--kucur-border);color:var(--kucur-text)}.dark .page-container tr:hover td{background:var(--kucur-hover)}
+.dark .text-emerald-700,.dark .text-emerald-800{color:#9aef8b!important}.dark .bg-emerald-50,.dark .bg-emerald-50\/70{background-color:#183016!important}
+.dark .customer-home-hero{background:#071307}.dark .home-explore-grid,.dark .home-feature-section,.dark .customer-login-cta{border-color:var(--kucur-border)!important;background:var(--kucur-surface)!important}.dark .home-catalog-card .customer-card-actions a{color:var(--kucur-navy)!important}
+.dark .home-catalog-card .customer-card-price{color:#9aef8b!important}
+.dark .leaflet-container{background:#d7e0d2;color:#1f2937}
+
+/* Dark-theme compatibility for legacy screens that still carry light-only colors. */
+.dark .app-brand>span:last-child,
+.dark .account-layout-sidebar a,
+.dark .merchant-nav a,
+.dark .courier-nav a,
+.dark .admin-nav a,
+.dark .merchant-store-nav-list a {
+  color: var(--kucur-text-secondary);
+}
+.dark .app-nav-links a { color: var(--kucur-text-secondary)!important; }
+.dark .app-nav-links a.active,
+.dark .account-layout-sidebar a.active,
+.dark .merchant-nav a.active,
+.dark .courier-nav a.active,
+.dark .admin-nav a.active,
+.dark .merchant-store-nav-list a.active {
+  color: var(--kucur-text)!important;
+}
+.dark .account-layout-sidebar a:hover,
+.dark .account-layout-sidebar a.active { background: var(--kucur-hover); }
+.dark .merchant-role-panel>div span,
+.dark .courier-role-panel>div span,
+.dark .admin-role-panel>div span,
+.dark .merchant-store-nav-list a small { color: var(--kucur-text-muted); }
+.dark .merchant-nav-section-label { color: var(--kucur-text-muted); }
+
+/* Every authenticated workspace follows the same token-driven shell. */
+:is(.merchant-workspace, .courier-workspace, .admin-workspace) :is(.merchant-layout, .courier-layout, .admin-layout) {
+  width: min(100%, 1820px);
+  min-height: calc(100vh - 70px);
+  margin-inline: auto;
+  background: var(--kucur-bg);
+}
+:is(.merchant-workspace, .courier-workspace, .admin-workspace) :is(.merchant-sidebar, .courier-sidebar, .admin-sidebar) {
+  position: sticky;
+  top: 70px;
+  width: 220px;
+  max-width: 220px;
+  height: calc(100vh - 70px);
+  flex: 0 0 220px;
+  padding: 28px 16px 20px;
+  overflow-x: hidden;
+  overflow-y: auto;
+  border-right: 1px solid var(--kucur-border);
+  background: var(--kucur-surface);
+  color: var(--kucur-text);
+}
+:is(.merchant-workspace, .courier-workspace, .admin-workspace) :is(.merchant-sidebar-header, .courier-sidebar-header, .admin-sidebar-header) { display: none; border-color: var(--kucur-border); }
+:is(.merchant-workspace, .courier-workspace, .admin-workspace) :is(.merchant-sidebar-header, .courier-sidebar-header, .admin-sidebar-header) h2,
+:is(.merchant-workspace, .courier-workspace, .admin-workspace) .workspace-role-current strong,
+:is(.merchant-workspace, .courier-workspace, .admin-workspace) .store-switcher > strong,
+:is(.merchant-workspace, .courier-workspace, .admin-workspace) .layout-session-copy strong { color: var(--kucur-text); }
+:is(.merchant-workspace, .courier-workspace, .admin-workspace) .workspace-role-current span,
+:is(.merchant-workspace, .courier-workspace, .admin-workspace) .workspace-role-panel .role-switcher > span,
+:is(.merchant-workspace, .courier-workspace, .admin-workspace) .store-switcher > span,
+:is(.merchant-workspace, .courier-workspace, .admin-workspace) .store-switcher > small,
+:is(.merchant-workspace, .courier-workspace, .admin-workspace) .layout-session-copy small,
+:is(.merchant-workspace, .courier-workspace, .admin-workspace) .merchant-nav-section-label { color: var(--kucur-text-muted); }
+:is(.merchant-workspace, .courier-workspace, .admin-workspace) .workspace-role-panel {
+  border: 0;
+  background: transparent;
+}
+.merchant-workspace .store-switcher {
+  border-color: var(--kucur-border);
+  background: var(--kucur-bg);
+}
+.merchant-workspace .workspace-role-panel .role-switcher select,
+.merchant-workspace .store-switcher select {
+  border-color: var(--kucur-border-strong);
+  background: var(--kucur-surface);
+  color: var(--kucur-text);
+}
+:is(.merchant-workspace, .courier-workspace, .admin-workspace) :is(.merchant-nav, .courier-nav, .admin-nav) { gap: 5px; margin-top: 0; }
+:is(.merchant-workspace, .courier-workspace, .admin-workspace) :is(.merchant-nav, .courier-nav, .admin-nav) > a {
+  min-height: auto;
+  padding: 11px 13px;
+  border: 1px solid transparent;
+  border-radius: 10px;
+  color: var(--kucur-text);
+  font-size: .8rem;
+  font-weight: 700;
+}
+:is(.merchant-workspace, .courier-workspace, .admin-workspace) :is(.merchant-nav, .courier-nav, .admin-nav) > a:hover {
+  border-color: var(--kucur-border);
+  background: var(--kucur-hover);
+  color: var(--kucur-text);
+}
+:is(.merchant-workspace, .courier-workspace, .admin-workspace) :is(.merchant-nav, .courier-nav, .admin-nav) > a.active {
+  border-color: var(--kucur-border);
+  background: var(--kucur-green-soft);
+  color: var(--kucur-forest);
+  box-shadow: inset 3px 0 var(--kucur-green);
+}
+:is(.merchant-workspace, .courier-workspace, .admin-workspace) .layout-session-controls { border-color: var(--kucur-border) !important; }
+:is(.merchant-workspace, .courier-workspace, .admin-workspace) :is(.merchant-sidebar, .courier-sidebar, .admin-sidebar) .layout-session-controls * { color: var(--kucur-text); }
+:is(.merchant-workspace, .courier-workspace, .admin-workspace) :is(.merchant-sidebar, .courier-sidebar, .admin-sidebar) .layout-session-actions a,
+:is(.merchant-workspace, .courier-workspace, .admin-workspace) :is(.merchant-sidebar, .courier-sidebar, .admin-sidebar) .layout-switch-account {
+  border-color: var(--kucur-border-strong);
+  background: var(--kucur-surface);
+  color: var(--kucur-text);
+}
+:is(.merchant-workspace, .courier-workspace, .admin-workspace) :is(.merchant-sidebar, .courier-sidebar, .admin-sidebar) .layout-logout {
+  border-color: color-mix(in srgb, #dc2626 35%, var(--kucur-border));
+  background: color-mix(in srgb, #dc2626 8%, var(--kucur-surface));
+  color: #dc2626;
+}
+
+@media (max-width: 768px) {
+  :is(.merchant-workspace, .courier-workspace, .admin-workspace) :is(.merchant-sidebar, .courier-sidebar, .admin-sidebar) {
+    position: fixed;
+    top: 0;
+    width: min(292px, 85vw);
+    max-width: 85vw;
+    height: 100dvh;
+  }
+  :is(.merchant-workspace, .courier-workspace, .admin-workspace) :is(.merchant-sidebar-header, .courier-sidebar-header, .admin-sidebar-header) {
+    display: flex;
+  }
+}
+
+.dark .store-card,
+.dark .chat-conversation-card,
+.dark .workspace-settings-section,
+.dark .merchant-application-history-list article,
+.dark .bug-screenshot-modal>section {
+  border-color: var(--kucur-border);
+  background: var(--kucur-surface);
+  color: var(--kucur-text);
+}
+.dark .store-card h2,
+.dark .workspace-settings-heading h2,
+.dark .workspace-settings-details dd,
+.dark .chat-conversation-copy h2 { color: var(--kucur-text); }
+.dark .store-description,
+.dark .store-contact-summary,
+.dark .workspace-settings-heading span,
+.dark .workspace-settings-details dt,
+.dark .workspace-settings-copy,
+.dark .chat-toolbar label span,
+.dark .chat-conversation-copy p,
+.dark .chat-conversation-copy time,
+.dark .chat-room-header p,
+.dark .chat-room-welcome p,
+.dark .chat-message em,
+.dark .chat-message time,
+.dark .chat-composer label>span,
+.dark .merchant-apply-grid>label,
+.dark .merchant-form-heading p { color: var(--kucur-text-muted); }
+.dark .workspace-settings-heading>a,
+.dark .chat-room-header>button,
+.dark .chat-quick-replies button {
+  border-color: var(--kucur-border-strong);
+  background: var(--kucur-surface-elevated);
+  color: var(--kucur-text);
+}
+.dark .chat-avatar,
+.dark .product-image-fallback,
+.dark .store-card-image.store-type-product {
+  background: var(--kucur-surface-elevated);
+  color: #dfffd8;
+}
+.dark .chat-message { background: var(--kucur-surface-elevated); color: var(--kucur-text); }
+.dark .chat-message.own { background: var(--kucur-green-soft); }
+.dark .chat-closed-notice { background: var(--kucur-surface-elevated); color: var(--kucur-text-muted); }
+
+.dark .merchant-application-status.pending,
+.dark .merchant-application-status.approved,
+.dark .merchant-application-status.rejected {
+  border-color: var(--kucur-border-strong);
+  background: var(--kucur-surface-elevated);
+  color: var(--kucur-text);
+}
+.dark .merchant-application-status p,
+.dark .merchant-application-status small { color: var(--kucur-text-secondary); }
+.dark .merchant-application-status-actions button {
+  border-color: #f87171;
+  background: transparent;
+  color: #fca5a5;
+}
+.dark .account-layout-logout,
+.dark .profile-logout-button { color: #fca5a5; }
+.dark .account-layout-logout:hover { border-color: #7f1d1d; background: #2b1513; }
+
+.home-catalog-card .customer-card-price { color: var(--kucur-success)!important; }
+.dark .home-catalog-card .customer-card-price { color: #9aef8b!important; }
+.dark .merchant-apply-grid>label { color: var(--kucur-text-secondary)!important; }
+.dark [class*="empty-state"],
+.dark [class$="__empty"],
+.dark [class$="-empty"] {
+  border-color: var(--kucur-border-strong)!important;
+  background: var(--kucur-surface-elevated)!important;
+  color: var(--kucur-text-muted)!important;
+}
+
+/* Final authenticated contrast guard: legacy feature styles must inherit the
+   same readable tokens as the shared Customer/Account shell. */
+.dark :is(.account-layout-main, .merchant-main, .courier-main, .admin-main) :is(input, select, textarea) {
+  border-color: var(--kucur-border-strong)!important;
+  background-color: var(--kucur-surface-elevated)!important;
+  color: var(--kucur-text)!important;
+}
+.dark :is(.account-layout-main, .merchant-main, .courier-main, .admin-main) option {
+  background: var(--kucur-surface)!important;
+  color: var(--kucur-text)!important;
+}
+.dark :is(.merchant-main, .courier-main, .admin-main) .bg-kucur-paper,
+.dark :is(.merchant-main, .courier-main, .admin-main) :is(.livein-booking-table-wrap, .review-list-component article, .review-seller-reply, .merchant-application-list-card, .merchant-application-detail, .admin-private-note-list article) {
+  border-color: var(--kucur-border)!important;
+  background: var(--kucur-surface)!important;
+  color: var(--kucur-text)!important;
+}
+.dark :is(.merchant-main, .courier-main, .admin-main) :is(.admin-monitor-section h2, .review-card-heading h2, .merchant-detail-heading h2, .merchant-application-info dd, .reports-table h2, .livein-overview-header h2, .livein-booking-info strong, .livein-room-items h2, .livein-room-items h3, .livein-activity h2, .livein-merchant-actions h2) {
+  color: var(--kucur-text)!important;
+}
+.dark :is(.merchant-main, .courier-main, .admin-main) :is(.review-form-component label, .review-list-component p, .merchant-application-info dt, .merchant-list-meta, .livein-booking-toolbar label, .livein-overview-header>div>span, .livein-booking-info span, .livein-room-items article span) {
+  color: var(--kucur-text-muted)!important;
+}
+
+/* E-Commerce legacy surface normalization. These selectors intentionally sit
+   last so old feature CSS cannot restore light-only colors in dark mode. */
+.dark :is(.account-layout-main, .merchant-main, .courier-main, .admin-main) :is(.card, article, section, .admin-table-wrap, .customer-table-wrap, .admin-inline-panel, .unified-notification-card) {
+  border-color: var(--kucur-border);
+}
+.dark :is(.admin-table-wrap, .customer-table-wrap, .admin-inline-panel, .unified-notification-card, .unified-notification-card.read) {
+  background: var(--kucur-surface)!important;
+  color: var(--kucur-text)!important;
+}
+.dark :is(.admin-data-table th, .customer-table th, .admin-data-table tbody tr:hover, .customer-table tr:hover, .unified-notification-toolbar input, .unified-notification-toolbar select, .unified-notification-card-actions a, .unified-notification-card-actions button) {
+  border-color: var(--kucur-border)!important;
+  background: var(--kucur-surface-elevated)!important;
+  color: var(--kucur-text)!important;
+}
+.dark :is(.admin-summary-card span, .admin-summary-card small, .admin-toolbar label, .admin-form-control, .admin-info-grid span, .admin-timeline-item p, .customer-toolbar label, .customer-card-meta, .customer-info-grid span, .customer-form label, .customer-timeline-item p, .unified-notification-toolbar label>span, .unified-notification-copy p, .unified-notification-copy time) {
+  color: var(--kucur-text-muted)!important;
+}
+.dark :is(.admin-summary-card strong, .admin-info-grid strong, .admin-side-actions h2, .admin-section-title, .customer-catalog-card h2, .customer-info-grid strong, .customer-timeline-item strong, .unified-notification-copy h2) {
+  color: var(--kucur-text)!important;
+}
+.dark :is(.account-layout-main, .merchant-main, .courier-main, .admin-main) [class~="bg-slate-100"] {
+  background-color: var(--kucur-surface-elevated)!important;
+}
+.dark :is(.account-layout-main, .merchant-main, .courier-main, .admin-main) [class~="bg-emerald-50"] {
+  background-color: color-mix(in srgb, var(--kucur-green) 15%, var(--kucur-surface))!important;
+}
+.dark :is(.account-layout-main, .merchant-main, .courier-main, .admin-main) [class~="text-emerald-800"],
+.dark :is(.account-layout-main, .merchant-main, .courier-main, .admin-main) [class~="text-emerald-700"] {
+  color: #9aef8b!important;
+}
+.dark :is(.account-layout-main, .merchant-main, .courier-main, .admin-main) [class~="text-amber-700"],
+.dark :is(.account-layout-main, .merchant-main, .courier-main, .admin-main) [class~="text-amber-800"] {
+  color: #fcd68a!important;
+}
+.dark :is(.merchant-main, .courier-main, .admin-main) .history-row {
+  border-color: var(--kucur-border)!important;
+  color: var(--kucur-text)!important;
+}
+.dark :is(.merchant-main, .courier-main, .admin-main) .history-row:hover {
+  background: var(--kucur-surface-elevated)!important;
+}
+.dark :is(.merchant-main, .courier-main, .admin-main) .history-row strong {
+  color: var(--kucur-text)!important;
+}
+.dark :is(.merchant-main, .courier-main, .admin-main) .history-row p {
+  color: var(--kucur-text-muted)!important;
+}

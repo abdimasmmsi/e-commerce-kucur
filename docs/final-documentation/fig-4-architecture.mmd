@@ -1,0 +1,31 @@
+flowchart TB
+  U[Visitor · Customer · Merchant · Courier · Admin]
+  subgraph CLIENT[Responsive Web Application]
+    WEB[React 19 + Vite 8<br/>Role-aware routing · ID/EN · Light/Dark]
+    RTCLIENT[Socket.IO Client]
+  end
+  subgraph SERVER[Application Server]
+    API[Node.js + Express 5<br/>REST API and authorization middleware]
+    RTSERVER[Socket.IO Server<br/>Realtime chat transport]
+    SERVICES[Business Services<br/>Auth · Store · Product · Commerce · Finance<br/>Delivery · Review · Chat · Notification]
+    REPO[Final Repository<br/>Canonical reads and writes]
+  end
+  ORM[Prisma ORM 6]
+  DB[(MySQL 8.4<br/>Final 20-table E-Commerce database)]
+  PAYMENT[Midtrans API / Snap<br/>Configuration-dependent]
+  MAP[OpenRouteService + OpenStreetMap<br/>Delivery distance and map display]
+
+  U --> WEB
+  WEB -->|HTTPS / JSON| API
+  RTCLIENT <-->|WebSocket / polling| RTSERVER
+  WEB --- RTCLIENT
+  API --> SERVICES
+  RTSERVER --> SERVICES
+  SERVICES --> REPO --> ORM --> DB
+  SERVICES -. configured payment requests .-> PAYMENT
+  WEB -. routing / map requests .-> MAP
+
+  classDef active fill:#f7faf7,stroke:#315b3d,color:#183323,stroke-width:1.5px;
+  classDef external fill:#fff7df,stroke:#9a6b17,color:#4b3207;
+  class U,WEB,RTCLIENT,API,RTSERVER,SERVICES,REPO,ORM,DB active;
+  class PAYMENT,MAP external;

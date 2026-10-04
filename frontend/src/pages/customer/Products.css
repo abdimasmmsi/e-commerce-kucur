@@ -1,0 +1,231 @@
+.product-filter-panel {
+  display: grid;
+  min-width: 0;
+  gap: 16px;
+  padding: 18px;
+  border: 1px solid var(--kucur-border);
+  border-radius: 16px;
+  background: var(--kucur-surface);
+  box-shadow: 0 4px 14px rgb(15 23 42 / 5%);
+}
+
+.product-filter-heading,
+.product-filter-summary {
+  display: flex;
+  min-width: 0;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 16px;
+}
+
+.product-filter-heading h2,
+.product-filter-heading p,
+.product-filter-summary p {
+  margin: 0;
+}
+
+.product-filter-heading h2 {
+  color: var(--kucur-text);
+  font-size: 1rem;
+}
+
+.product-filter-heading p {
+  margin-top: 3px;
+  color: var(--kucur-text-muted);
+  font-size: .78rem;
+}
+
+.product-filter-heading > button {
+  flex: 0 0 auto;
+  min-height: 38px;
+  padding: 8px 12px;
+  border: 1px solid var(--kucur-border-strong);
+  border-radius: 10px;
+  background: var(--kucur-surface);
+  color: var(--kucur-text);
+  font-size: .78rem;
+  font-weight: 700;
+}
+
+.product-filter-heading > button:disabled {
+  cursor: not-allowed;
+  opacity: .45;
+}
+
+.product-filter-grid {
+  display: grid;
+  grid-template-columns: minmax(220px, 1.35fr) minmax(150px, .75fr) minmax(170px, .85fr) minmax(270px, 1.25fr) minmax(180px, .8fr);
+  min-width: 0;
+  align-items: end;
+  gap: 12px;
+}
+
+.product-filter-grid > label,
+.product-price-range label {
+  display: grid;
+  min-width: 0;
+  gap: 6px;
+  color: var(--kucur-text);
+  font-size: .78rem;
+  font-weight: 700;
+}
+
+.product-filter-grid input,
+.product-filter-grid select {
+  width: 100%;
+  min-width: 0;
+  min-height: 44px;
+  padding: 10px 12px;
+  border: 1px solid var(--kucur-border-strong);
+  border-radius: 10px;
+  outline: none;
+  background: var(--kucur-surface);
+  color: var(--kucur-text);
+}
+
+.product-filter-grid input::placeholder {
+  color: var(--kucur-text-muted);
+}
+
+.product-filter-grid input:focus,
+.product-filter-grid select:focus {
+  border-color: #16a34a;
+  box-shadow: 0 0 0 3px rgb(22 163 74 / 14%);
+}
+
+.product-price-range {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) auto minmax(0, 1fr);
+  min-width: 0;
+  align-items: end;
+  gap: 8px;
+  margin: 0;
+  padding: 0;
+  border: 0;
+}
+
+.product-price-range legend {
+  margin-bottom: 6px;
+  padding: 0;
+  color: var(--kucur-text);
+  font-size: .78rem;
+  font-weight: 700;
+}
+
+.product-price-range label > span {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  overflow: hidden;
+  clip: rect(0 0 0 0);
+  white-space: nowrap;
+}
+
+.product-price-range > span {
+  padding-bottom: 12px;
+  color: var(--kucur-text-muted);
+}
+
+.product-filter-error {
+  margin: -4px 0 0;
+  color: #dc2626;
+  font-size: .78rem;
+  font-weight: 650;
+}
+
+.product-filter-summary {
+  align-items: center;
+  padding-top: 13px;
+  border-top: 1px solid var(--kucur-border);
+}
+
+.product-filter-summary > p {
+  flex: 0 0 auto;
+  color: var(--kucur-text-muted);
+  font-size: .8rem;
+  font-weight: 650;
+}
+
+.product-filter-chips {
+  display: flex;
+  min-width: 0;
+  flex-wrap: wrap;
+  justify-content: flex-end;
+  gap: 7px;
+}
+
+.product-filter-chips button {
+  display: flex;
+  max-width: 260px;
+  min-height: 32px;
+  align-items: center;
+  gap: 7px;
+  padding: 5px 9px;
+  border: 1px solid #86c98d;
+  border-radius: 999px;
+  background: var(--kucur-green-soft);
+  color: var(--kucur-text);
+  font-size: .72rem;
+}
+
+.product-filter-chips button span {
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.product-filter-chips button b {
+  flex: 0 0 auto;
+  font-size: 1rem;
+  line-height: 1;
+}
+
+@media (max-width: 1150px) {
+  .product-filter-grid {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+
+  .product-filter-search,
+  .product-price-range {
+    grid-column: 1 / -1;
+  }
+}
+
+@media (max-width: 650px) {
+  .product-filter-panel {
+    padding: 15px;
+  }
+
+  .product-filter-heading,
+  .product-filter-summary {
+    align-items: stretch;
+    flex-direction: column;
+  }
+
+  .product-filter-heading > button {
+    width: 100%;
+  }
+
+  .product-filter-grid {
+    grid-template-columns: minmax(0, 1fr);
+  }
+
+  .product-filter-search,
+  .product-price-range {
+    grid-column: auto;
+  }
+
+  .product-filter-chips {
+    justify-content: flex-start;
+  }
+}
+
+@media (max-width: 390px) {
+  .product-price-range {
+    grid-template-columns: minmax(0, 1fr);
+  }
+
+  .product-price-range > span {
+    display: none;
+  }
+}

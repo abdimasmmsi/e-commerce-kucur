@@ -1,0 +1,44 @@
+{
+  "name": "backend",
+  "version": "1.0.0",
+  "description": "",
+  "main": "index.js",
+  "scripts": {
+    "dev": "nodemon server.js",
+    "start": "node server.js",
+    "test": "node --test foundation.test.js product.test.js commerce.test.js finance.test.js liveIn.test.js review.test.js notification.test.js chat.test.js realtime.test.js delivery.test.js storeAvailability.test.js midtransService.test.js tests/testDatabaseGuard.test.js",
+    "test:integration": "node tests/runIntegration.js",
+    "test:final-repository": "node --test tests/finalRepository.test.js tests/finalRepositoryAuthApi.test.js tests/finalFinanceRepository.test.js tests/finalCommerceService.test.js tests/finalDeliveryService.test.js tests/finalDomainServices.test.js",
+    "test:canary-router": "node --test tests/repositoryReadRouter.test.js",
+    "test:write-canary": "node --test tests/repositoryWriteRouter.test.js",
+    "validate:final-shadow": "node prisma/validation/finalRepositoryShadowValidation.js",
+    "prisma:validate": "prisma validate",
+    "prisma:generate": "prisma generate",
+    "db:migrate": "prisma migrate deploy",
+    "db:migrate:dev": "prisma migrate dev",
+    "db:migrate:status": "prisma migrate status",
+    "db:seed": "prisma db seed",
+    "db:start": "docker compose up -d mysql",
+    "db:stop": "docker compose stop mysql",
+    "db:status": "docker compose ps mysql"
+  },
+  "prisma": {
+    "seed": "node prisma/seed.js"
+  },
+  "keywords": [],
+  "author": "",
+  "license": "ISC",
+  "type": "commonjs",
+  "dependencies": {
+    "@prisma/client": "^6.19.3",
+    "cors": "^2.8.6",
+    "dotenv": "^17.4.2",
+    "express": "^5.2.1",
+    "socket.io": "^4.8.3"
+  },
+  "devDependencies": {
+    "nodemon": "^3.1.14",
+    "prisma": "^6.19.3",
+    "socket.io-client": "^4.8.3"
+  }
+}

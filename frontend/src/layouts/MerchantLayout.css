@@ -1,0 +1,795 @@
+.merchant-workspace {
+  width: 100%;
+  max-width: 100%;
+  min-width: 0;
+  min-height: 100vh;
+  background: var(--kucur-bg);
+}
+
+.merchant-layout {
+  display: flex;
+  width: min(100%, 1820px);
+  max-width: 100%;
+  min-width: 0;
+  min-height: calc(100vh - 72px);
+  margin-inline: auto;
+  background: var(--kucur-bg);
+}
+
+.merchant-sidebar {
+  position: sticky;
+  top: 70px;
+  width: 232px;
+  max-width: 232px;
+  min-width: 0;
+  flex: 0 0 232px;
+  padding: 22px 14px 20px;
+  background: var(--kucur-surface);
+  border-right: 1px solid var(--kucur-border);
+  height: calc(100vh - 70px);
+  overflow-x: hidden;
+  overflow-y: auto;
+  overscroll-behavior: contain;
+}
+
+/* Keep Merchant's intentionally compact desktop rail above legacy shared-shell sizing. */
+.merchant-workspace .merchant-layout > .merchant-sidebar {
+  width: 232px;
+  max-width: 232px;
+  flex-basis: 232px;
+}
+
+.merchant-sidebar-header {
+  display: none;
+  justify-content: space-between;
+  align-items: center;
+  gap: 10px;
+  min-width: 0;
+}
+
+.merchant-sidebar-header h2 {
+  min-width: 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  color: var(--kucur-text);
+}
+
+.merchant-close-button {
+  display: none;
+}
+
+.merchant-role-panel {
+  display: grid;
+  width: 100%;
+  max-width: 100%;
+  min-width: 0;
+  gap: 12px;
+  margin-top: 18px;
+  padding: 13px;
+  border: 1px solid var(--kucur-border);
+  border-radius: 10px;
+  background: var(--kucur-bg);
+}
+
+.merchant-role-panel > div {
+  display: grid;
+  gap: 3px;
+}
+
+.merchant-role-panel > div span {
+  color: var(--kucur-text-muted);
+  font-size: 0.7rem;
+  text-transform: uppercase;
+}
+
+.merchant-role-panel > div strong {
+  font-size: 0.9rem;
+}
+
+.merchant-store-switcher-wrap {
+  min-width: 0;
+  margin: 0 0 20px;
+}
+
+.merchant-nav {
+  display: flex;
+  flex-direction: column;
+  width: 100%;
+  max-width: 100%;
+  min-width: 0;
+  gap: 19px;
+  margin-top: 0;
+}
+
+.merchant-nav-group {
+  display: grid;
+  min-width: 0;
+  gap: 3px;
+  margin: 0;
+}
+
+.merchant-nav-group h3 {
+  margin: 0 10px 5px;
+  color: var(--kucur-text-muted);
+  font-size: .61rem;
+  font-weight: 650;
+  letter-spacing: .09em;
+  line-height: 1.4;
+  text-transform: uppercase;
+}
+
+.merchant-nav a {
+  display: flex;
+  width: 100%;
+  max-width: 100%;
+  min-width: 0;
+  align-items: center;
+  justify-content: flex-start;
+  gap: 8px;
+  padding: 9px 11px;
+  border: 1px solid transparent;
+  border-radius: 10px;
+  background: transparent;
+  text-decoration: none;
+  color: var(--kucur-text);
+  font-size: .8rem;
+  font-weight: 560;
+}
+
+.merchant-nav a > span {
+  min-width: 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.merchant-nav-icon {
+  width: 17px;
+  height: 17px;
+  flex: 0 0 17px;
+  color: var(--kucur-text-muted);
+}
+
+.merchant-nav a:hover {
+  border-color: var(--kucur-border);
+  background: var(--kucur-surface-muted);
+}
+
+.merchant-nav a.active {
+  border-color: var(--kucur-border);
+  background: var(--kucur-surface-muted);
+  color: var(--kucur-text);
+  font-weight: 650;
+}
+
+.merchant-nav a:is(:hover, .active) .merchant-nav-icon { color: currentColor; }
+
+.merchant-nav-section-label {
+  display: block;
+  margin: 15px 12px 5px;
+  color: var(--kucur-text-muted);
+  font-size: .64rem;
+  font-weight: 750;
+  letter-spacing: .07em;
+  line-height: 1.35;
+  text-transform: uppercase;
+}
+
+.merchant-store-nav-list {
+  display: grid;
+  gap: 4px;
+  min-width: 0;
+  margin: -3px 0 4px 12px;
+  padding-left: 9px;
+  border-left: 2px solid var(--kucur-border);
+}
+
+.merchant-store-nav-list a {
+  display: grid;
+  gap: 2px;
+  min-width: 0;
+  padding: 8px 10px;
+}
+
+.merchant-store-nav-list a span,
+.merchant-store-nav-list a small {
+  min-width: 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.merchant-store-nav-list a span {
+  font-size: 0.76rem;
+  font-weight: 700;
+}
+
+.merchant-store-nav-list a small {
+  color: var(--kucur-text-muted);
+  font-size: 0.64rem;
+}
+
+.merchant-store-nav-list a.active {
+  background: var(--kucur-green-soft);
+  color: var(--kucur-forest);
+}
+
+.merchant-main {
+  flex: 1 1 0%;
+  width: 100%;
+  max-width: 100%;
+  min-width: 0;
+  padding: 32px clamp(16px, 3vw, 48px);
+  background: var(--kucur-bg);
+}
+
+.merchant-main > .mx-auto,
+.merchant-main > .page-container {
+  width: min(100%, 1440px);
+  margin-inline: auto;
+}
+
+.merchant-main > *,
+.merchant-main .page-container {
+  max-width: 100%;
+  min-width: 0;
+}
+
+.merchant-feature-unavailable {
+  width: 100%;
+  max-width: 720px;
+  min-width: 0;
+  padding: 28px;
+  border: 1px solid #fed7aa;
+  border-radius: 14px;
+  background: #fff7ed;
+}
+
+.merchant-feature-unavailable > span {
+  color: #c2410c;
+  font-size: 0.76rem;
+  font-weight: 800;
+  letter-spacing: 0.05em;
+  text-transform: uppercase;
+}
+
+.merchant-feature-unavailable h1 {
+  margin: 7px 0 10px;
+  color: #7c2d12;
+  overflow-wrap: anywhere;
+}
+
+.merchant-feature-unavailable p {
+  margin: 0 0 20px;
+  color: #9a3412;
+  line-height: 1.55;
+  overflow-wrap: anywhere;
+}
+
+.merchant-feature-unavailable a {
+  display: inline-flex;
+  max-width: 100%;
+  padding: 10px 14px;
+  border-radius: 8px;
+  background: #c2410c;
+  color: #fff;
+  font-weight: 700;
+  text-align: center;
+  text-decoration: none;
+}
+
+.merchant-main .order-table-wrapper,
+.merchant-main .product-table-wrapper,
+.merchant-main .tourism-table-wrapper,
+.merchant-main .tourism-booking-table-wrap,
+.merchant-main .livein-table-wrap,
+.merchant-main .livein-booking-table-wrap,
+.merchant-main .availability-table-wrap {
+  width: 100%;
+  max-width: 100%;
+  min-width: 0;
+  overscroll-behavior-x: contain;
+  -webkit-overflow-scrolling: touch;
+}
+
+.merchant-mobile-header {
+  display: none;
+  width: 100%;
+  max-width: 100%;
+  min-width: 0;
+}
+
+.merchant-overlay {
+  display: none;
+}
+
+/* Compatibility layer for older Merchant pages that still carry fixed light colors. */
+.merchant-workspace .merchant-main :where(
+  .card,
+  .store-card,
+  .stock-item,
+  .current-stock-display,
+  .preview-box,
+  .history-item,
+  .dynamic-section
+) {
+  border-color: var(--kucur-border);
+  background: var(--kucur-surface);
+  color: var(--kucur-text);
+}
+
+.merchant-workspace .merchant-main :where(
+  h1, h2, h3, h4,
+  .stock-number,
+  .preview-item strong,
+  .workspace-settings-heading h2,
+  .workspace-settings-details dd
+) {
+  color: var(--kucur-text);
+}
+
+.merchant-workspace .merchant-main :where(
+  .stores-header-text p,
+  .store-description,
+  .store-contact-summary,
+  .stock-label,
+  .field-group label,
+  .history-date,
+  .history-reason,
+  .no-history,
+  .workspace-settings-heading span,
+  .workspace-settings-details dt,
+  .workspace-settings-copy,
+  .workspace-preference-list small
+) {
+  color: var(--kucur-text-muted);
+}
+
+.merchant-workspace .merchant-main :where(
+  input:not([type="checkbox"]):not([type="radio"]):not([type="file"]),
+  select,
+  textarea
+) {
+  min-width: 0;
+  border-color: var(--kucur-border-strong);
+  background: var(--kucur-surface);
+  color: var(--kucur-text);
+  font-weight: 400;
+}
+
+.merchant-workspace .merchant-main :where(input, textarea)::placeholder {
+  color: var(--kucur-text-muted);
+  opacity: .8;
+}
+
+.merchant-workspace .merchant-main :where(
+  input:not([type="checkbox"]):not([type="radio"]):not([type="file"]),
+  select,
+  textarea
+):focus {
+  border-color: var(--kucur-green);
+  background: var(--kucur-surface);
+  box-shadow: 0 0 0 3px color-mix(in srgb, var(--kucur-green) 18%, transparent);
+  outline: none;
+}
+
+.merchant-workspace .merchant-main :where(.workspace-settings-heading > a, .secondary-button) {
+  border-color: var(--kucur-border-strong);
+  background: var(--kucur-surface);
+  color: var(--kucur-text);
+}
+
+.merchant-workspace .merchant-main :where(.workspace-settings-details > div, .workspace-preference-list label) {
+  border-color: var(--kucur-border);
+}
+
+@media (max-width: 1024px) {
+  .merchant-workspace .merchant-layout > .merchant-sidebar {
+    width: 224px;
+    max-width: 224px;
+    flex-basis: 224px;
+  }
+
+  .merchant-main {
+    padding: 24px;
+  }
+}
+
+@media (max-width: 768px) {
+  .merchant-layout {
+    display: block;
+    width: 100%;
+    max-width: 100%;
+    min-width: 0;
+  }
+
+  .merchant-workspace .merchant-layout > .merchant-sidebar {
+    position: fixed;
+    top: 0;
+    top: 0;
+    left: 0;
+    z-index: 1100;
+
+    width: 280px;
+    max-width: 85vw;
+    flex-basis: auto;
+    min-width: 0;
+    height: 100vh;
+    height: 100dvh;
+    overflow-y: auto;
+    overflow-x: hidden;
+
+    transform: translateX(-100%);
+    transition: transform 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+  }
+
+  .merchant-sidebar-header {
+    display: flex;
+    margin-bottom: 16px;
+  }
+
+  .merchant-sidebar.open {
+    transform: translateX(0);
+  }
+
+  .merchant-overlay {
+    display: block;
+    position: fixed;
+    inset: 0;
+    width: 100%;
+    max-width: 100%;
+    background: rgba(0, 0, 0, 0.25);
+    z-index: 1000;
+    animation: fadeIn 0.2s ease;
+  }
+
+  @keyframes fadeIn {
+    from {
+      opacity: 0;
+    }
+    to {
+      opacity: 1;
+    }
+  }
+
+  .merchant-close-button {
+    display: block;
+    border: none;
+    background: transparent;
+    font-size: 26px;
+  }
+
+  .merchant-main {
+    width: 100%;
+    max-width: 100%;
+    min-width: 0;
+    margin-left: 0;
+    padding: 16px;
+  }
+
+  .merchant-mobile-header {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    margin-bottom: 20px;
+  }
+
+  .merchant-mobile-header strong {
+    min-width: 0;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+  }
+
+  .merchant-menu-button {
+    border: 1px solid var(--kucur-border);
+    background: var(--kucur-surface);
+    color: var(--kucur-text);
+    border-radius: 8px;
+    padding: 10px 12px;
+    font-size: 18px;
+  }
+
+  .merchant-feature-unavailable {
+    padding: 22px 18px;
+  }
+}
+
+/* Canonical merchant page shell: Orders is the visual baseline for every sidebar destination. */
+.merchant-main > :where(
+  .merchant-standard-page,
+  .page-container,
+  .merchant-reviews-page,
+  .merchant-edit-product,
+  div[class*="max-w-7xl"]
+) {
+  width: 100%;
+  max-width: none !important;
+  min-width: 0;
+  margin: 0 !important;
+  padding: 0 !important;
+  color: var(--kucur-text);
+}
+
+.merchant-standard-page > header:not(.relative),
+.merchant-main > div[class*="max-w-7xl"] > header,
+.merchant-main > .page-container > header:not(.relative),
+.merchant-workspace .stores-header,
+.merchant-workspace .merchant-reviews-page > .page-header {
+  position: relative;
+  align-items: flex-end;
+  min-width: 0;
+  margin: 0 0 28px;
+  padding: 0 0 18px;
+  border-bottom: 1px solid var(--kucur-border);
+}
+
+.merchant-standard-page > header:not(.relative)::after,
+.merchant-main > div[class*="max-w-7xl"] > header::after,
+.merchant-main > .page-container > header:not(.relative)::after,
+.merchant-workspace .stores-header::after,
+.merchant-workspace .merchant-reviews-page > .page-header::after {
+  position: absolute;
+  bottom: -1px;
+  left: 0;
+  width: 50px;
+  border-bottom: 2px solid var(--kucur-green);
+  content: "";
+}
+
+.merchant-standard-page > header h1,
+.merchant-main > div[class*="max-w-7xl"] > header h1,
+.merchant-main > .page-container > header:not(.relative) h1,
+.merchant-workspace .stores-header h1,
+.merchant-workspace .merchant-reviews-page > .page-header h1 {
+  margin: 4px 0 0;
+  color: var(--kucur-text);
+  font-size: clamp(1.75rem, 2vw, 2.2rem);
+  line-height: 1.15;
+  letter-spacing: -.025em;
+}
+
+.merchant-standard-page > header p,
+.merchant-main > div[class*="max-w-7xl"] > header p,
+.merchant-main > .page-container > header:not(.relative) p,
+.merchant-workspace .stores-header p,
+.merchant-workspace .merchant-reviews-page > .page-header p {
+  margin: 6px 0 0;
+  color: var(--kucur-text-muted);
+}
+
+.merchant-standard-toolbar,
+.merchant-workspace .review-management-toolbar {
+  margin: 0 0 20px;
+  padding: 16px;
+  border: 1px solid var(--kucur-border);
+  border-radius: var(--kucur-card-radius, 16px);
+  background: var(--kucur-surface);
+  box-shadow: var(--kucur-shadow-sm, 0 1px 2px rgba(15, 23, 42, .04));
+}
+
+.merchant-workspace .review-management-toolbar {
+  grid-template-columns: minmax(0, 480px);
+}
+
+.merchant-standard-toolbar label > span,
+.merchant-workspace .review-management-toolbar label > span {
+  color: var(--kucur-text-muted);
+  font-size: .78rem;
+  font-weight: 700;
+}
+
+.merchant-standard-page > header > a,
+.merchant-product-management > header > a {
+  display: inline-flex;
+  min-height: 44px;
+  align-items: center;
+  justify-content: center;
+  padding: 10px 16px;
+  border: 1px solid var(--kucur-forest);
+  border-radius: var(--kucur-control-radius, 12px);
+  background: var(--kucur-forest);
+  color: #fff;
+  font-weight: 700;
+}
+
+.merchant-product-management > div.grid.gap-4 {
+  grid-template-columns: repeat(4, minmax(0, 1fr));
+}
+
+.merchant-product-management > div.grid.gap-4 > article {
+  align-content: start;
+  border-radius: var(--kucur-card-radius, 16px);
+  box-shadow: var(--kucur-shadow-sm, 0 1px 2px rgba(15, 23, 42, .04));
+}
+
+.merchant-product-management .merchant-product-card {
+  grid-template-rows: auto auto auto 1fr;
+  height: 100%;
+}
+
+.merchant-product-card-heading {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 10px;
+}
+
+.merchant-product-card-heading > div:first-child > span,
+.merchant-product-card dt {
+  color: var(--kucur-text-muted);
+  font-size: .76rem;
+}
+
+.merchant-product-badges {
+  display: flex;
+  flex: 0 0 auto;
+  flex-wrap: wrap;
+  justify-content: flex-end;
+  gap: 5px;
+}
+
+.merchant-product-management .merchant-product-filter-chips button {
+  border-color: var(--kucur-border);
+  background: var(--kucur-surface);
+  color: var(--kucur-text-muted);
+  font-size: .78rem;
+  font-weight: 650;
+}
+
+.merchant-product-management .merchant-product-filter-chips button:hover,
+.merchant-product-management .merchant-product-filter-chips button:focus-visible {
+  border-color: var(--kucur-border-strong);
+  color: var(--kucur-text);
+}
+
+.merchant-product-management .merchant-product-filter-chips button.active {
+  border-color: color-mix(in srgb, var(--kucur-green) 55%, var(--kucur-border));
+  background: var(--kucur-green-soft);
+  color: var(--kucur-forest);
+}
+
+.dark .merchant-product-management .merchant-product-filter-chips button.active {
+  color: var(--kucur-text);
+}
+
+.merchant-product-actions {
+  display: flex;
+  align-self: end;
+  align-items: center;
+  gap: 10px;
+  padding-top: 4px;
+}
+
+.merchant-product-edit,
+.merchant-product-status-action {
+  display: inline-flex;
+  flex: 1 1 0;
+  min-height: 38px;
+  min-width: 0;
+  align-items: center;
+  justify-content: center;
+  gap: 7px;
+  padding: 8px 12px;
+  border-radius: 11px;
+  font: inherit;
+  font-size: .8rem;
+  font-weight: 750;
+  white-space: nowrap;
+}
+
+.merchant-product-edit {
+  border: 1px solid color-mix(in srgb, var(--kucur-forest) 38%, var(--kucur-border));
+  background: color-mix(in srgb, var(--kucur-green-soft) 58%, var(--kucur-surface));
+  color: var(--kucur-forest);
+}
+
+.merchant-product-edit:hover { border-color: var(--kucur-green); }
+.dark .merchant-product-edit {
+  border-color: var(--kucur-border-strong);
+  background: var(--kucur-surface-elevated);
+  color: var(--kucur-text);
+}
+.merchant-product-edit:focus-visible,
+.merchant-product-status-action:focus-visible {
+  outline: 3px solid color-mix(in srgb, var(--kucur-green) 30%, transparent);
+  outline-offset: 2px;
+}
+.merchant-product-edit svg { width: 16px; height: 16px; flex: 0 0 16px; }
+
+.merchant-product-status-action {
+  border: 1px solid var(--kucur-border);
+  background: var(--kucur-surface);
+  color: var(--kucur-forest);
+  cursor: pointer;
+}
+
+.merchant-product-status-action:hover { border-color: var(--kucur-green); }
+.merchant-product-status-action.is-danger {
+  border-color: color-mix(in srgb, #ef4444 35%, var(--kucur-border));
+  background: color-mix(in srgb, #ef4444 5%, var(--kucur-surface));
+  color: #b91c1c;
+}
+.merchant-product-status-action.is-danger:hover {
+  border-color: color-mix(in srgb, #ef4444 62%, var(--kucur-border));
+  background: color-mix(in srgb, #ef4444 10%, var(--kucur-surface));
+}
+.merchant-product-status-action:disabled {
+  cursor: wait;
+  opacity: .65;
+}
+.dark .merchant-product-status-action {
+  border-color: var(--kucur-border-strong);
+  background: var(--kucur-surface-elevated);
+  color: var(--kucur-text);
+}
+.dark .merchant-product-status-action.is-danger { color: #fca5a5; }
+
+.merchant-workspace .stores-page {
+  width: 100%;
+  max-width: 1400px;
+}
+
+.merchant-workspace .stores-eyebrow,
+.merchant-workspace .store-type-label {
+  color: var(--kucur-green-hover);
+}
+
+.merchant-workspace .stores-add-button,
+.merchant-workspace .store-manage-button {
+  border: 1px solid var(--kucur-forest);
+  background: var(--kucur-forest);
+  color: #fff;
+}
+
+.merchant-workspace .store-card {
+  border-color: var(--kucur-border);
+  border-radius: var(--kucur-card-radius, 16px);
+  background: var(--kucur-surface);
+  box-shadow: var(--kucur-shadow-sm, 0 1px 2px rgba(15, 23, 42, .04));
+}
+
+.merchant-workspace .store-card-image {
+  min-height: 140px;
+  background-color: var(--kucur-surface-elevated);
+}
+
+.merchant-workspace .store-card-body { padding: 16px; }
+.merchant-workspace .store-description { color: var(--kucur-text-muted); }
+.merchant-workspace .store-contact-summary {
+  border-color: var(--kucur-border);
+  color: var(--kucur-text-muted);
+}
+
+@media (max-width: 1180px) {
+  .merchant-product-management > div.grid.gap-4 {
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+  }
+}
+
+@media (max-width: 900px) {
+  .merchant-product-management > div.grid.gap-4 {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+}
+
+@media (max-width: 640px) {
+  .merchant-main > :where(.merchant-standard-page, .page-container, .merchant-reviews-page, .merchant-edit-product, div[class*="max-w-7xl"]) {
+    max-width: none !important;
+  }
+
+  .merchant-standard-page > header:not(.relative),
+  .merchant-main > div[class*="max-w-7xl"] > header,
+  .merchant-workspace .stores-header {
+    align-items: stretch;
+    margin-bottom: 20px;
+  }
+
+  .merchant-product-management > div.grid.gap-4 {
+    grid-template-columns: minmax(0, 1fr);
+  }
+
+  .merchant-product-card-heading { align-items: flex-start; }
+  .merchant-product-actions { flex-wrap: nowrap; }
+}

@@ -1,0 +1,2 @@
+@import "./Login.css";.register-card{width:min(100%,680px)}.register-form{grid-template-columns:repeat(2,minmax(0,1fr))}.register-form label:nth-child(1),.register-form label:nth-child(2),.register-full{grid-column:1/-1}@media(max-width:600px){.register-form{grid-template-columns:1fr}.register-form label:nth-child(1),.register-form label:nth-child(2),.register-full{grid-column:auto}}
+.auth-success{margin:0;padding:10px 12px;border-radius:8px;background:#ecfdf5;color:#047857;font-size:.84rem;overflow-wrap:anywhere}

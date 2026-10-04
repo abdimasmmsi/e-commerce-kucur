@@ -1,0 +1,21 @@
+flowchart LR
+  O[CommerceOrder] --> P[Merchant Processing]
+  P --> R[Ready for Pickup]
+  R --> B[DeliveryBatch]
+  B --> BO[DeliveryBatchOrder]
+  BO --> PU[Courier Pickup]
+  PU --> OFD[Out for Delivery]
+  OFD --> Q{Delivery result}
+  Q -- Success --> DP[Delivery Proof]
+  DP --> D[Delivered]
+  Q -- Failed --> F[Failure reason and history]
+  F --> RB{Controlled rebatch eligible?}
+  RB -- Yes --> B
+  RB -- No --> H[Retain terminal history]
+
+  classDef main fill:#f7faf7,stroke:#315b3d,color:#183323,stroke-width:1.5px;
+  classDef decision fill:#fff7df,stroke:#9a6b17,color:#4b3207;
+  classDef failure fill:#fff0f0,stroke:#a33a3a,color:#5b1717;
+  class O,P,R,B,BO,PU,OFD,DP,D main;
+  class Q,RB decision;
+  class F,H failure;

@@ -1,0 +1,49 @@
+flowchart TB
+  subgraph CUSTOMER[Customer]
+    C1[Browse and search Product]
+    C2[Select Product / ProductVariant]
+    C3[Add to Cart and checkout]
+    C4[Complete payment]
+    C5[Track CommerceOrder]
+    C6[Submit Review]
+  end
+  subgraph SYSTEM[System]
+    S1{Stock and totals valid?}
+    S2{Payment accepted?}
+    S3[Create CommerceOrder and items]
+    S4[Consume stock and create PaymentAttempt]
+    S5[Mark order completed]
+    SX[Reject checkout;<br/>do not create order]
+    SP[Record failed / expired / cancelled attempt]
+    SC{Cancellation eligible?}
+    SR[Cancel order and release stock]
+  end
+  subgraph MERCHANT[Merchant]
+    M1[Confirm and process order]
+    M2[Mark Ready for Pickup]
+    M3[Reply to Review]
+  end
+  subgraph FULFILLMENT[Admin / Courier]
+    A1[Create DeliveryBatch assignment]
+    K1[Pickup order]
+    K2[Mark Out for Delivery]
+    K3{Delivery successful?}
+    K4[Submit proof and mark Delivered]
+    KF[Record failure and controlled rebatch]
+  end
+
+  C1 --> C2 --> C3 --> S1
+  S1 -- No --> SX
+  S1 -- Yes --> S2
+  S2 -- No --> SP
+  S2 -- Yes / COD --> S3 --> S4 --> M1 --> M2 --> A1 --> K1 --> K2 --> K3
+  K3 -- Yes --> K4 --> S5 --> C5 --> C6 --> M3
+  K3 -- No --> KF --> A1
+  S3 -. cancellation request .-> SC
+  SC -- Yes --> SR
+  SC -- No --> M1
+
+  classDef decision fill:#fff7df,stroke:#9a6b17,color:#4b3207;
+  classDef exception fill:#fff0f0,stroke:#a33a3a,color:#5b1717;
+  class S1,S2,SC,K3 decision;
+  class SX,SP,SR,KF exception;

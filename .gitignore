@@ -1,0 +1,33 @@
+# Dependencies & build
+node_modules/
+dist/
+dist-ssr/
+
+# Env & secrets (simpan contoh *.example saja)
+.env
+.env.*
+!.env.example
+!.env.docker.example
+*.local
+
+# Runtime data
+backend/uploads/
+backend/.data/
+.tmp/
+artifacts/
+
+# Test output
+frontend/test-results/
+frontend/playwright-report/
+frontend/blob-report/
+
+# Arsip/zip
+*.zip
+
+# Logs & OS/editor
+*.log
+.DS_Store
+Thumbs.db
+.idea/
+.vscode/*
+!.vscode/extensions.json

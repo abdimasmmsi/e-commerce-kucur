@@ -1,0 +1,1 @@
+const listeners=new Set();const emit=(event,payload)=>{for(const listener of listeners)listener(event,payload);};const subscribe=(listener)=>{listeners.add(listener);return()=>listeners.delete(listener);};module.exports={emit,subscribe};

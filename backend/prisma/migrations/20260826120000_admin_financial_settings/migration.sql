@@ -1,0 +1,18 @@
+ALTER TABLE `platform_settings`
+  ADD COLUMN `initial_store_fee_amount` DECIMAL(14,2) NOT NULL DEFAULT 100000.00,
+  ADD COLUMN `installment_full_enabled` BOOLEAN NOT NULL DEFAULT TRUE,
+  ADD COLUMN `installment_3_months_enabled` BOOLEAN NOT NULL DEFAULT TRUE,
+  ADD COLUMN `installment_6_months_enabled` BOOLEAN NOT NULL DEFAULT TRUE,
+  ADD COLUMN `installment_late_interest_percent` DECIMAL(5,2) NOT NULL DEFAULT 2.00,
+  ADD COLUMN `admin_fee_type` VARCHAR(16) NOT NULL DEFAULT 'percentage',
+  ADD COLUMN `admin_fee_value` DECIMAL(14,2) NOT NULL DEFAULT 5.00,
+  ADD COLUMN `admin_fee_cutoff_day` INTEGER NOT NULL DEFAULT 1,
+  ADD COLUMN `admin_fee_grace_time` VARCHAR(5) NOT NULL DEFAULT '12:00',
+  ADD COLUMN `suspend_store_for_outstanding_admin_fee` BOOLEAN NOT NULL DEFAULT TRUE,
+  ADD COLUMN `tax_percent` DECIMAL(5,2) NOT NULL DEFAULT 11.00,
+  ADD COLUMN `voluntary_contribution_enabled` BOOLEAN NOT NULL DEFAULT TRUE,
+  ADD COLUMN `pride_transaction_value_weight` DECIMAL(5,2) NOT NULL DEFAULT 35.00,
+  ADD COLUMN `pride_transaction_count_weight` DECIMAL(5,2) NOT NULL DEFAULT 25.00,
+  ADD COLUMN `pride_rating_weight` DECIMAL(5,2) NOT NULL DEFAULT 20.00,
+  ADD COLUMN `pride_completion_rate_weight` DECIMAL(5,2) NOT NULL DEFAULT 20.00,
+  ADD COLUMN `pride_leaderboard_size` INTEGER NOT NULL DEFAULT 7;

@@ -1,0 +1,46 @@
+flowchart LR
+  V[Visitor]
+  C[Customer]
+  M[Merchant]
+  K[Courier]
+  A[Admin]
+
+  subgraph S[Kucur E-Commerce Platform]
+    direction TB
+    U1((Browse and search products))
+    U2((View product details))
+    U3((Register / Login))
+    U4((Manage profile))
+    U5((Manage cart and checkout))
+    U6((Make payment))
+    U7((View orders and track delivery))
+    U8((Cancel eligible order))
+    U9((Submit review))
+    U10((Manage store, products,<br/>variants, and stock))
+    U11((Process incoming order))
+    U12((Mark ready for pickup))
+    U13((View merchant finance))
+    U14((Reply to review))
+    U15((Manage availability))
+    U16((View assigned delivery batch))
+    U17((Pickup and update delivery))
+    U18((Submit delivery proof))
+    U19((View delivery history))
+    U20((Approve or reject store))
+    U21((Monitor transactions,<br/>delivery, and finance))
+    U22((Moderate reviews))
+    U23((Manage platform settings))
+    U24((Chat / support))
+    U25((Manage notifications))
+  end
+
+  V --- U1 & U2 & U3
+  C --- U1 & U2 & U4 & U5 & U6 & U7 & U8 & U9 & U24 & U25
+  M --- U4 & U10 & U11 & U12 & U13 & U14 & U24 & U25
+  K --- U4 & U15 & U16 & U17 & U18 & U19 & U24 & U25
+  A --- U4 & U20 & U21 & U22 & U23 & U24 & U25
+
+  classDef actor fill:#315b3d,stroke:#183323,color:#fff;
+  classDef usecase fill:#fff,stroke:#7b927e,color:#183323;
+  class V,C,M,K,A actor;
+  class U1,U2,U3,U4,U5,U6,U7,U8,U9,U10,U11,U12,U13,U14,U15,U16,U17,U18,U19,U20,U21,U22,U23,U24,U25 usecase;

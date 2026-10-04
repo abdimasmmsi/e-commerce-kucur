@@ -1,0 +1,336 @@
+erDiagram
+  User {
+    char36 id PK
+    varchar255 email UK
+    varchar255 passwordHash
+    varchar255 fullName
+    varchar50 phone
+    enum language
+    enum theme
+    boolean isActive
+    datetime3 createdAt
+    datetime3 updatedAt
+  }
+  UserRole {
+    char36 userId PK,FK
+    enum role PK
+    datetime3 createdAt
+  }
+  Session {
+    char36 id PK
+    char36 userId FK
+    varchar255 tokenHash UK
+    datetime3 expiresAt
+    datetime3 revokedAt
+    datetime3 createdAt
+  }
+  PlatformSettings {
+    char36 id PK
+    decimal taxPercent
+    decimal deliveryRatePerKm
+    time orderCutoffTime
+    time dispatchTime
+    int maxDailyDeliveries
+    decimal initialStoreFeeAmount
+    decimal installmentLateInterestPercent
+    enum adminFeeType
+    decimal adminFeeValue
+    int adminFeeCutoffDay
+    time adminFeeGraceTime
+    boolean suspendStoreForOutstandingAdminFee
+    boolean voluntaryContributionEnabled
+    char36 updatedByUserId FK
+    datetime3 createdAt
+    datetime3 updatedAt
+  }
+  Store {
+    char36 id PK
+    char36 merchantUserId FK
+    varchar255 name
+    text description
+    varchar50 phone
+    varchar1000 imageUrl
+    text address
+    decimal latitude
+    decimal longitude
+    enum status
+    text rejectionReason
+    char36 reviewedByUserId FK
+    datetime3 reviewedAt
+    datetime3 createdAt
+    datetime3 updatedAt
+  }
+  Product {
+    char36 id PK
+    char36 storeId FK
+    varchar255 name
+    text description
+    varchar100 category
+    enum productType
+    decimal price
+    int stock
+    json images
+    json options
+    enum status
+    datetime3 createdAt
+    datetime3 updatedAt
+  }
+  ProductVariant {
+    char36 id PK
+    char36 productId FK
+    varchar255 sku UK
+    varchar500 combinationKey UK
+    json selectedOptions
+    decimal price
+    int stock
+    boolean isActive
+    varchar2000 imageUrl
+    varchar500 imageStorageKey
+    datetime3 createdAt
+    datetime3 updatedAt
+  }
+  Cart {
+    char36 id PK
+    char36 customerUserId FK,UK
+    datetime3 createdAt
+    datetime3 updatedAt
+  }
+  CartItem {
+    char36 id PK
+    char36 cartId FK
+    char36 productId FK
+    char36 productVariantId FK
+    int quantity
+    datetime3 createdAt
+    datetime3 updatedAt
+  }
+  CommerceOrder {
+    char36 id PK
+    char36 checkoutGroupId
+    varchar100 checkoutIdempotencyKey UK
+    char36 storeId FK
+    char36 customerUserId FK
+    varchar100 orderCode UK
+    enum fulfillmentStatus
+    enum paymentStatus
+    decimal subtotal
+    decimal taxPercentSnapshot
+    decimal taxAmount
+    decimal deliveryFee
+    decimal courierTip
+    decimal grandTotal
+    decimal deliveryRatePerKmSnapshot
+    decimal deliveryDistanceKm
+    date deliveryDate
+    varchar255 recipientName
+    varchar50 recipientPhone
+    text deliveryAddress
+    decimal deliveryLatitude
+    decimal deliveryLongitude
+    text customerNote
+    json activityHistory
+    text cancelReason
+    datetime3 cancelledAt
+    datetime3 completedAt
+    datetime3 createdAt
+    datetime3 updatedAt
+  }
+  CommerceOrderItem {
+    char36 id PK
+    char36 commerceOrderId FK
+    char36 productId FK
+    char36 productVariantId FK
+    varchar255 productNameSnapshot
+    json variantSnapshot
+    varchar255 skuSnapshot
+    varchar1000 imageSnapshot
+    varchar255 storeNameSnapshot
+    decimal unitPrice
+    int quantity
+    decimal subtotal
+    enum stockStatus
+    datetime3 createdAt
+    datetime3 reservedAt
+    datetime3 consumedAt
+    datetime3 releasedAt
+  }
+  PaymentAttempt {
+    char36 id PK
+    char36 commerceOrderId FK
+    char36 merchantFeeId FK
+    enum provider
+    varchar100 method
+    varchar255 providerReference
+    decimal amount
+    enum status
+    json providerResponse
+    datetime3 paidAt
+    datetime3 expiredAt
+    datetime3 createdAt
+    datetime3 updatedAt
+  }
+  MerchantFee {
+    char36 id PK
+    char36 merchantUserId FK
+    char36 storeId FK
+    char36 commerceOrderId FK
+    char36 parentFeeId FK
+    enum feeType
+    enum calculationType
+    decimal rateSnapshot
+    decimal baseAmountSnapshot
+    decimal amount
+    int installmentNumber
+    int installmentCount
+    datetime3 dueAt
+    enum status
+    varchar100 paymentMethod
+    varchar50 provider
+    varchar255 providerReference
+    datetime3 paidAt
+    datetime3 createdAt
+    datetime3 updatedAt
+  }
+  CourierProfile {
+    char36 userId PK,FK
+    int maxActiveDeliveries
+    enum availabilityStatus
+    datetime3 unavailableStartAt
+    datetime3 unavailableEndAt
+    varchar255 unavailableReason
+    json availabilityHistory
+    boolean isActive
+    datetime3 createdAt
+    datetime3 updatedAt
+  }
+  DeliveryBatch {
+    char36 id PK
+    char36 courierUserId FK
+    date deliveryDate
+    datetime3 cutoffAt
+    datetime3 dispatchAt
+    enum status
+    datetime3 startedAt
+    datetime3 completedAt
+    datetime3 createdAt
+    datetime3 updatedAt
+  }
+  DeliveryBatchOrder {
+    char36 id PK
+    char36 deliveryBatchId FK
+    char36 commerceOrderId FK,UK
+    int pickupSequence
+    int deliverySequence
+    enum status
+    boolean merchantReady
+    text merchantReadyNote
+    datetime3 merchantConfirmedAt
+    datetime3 pickedUpAt
+    datetime3 outForDeliveryAt
+    varchar1000 proofPhotoUrl
+    varchar255 proofRecipientName
+    text proofNote
+    datetime3 deliveredAt
+    text failureReason
+    json deliveryHistory
+    datetime3 createdAt
+    datetime3 updatedAt
+  }
+  Review {
+    char36 id PK
+    char36 commerceOrderItemId FK,UK
+    char36 customerUserId FK
+    char36 storeId FK
+    int rating
+    text comment
+    json photoUrls
+    text merchantReply
+    char36 repliedByUserId FK
+    datetime3 repliedAt
+    enum visibilityStatus
+    text moderationReason
+    char36 moderatedByUserId FK
+    datetime3 moderatedAt
+    datetime3 createdAt
+    datetime3 updatedAt
+  }
+  Conversation {
+    char36 id PK
+    enum type
+    varchar255 openKey UK
+    char36 requesterUserId FK
+    char36 counterpartUserId FK
+    char36 storeId FK
+    char36 productId FK
+    char36 commerceOrderId FK
+    varchar255 subject
+    enum status
+    char36 closedByUserId FK
+    datetime3 closedAt
+    datetime3 createdAt
+    datetime3 updatedAt
+  }
+  Message {
+    char36 id PK
+    char36 conversationId FK
+    char36 senderUserId FK
+    text message
+    varchar1000 attachmentUrl
+    datetime3 readAt
+    datetime3 createdAt
+  }
+  Notification {
+    char36 id PK
+    char36 userId FK
+    varchar100 type
+    varchar255 title
+    text body
+    varchar100 entityType
+    char36 entityId
+    varchar255 dedupeKey UK
+    json metadata
+    datetime3 readAt
+    datetime3 expiresAt
+    datetime3 createdAt
+  }
+
+  User ||--o{ UserRole : has
+  User ||--o{ Session : owns
+  User o|--o{ PlatformSettings : updates
+  User ||--o{ Store : owns
+  User o|--o{ Store : reviews
+  Store ||--o{ Product : contains
+  Product ||--o{ ProductVariant : has
+  User ||--o| Cart : owns
+  Cart ||--o{ CartItem : contains
+  Product ||--o{ CartItem : selected_as
+  ProductVariant o|--o{ CartItem : selected_variant
+  Store ||--o{ CommerceOrder : receives
+  User ||--o{ CommerceOrder : places
+  CommerceOrder ||--|{ CommerceOrderItem : contains
+  Product ||--o{ CommerceOrderItem : snapshots
+  ProductVariant o|--o{ CommerceOrderItem : snapshots_variant
+  CommerceOrder o|--o{ PaymentAttempt : payment_target
+  MerchantFee o|--o{ PaymentAttempt : fee_payment_target
+  User ||--o{ MerchantFee : owes
+  Store o|--o{ MerchantFee : charged_to
+  CommerceOrder o|--o{ MerchantFee : generates
+  MerchantFee o|--o{ MerchantFee : parent_of
+  User ||--o| CourierProfile : has
+  CourierProfile ||--o{ DeliveryBatch : assigned
+  DeliveryBatch ||--o{ DeliveryBatchOrder : contains
+  CommerceOrder ||--o| DeliveryBatchOrder : fulfilled_by
+  CommerceOrderItem ||--o| Review : receives
+  User ||--o{ Review : authors
+  Store ||--o{ Review : receives
+  User o|--o{ Review : replies
+  User o|--o{ Review : moderates
+  User ||--o{ Conversation : requests
+  User ||--o{ Conversation : counterpart
+  Store o|--o{ Conversation : contextualizes
+  Product o|--o{ Conversation : contextualizes
+  CommerceOrder o|--o{ Conversation : contextualizes
+  User o|--o{ Conversation : closes
+  Conversation ||--o{ Message : contains
+  User ||--o{ Message : sends
+  User ||--o{ Notification : receives

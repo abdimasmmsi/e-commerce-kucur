@@ -1,0 +1,3 @@
+const express = require("express");
+const midtransConfig = require("../midtransConfig");
+module.exports = ({ commerceService, authMiddleware }) => { const router = express.Router(); router.get("/providers", (req, res) => { void req; res.json({ midtrans: { configured: midtransConfig.midtransConfigured, environment: midtransConfig.isProduction ? "production" : "sandbox" }, COD: { configured: true } }); }); router.post("/reconcile-expired", authMiddleware.requireAuth, authMiddleware.requireRole("admin"), async (req, res, next) => { try { res.json({ data: await commerceService.reconcileExpired(req.auth.user) }); } catch (error) { next(error); } }); return router; };

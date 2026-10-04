@@ -1,0 +1,20 @@
+const { getPrisma, disconnectPrisma } = require("../../config/prisma");
+const { randomUUID } = require("node:crypto");
+
+async function main() {
+  const prisma = getPrisma();
+  const database = (await prisma.$queryRaw`SELECT DATABASE() name`)[0].name;
+  if (database !== "kucur") throw new Error(`Final-mode fixture preparation refused database ${database}`);
+  const storeId = "12000000-0000-4000-8000-000000000001";
+  const customerUserId = "00000000-0000-4000-8000-000000000002";
+  const store = await prisma.targetStore.update({ where: { id: storeId }, data: { status: "PENDING", reviewedByUserId: null, reviewedAt: null, rejectionReason: null } });
+  let notification = await prisma.targetNotification.findFirst({ where: { userId: customerUserId }, orderBy: { createdAt: "desc" } });
+  if (!notification) {
+    const order = await prisma.targetCommerceOrder.findFirst({ where: { customerUserId }, orderBy: { createdAt: "desc" } });
+    if (!order) throw new Error("Customer QA order fixture is missing");
+    notification = await prisma.targetNotification.create({ data: { id: randomUUID(), userId: customerUserId, type: "COMMERCE_ORDER_STATUS_CHANGED", title: "Status pesanan diperbarui", body: `Status pesanan #${order.orderCode} diperbarui.`, entityType: "COMMERCE_ORDER", entityId: order.id, dedupeKey: `final-e2e-notification:${order.id}` } });
+  } else await prisma.targetNotification.update({ where: { id: notification.id }, data: { readAt: null } });
+  console.log(`FINAL_E2E_FIXTURE_JSON=${JSON.stringify({ database, storeId: store.id, notificationId: notification.id })}`);
+}
+
+main().catch((error) => { console.error(error.stack || error); process.exitCode = 1; }).finally(disconnectPrisma);
