@@ -14,7 +14,7 @@ export const chatRealtimeService = {
     const token = getAuthToken();
     if (!token) return null;
     if (!socket) {
-      socket = io(SOCKET_URL, { auth: { token }, autoConnect: false, reconnection: true });
+      socket = io(SOCKET_URL || undefined, { auth: { token }, autoConnect: false, reconnection: true });
       socket.on("connect", () => joinedConversations.forEach((conversationId) => socket.emit("chat:join", { conversationId })));
     }
     socket.auth = { token };

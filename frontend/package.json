@@ -10,7 +10,8 @@
     "lint": "npm run check:encoding && eslint .",
     "preview": "vite preview",
     "test:e2e": "npm run db:seed --prefix ../backend && playwright test",
-    "test:e2e:report": "playwright show-report"
+    "test:e2e:report": "playwright show-report",
+    "dev:phone": "vite --config vite.phone.config.js"
   },
   "dependencies": {
     "leaflet": "^1.9.4",
@@ -26,6 +27,7 @@
     "@tailwindcss/vite": "^4.3.3",
     "@types/react": "^19.2.17",
     "@types/react-dom": "^19.2.3",
+    "@vitejs/plugin-basic-ssl": "^2.3.0",
     "@vitejs/plugin-react": "^6.0.4",
     "eslint": "^10.8.0",
     "eslint-plugin-react-hooks": "^7.1.1",
