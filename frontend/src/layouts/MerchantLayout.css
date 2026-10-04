@@ -670,3 +670,6 @@
   .merchant-workspace .merchant-sidebar { padding-bottom: calc(84px + env(safe-area-inset-bottom)); }
   .merchant-bottom-nav .merchant-nav-icon { width: 24px; height: 24px; }
 }
+
+/* HP: identitas lapak sudah ada di judul halaman, header workspace disembunyikan agar layar tidak sesak. */
+@media (max-width: 767px) { .merchant-workspace .store-workspace-header { display: none; } }

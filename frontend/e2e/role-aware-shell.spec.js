@@ -106,22 +106,14 @@ test("customer storefront always reconciles a stale merchant workspace role", as
   await expect(page.locator(".profile-trigger-copy small")).toHaveText(/Customer|Pelanggan/i);
 });
 
-test("store finance can select and clear every unpaid charge in the filtered result", async ({ qaPage: page }) => {
+test("store finance shows what to pay and admin fees grouped by month", async ({ qaPage: page }) => {
+  await page.setViewportSize({ width: 390, height: 900 });
   await loginThroughUi(page, "merchant");
   await page.goto(`/merchant/stores/${storeId}/finance`);
-
-  const selectAll = page.getByRole("checkbox", { name: /Select all unpaid charges|Pilih semua tagihan belum dibayar/i });
-  const obligationCheckboxes = page.locator(".finance-obligation input[type=checkbox]:not(:disabled)");
-  await expect(selectAll).toBeVisible();
-  await expect(obligationCheckboxes.first()).toBeVisible();
-
-  await selectAll.check();
-  await expect(selectAll).toBeChecked();
-  const selectedCount = await obligationCheckboxes.count();
-  for (let index = 0; index < selectedCount; index += 1) await expect(obligationCheckboxes.nth(index)).toBeChecked();
-
-  await selectAll.uncheck();
-  for (let index = 0; index < selectedCount; index += 1) await expect(obligationCheckboxes.nth(index)).not.toBeChecked();
+  await expect(page.getByRole("heading", { level: 2, name: /Perlu dibayar|To pay/i })).toBeVisible();
+  await expect(page.getByRole("heading", { level: 2, name: /Biaya admin|Admin fee/i })).toBeVisible();
+  await expect(page.locator(".finance-months li").first()).toBeVisible();
+  await assertNoHorizontalOverflow(page);
 });
 
 test("merchant product card shows edit and status as two direct actions", async ({ qaPage: page }) => {

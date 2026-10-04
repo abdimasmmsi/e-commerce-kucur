@@ -1,117 +1,114 @@
-/* eslint-disable react-hooks/set-state-in-effect */
-import { useCallback, useEffect, useMemo, useRef, useState } from "react";
+import { useCallback, useEffect, useMemo, useState } from "react";
 import { useParams } from "react-router-dom";
 import EmptyState from "../../components/ui/EmptyState";
 import LoadingPanel from "../../components/ui/LoadingPanel";
-import PageHeader from "../../components/ui/PageHeader";
+import PageContainer from "../../components/ui/PageContainer";
 import StatusBadge from "../../components/ui/StatusBadge";
-import Pagination from "../../components/ui/Pagination";
 import { usePreferences } from "../../context/PreferencesContext";
 import { financeService } from "../../services/financeService";
-import { filterByPeriod } from "../../utils/datePeriod";
-import { paginate } from "../../utils/pagination";
-import FinancePeriodFilter from "./FinancePeriodFilter";
-import "./Finance.css";
 
-const PAGE_SIZE = 8;
-
+// Keuangan per lapak: yang perlu dibayar di atas, lalu iuran pokok (progres + cicilan) dan biaya admin per bulan.
 export default function StoreFinance() {
   const { storeId } = useParams();
-  const { errorMessage, formatCurrency, formatDate, statusLabel, t } = usePreferences();
+  const { errorMessage, formatCurrency, formatDate, language } = usePreferences();
+  const copy = language === "id" ? {
+    title: "Keuangan Lapak", toPay: "Perlu dibayar", nothingToPay: "Tidak ada tagihan. Terima kasih!", payAll: "Bayar {amount}", pending: "Menunggu konfirmasi pengelola",
+    adminFeeDue: "Biaya admin, bayar sebelum {date}", overdueFee: "Biaya admin lewat batas. Lapak bisa dinonaktifkan sampai lunas.", installmentDue: "Cicilan iuran pokok ke-{number}, jatuh tempo {date}", installmentOverdue: "Cicilan iuran pokok ke-{number} terlambat sejak {date}",
+    initialFee: "Iuran pokok", initialHint: "Biaya keanggotaan lapak, bisa dicicil.", paidOf: "Sudah dibayar {paid} dari {total}", choosePlan: "Pilih cara bayar iuran pokok", plans: { FULL: "Lunas sekali", THREE_MONTHS: "Cicil 3 kali", SIX_MONTHS: "Cicil 6 kali" },
+    installment: "Cicilan ke-{number}", dueOn: "jatuh tempo {date}", paidOn: "dibayar {date}", penalty: "termasuk denda {amount}",
+    adminFee: "Biaya admin", adminHint: "{rate} dari harga barang setiap pesanan selesai. Ditagih per bulan.", order: "1 pesanan", orders: "{count} pesanan", noFees: "Belum ada biaya admin", noFeesHint: "Biaya admin muncul setelah ada pesanan selesai.",
+    paid: "Lunas", unpaid: "Belum dibayar", saved: "Pembayaran dicatat. Pengelola desa akan mengonfirmasi setelah uang diterima.", failed: "Pembayaran gagal dikirim.", loadFailed: "Data keuangan gagal dimuat.", retry: "Coba lagi", sending: "Mengirim...", loading: "Memuat keuangan lapak",
+  } : {
+    title: "Store Finance", toPay: "To pay", nothingToPay: "No bills due. Thank you!", payAll: "Pay {amount}", pending: "Waiting for manager confirmation",
+    adminFeeDue: "Admin fee, pay before {date}", overdueFee: "Admin fee is past due. The store may be suspended until it is paid.", installmentDue: "Store fee installment {number}, due {date}", installmentOverdue: "Store fee installment {number} overdue since {date}",
+    initialFee: "Store membership fee", initialHint: "Your store membership fee, payable in installments.", paidOf: "Paid {paid} of {total}", choosePlan: "Choose how to pay the membership fee", plans: { FULL: "Pay in full", THREE_MONTHS: "3 installments", SIX_MONTHS: "6 installments" },
+    installment: "Installment {number}", dueOn: "due {date}", paidOn: "paid {date}", penalty: "includes {amount} penalty",
+    adminFee: "Admin fee", adminHint: "{rate} of item prices for every completed order. Billed monthly.", order: "1 order", orders: "{count} orders", noFees: "No admin fees yet", noFeesHint: "Admin fees appear after orders are completed.",
+    paid: "Paid", unpaid: "Unpaid", saved: "Payment recorded. The village manager will confirm it once the money is received.", failed: "The payment could not be sent.", loadFailed: "Finance data could not be loaded.", retry: "Try again", sending: "Sending...", loading: "Loading store finance",
+  };
+  const fill = (text, values) => Object.entries(values).reduce((value, [key, replacement]) => value.replace(`{${key}}`, replacement), text);
+  const day = (value) => value ? formatDate(value, { day: "numeric", month: "short", year: "numeric", timeZone: "Asia/Jakarta" }) : "–";
   const [data, setData] = useState(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState("");
   const [feedback, setFeedback] = useState({ type: "", text: "" });
-  const [selected, setSelected] = useState([]);
   const [busyAction, setBusyAction] = useState("");
-  const [filter, setFilter] = useState({ period: "", start: "", end: "" });
-  const [installmentPage, setInstallmentPage] = useState(1);
-  const [obligationPage, setObligationPage] = useState(1);
-  const selectAllRef = useRef(null);
-  const date = (value) => value
-    ? formatDate(value, { dateStyle: "medium", timeStyle: "short", timeZone: "Asia/Jakarta" })
-    : t("merchantFinancePage.dateUnavailable");
 
   const load = useCallback(async () => {
-    setLoading(true);
-    setError("");
+    setLoading(true); setError("");
     try { setData(await financeService.summary(storeId)); }
-    catch (cause) { setError(errorMessage(cause.code, t("merchantFinancePage.storeLoadFailed"))); }
+    catch (cause) { setError(errorMessage(cause.code, copy.loadFailed)); }
     finally { setLoading(false); }
-  }, [errorMessage, storeId, t]);
-  useEffect(() => { void load(); }, [load]);
+  }, [copy.loadFailed, errorMessage, storeId]);
+  useEffect(() => { queueMicrotask(() => void load()); }, [load]);
 
   const act = async (key, work) => {
-    setBusyAction(key);
-    setFeedback({ type: "", text: "" });
-    try {
-      await work();
-      setSelected([]);
-      setFeedback({ type: "success", text: t("merchantFinancePage.submissionSaved") });
-      await load();
-    } catch (cause) {
-      setFeedback({ type: "error", text: errorMessage(cause.code, t("merchantFinancePage.submissionFailed")) });
-    } finally { setBusyAction(""); }
+    setBusyAction(key); setFeedback({ type: "", text: "" });
+    try { await work(); setFeedback({ type: "success", text: copy.saved }); await load(); }
+    catch (cause) { setFeedback({ type: "error", text: errorMessage(cause.code, copy.failed) }); }
+    finally { setBusyAction(""); }
   };
 
   const fee = data?.initialFee;
-  const obligations = useMemo(() => data?.adminFee?.obligations || [], [data]);
-  const installments = useMemo(() => fee?.installments || [], [fee]);
-  const visibleObligations = useMemo(() => filter.period
-    ? filterByPeriod(obligations, (row) => row.cutoffAt || row.createdAt, filter.period, filter.start, filter.end)
-    : obligations, [filter, obligations]);
-  const visibleInstallments = useMemo(() => filter.period
-    ? filterByPeriod(installments, (row) => row.dueAt || row.createdAt, filter.period, filter.start, filter.end)
-    : installments, [filter, installments]);
-  const pageInstallments = useMemo(() => paginate(visibleInstallments, installmentPage, PAGE_SIZE), [installmentPage, visibleInstallments]);
-  const pageObligations = useMemo(() => paginate(visibleObligations, obligationPage, PAGE_SIZE), [obligationPage, visibleObligations]);
-  const selectableObligationIds = useMemo(
-    () => visibleObligations.filter((row) => row.status === "OUTSTANDING").map((row) => row.id),
-    [visibleObligations],
-  );
-  const selectedVisibleCount = selectableObligationIds.filter((id) => selected.includes(id)).length;
-  const allVisibleSelected = selectableObligationIds.length > 0 && selectedVisibleCount === selectableObligationIds.length;
-  const chosen = obligations.filter((row) => selected.includes(row.id));
-  const selectedTotal = chosen.reduce((sum, row) => sum + Number(row.feeAmount), 0);
-  const plans = [["FULL", "payFull"], ["THREE_MONTHS", "threeMonths"], ["SIX_MONTHS", "sixMonths"]];
-  const changeFilter = (next) => { setFilter(next); setSelected([]); setInstallmentPage(1); setObligationPage(1); };
-
-  useEffect(() => {
-    if (selectAllRef.current) {
-      selectAllRef.current.indeterminate = selectedVisibleCount > 0 && !allVisibleSelected;
+  const installments = useMemo(() => fee?.installments ?? [], [fee]);
+  const obligations = useMemo(() => data?.adminFee?.obligations ?? [], [data]);
+  const unpaidFees = obligations.filter((row) => row.status === "OUTSTANDING" && !row.settlementItem);
+  const pendingFees = obligations.filter((row) => row.status === "OUTSTANDING" && row.settlementItem);
+  const unpaidFeeTotal = unpaidFees.reduce((sum, row) => sum + Number(row.feeAmount), 0);
+  const isPending = (row) => (row.payments ?? []).some((payment) => payment.paymentStatus === "PENDING");
+  const nextInstallment = installments.find((row) => row.status !== "PAID" && !isPending(row));
+  const installmentAmount = (row) => Number(row.principalOutstanding) + Number(row.penaltyOutstanding);
+  const months = useMemo(() => {
+    const groups = new Map();
+    for (const row of obligations) {
+      const key = `${row.billingYear}-${String(row.billingMonth).padStart(2, "0")}`;
+      const group = groups.get(key) ?? { key, date: new Date(row.billingYear, row.billingMonth - 1, 1), rows: [], total: 0, unpaid: 0 };
+      group.rows.push(row); group.total += Number(row.feeAmount);
+      if (row.status === "OUTSTANDING") group.unpaid += Number(row.feeAmount);
+      groups.set(key, group);
     }
-  }, [allVisibleSelected, selectedVisibleCount]);
+    return [...groups.values()].sort((a, b) => b.date - a.date);
+  }, [obligations]);
+  const rate = obligations[0] ? (obligations[0].feeTypeSnapshot === "percentage" ? `${Number(obligations[0].feeValueSnapshot)}%` : formatCurrency(obligations[0].feeValueSnapshot)) : "";
+  const now = data?.serverNow ? new Date(data.serverNow) : new Date();
+  const buttonClass = "inline-flex min-h-12 shrink-0 items-center justify-center rounded-xl px-4 text-[15px] font-bold disabled:opacity-50";
 
-  const toggleAllVisibleObligations = (checked) => {
-    setSelected((current) => checked
-      ? [...new Set([...current, ...selectableObligationIds])]
-      : current.filter((id) => !selectableObligationIds.includes(id)));
-  };
+  if (loading && !data) return <PageContainer><LoadingPanel label={copy.loading} rows={4} /></PageContainer>;
 
-  return <div className="page-container merchant-standard-page finance-page min-w-0">
-    <PageHeader eyebrow={data?.store?.name || t("merchantFinancePage.storeEyebrow")} title={t("merchantFinancePage.storeFinance")} description={data ? t("merchantFinancePage.ledgerHint", { date: date(data.serverNow) }) : t("merchantFinancePage.storeFinanceHint")}/>
-    <FinancePeriodFilter {...filter} onChange={changeFilter}/>
+  return <PageContainer className="merchant-standard-page finance-page space-y-4">
+    <header><span className="text-sm font-bold text-[var(--kucur-green-ink)]">{data?.store?.name}</span><h1 className="text-2xl font-extrabold sm:text-3xl">{copy.title}</h1></header>
+    {feedback.text && <p className={`rounded-xl p-3 text-[15px] font-semibold ${feedback.type === "error" ? "border border-rose-300 bg-rose-50 text-rose-800 dark:border-rose-800 dark:bg-rose-950 dark:text-rose-200" : "bg-[var(--kucur-green-soft)]"}`} role={feedback.type === "error" ? "alert" : "status"}>{feedback.text}</p>}
+    {error && <section className="flex flex-wrap items-center justify-between gap-3 rounded-2xl border border-rose-300 bg-rose-50 p-4 text-rose-800 dark:border-rose-800 dark:bg-rose-950 dark:text-rose-200" role="alert"><strong>{error}</strong><button className={`${buttonClass} border border-current`} type="button" onClick={load}>{copy.retry}</button></section>}
 
-    {feedback.text && <p className={`finance-feedback is-${feedback.type}`} role={feedback.type === "error" ? "alert" : "status"}>{feedback.text}</p>}
-    {error && <section className="finance-error-panel" role="alert"><div><strong>{t("merchantFinancePage.storeLoadFailed")}</strong><p>{error}</p></div><button className="secondary-button" type="button" onClick={load}>{t("merchantFinancePage.retry")}</button></section>}
-
-    {loading ? <LoadingPanel label={t("merchantFinancePage.loading")} rows={4} /> : data && !error ? <>
-      {data.adminFee.overdue > 0 && <section className="finance-overdue"><strong>{t("merchantFinancePage.overdueTitle", { amount: formatCurrency(data.adminFee.overdue) })}</strong><p>{t("merchantFinancePage.overdueHint")}</p></section>}
-
-      <section className="finance-summary" aria-label={t("merchantFinancePage.currentSummary")}>
-        {[["storeStatus", <StatusBadge status={data.store.status} key="status"/>], ["initialFeeBalance", formatCurrency(fee?.outstanding || 0)], ["adminFeeBalance", formatCurrency(data.adminFee.outstanding)]].map(([key, value]) => <article key={key}><small>{t(`merchantFinancePage.${key}`)}</small><strong>{value}</strong></article>)}
+    {data && !error && <>
+      <section className="grid gap-3 rounded-2xl border border-[var(--kucur-border)] bg-[var(--kucur-surface)] p-4 sm:p-5" aria-labelledby="finance-to-pay">
+        <div className="flex flex-wrap items-center justify-between gap-2"><h2 className="text-lg font-extrabold" id="finance-to-pay">{copy.toPay}</h2><StatusBadge status={data.store.status} /></div>
+        {!unpaidFeeTotal && !nextInstallment && !pendingFees.length && <p className="rounded-xl bg-[var(--kucur-green-soft)] p-3 text-[15px] font-semibold">{copy.nothingToPay}</p>}
+        {unpaidFeeTotal > 0 && <div className={`flex flex-wrap items-center justify-between gap-3 rounded-xl p-3 ${data.adminFee.overdue > 0 ? "bg-rose-50 dark:bg-rose-950/50" : "bg-[var(--kucur-surface-muted)]"}`}>
+          <div className="min-w-0"><span className="block text-sm text-[var(--kucur-text-muted)]">{fill(copy.adminFeeDue, { date: day(data.adminFee.nextCutoffAt) })}</span><strong className="text-xl font-extrabold">{formatCurrency(unpaidFeeTotal)}</strong>{data.adminFee.overdue > 0 && <span className="block text-sm font-semibold text-rose-700 dark:text-rose-300">{copy.overdueFee}</span>}</div>
+          <button className={`${buttonClass} bg-[var(--kucur-green)] text-[var(--kucur-forest-dark)]`} type="button" disabled={Boolean(busyAction)} onClick={() => act("settlement", () => financeService.settle(storeId, unpaidFees.map((row) => row.id), unpaidFeeTotal))}>{busyAction === "settlement" ? copy.sending : fill(copy.payAll, { amount: formatCurrency(unpaidFeeTotal) })}</button>
+        </div>}
+        {pendingFees.length > 0 && <p className="text-sm text-[var(--kucur-text-muted)]">{copy.adminFee}: {formatCurrency(pendingFees.reduce((sum, row) => sum + Number(row.feeAmount), 0))} · {copy.pending}</p>}
+        {nextInstallment && <div className={`flex flex-wrap items-center justify-between gap-3 rounded-xl p-3 ${new Date(nextInstallment.dueAt) < now ? "bg-rose-50 dark:bg-rose-950/50" : "bg-[var(--kucur-surface-muted)]"}`}>
+          <div className="min-w-0"><span className="block text-sm text-[var(--kucur-text-muted)]">{fill(new Date(nextInstallment.dueAt) < now ? copy.installmentOverdue : copy.installmentDue, { number: nextInstallment.installmentNumber, date: day(nextInstallment.dueAt) })}</span><strong className="text-xl font-extrabold">{formatCurrency(installmentAmount(nextInstallment))}</strong>{Number(nextInstallment.penaltyOutstanding) > 0 && <span className="block text-sm text-rose-700 dark:text-rose-300">{fill(copy.penalty, { amount: formatCurrency(nextInstallment.penaltyOutstanding) })}</span>}</div>
+          <button className={`${buttonClass} ${unpaidFeeTotal ? "border border-[var(--kucur-border-strong)]" : "bg-[var(--kucur-green)] text-[var(--kucur-forest-dark)]"}`} type="button" disabled={Boolean(busyAction)} onClick={() => act(`installment-${nextInstallment.id}`, () => financeService.payInstallment(storeId, nextInstallment.id, installmentAmount(nextInstallment)))}>{busyAction === `installment-${nextInstallment.id}` ? copy.sending : fill(copy.payAll, { amount: formatCurrency(installmentAmount(nextInstallment)) })}</button>
+        </div>}
       </section>
 
-      <section className="finance-card">
-        <header><h2>{t("merchantFinancePage.initialFee")}</h2><p>{t("merchantFinancePage.initialFeeHint")}</p></header>
-        {!fee ? <div><p>{t("merchantFinancePage.choosePlan")}</p><div className="finance-plan-options">{plans.map(([plan, key]) => <button type="button" disabled={Boolean(busyAction)} onClick={() => act(`plan-${plan}`, () => financeService.setup(storeId, plan))} key={plan}>{busyAction === `plan-${plan}` ? t("merchantFinancePage.submitting") : t(`merchantFinancePage.${key}`)}</button>)}</div></div> : visibleInstallments.length ? <><div className="finance-list">{pageInstallments.map((row) => <article key={row.id}><div className="finance-row-heading"><div><strong>{t("merchantFinancePage.installment", { number: row.installmentNumber })}</strong><small>{t("merchantFinancePage.dueDate")}: {date(row.dueAt)}</small></div><StatusBadge status={row.status}/></div><dl className="finance-detail-list"><div><dt>{t("merchantFinancePage.principal")}</dt><dd>{formatCurrency(row.principalOutstanding)}</dd></div><div><dt>{t("merchantFinancePage.penalty")}</dt><dd>{formatCurrency(row.penaltyOutstanding)}</dd></div><div><dt>{t("merchantFinancePage.plan")}</dt><dd>{statusLabel(fee.planType)}</dd></div><div><dt>{t("merchantFinancePage.total")}</dt><dd>{formatCurrency(Number(row.principalOutstanding) + Number(row.penaltyOutstanding))}</dd></div></dl>{row.status !== "PAID" && <button className="finance-action-button" type="button" disabled={Boolean(busyAction)} onClick={() => act(`installment-${row.id}`, () => financeService.payInstallment(storeId, row.id, Number(row.principalOutstanding) + Number(row.penaltyOutstanding)))}>{busyAction === `installment-${row.id}` ? t("merchantFinancePage.submitting") : t("merchantFinancePage.submitFullPayment")}</button>}</article>)}</div><Pagination page={installmentPage} pageSize={PAGE_SIZE} totalItems={visibleInstallments.length} onPageChange={setInstallmentPage}/></> : <EmptyState title={t("merchantFinancePage.filteredInstallmentsEmpty")} description={t("merchantFinancePage.filteredEmptyHint")}/>} 
-      </section>
+      <div className="grid min-w-0 items-start gap-4 lg:grid-cols-2">
+        <section className="grid gap-3 rounded-2xl border border-[var(--kucur-border)] bg-[var(--kucur-surface)] p-4 sm:p-5" aria-labelledby="finance-initial">
+          <div><h2 className="text-lg font-extrabold" id="finance-initial">{copy.initialFee}</h2><p className="text-sm text-[var(--kucur-text-muted)]">{copy.initialHint}</p></div>
+          {!fee ? <div className="grid gap-2"><p className="text-[15px] font-semibold">{copy.choosePlan}</p><div className="grid gap-2 sm:grid-cols-3">{Object.entries(copy.plans).map(([plan, label]) => <button className={`${buttonClass} border border-[var(--kucur-border-strong)]`} type="button" disabled={Boolean(busyAction)} onClick={() => act(`plan-${plan}`, () => financeService.setup(storeId, plan))} key={plan}>{busyAction === `plan-${plan}` ? copy.sending : label}</button>)}</div></div> : <>
+            <div><strong className="text-[15px]">{fill(copy.paidOf, { paid: formatCurrency(fee.paid), total: formatCurrency(fee.total) })}</strong><div className="mt-2 h-2.5 overflow-hidden rounded-full bg-[var(--kucur-surface-muted)]" role="progressbar" aria-valuemin={0} aria-valuemax={Number(fee.total)} aria-valuenow={Number(fee.paid)}><i className="block h-full rounded-full bg-[var(--kucur-green)]" style={{ width: `${Math.min(100, Number(fee.paid) / Number(fee.total || 1) * 100)}%` }} /></div></div>
+            <ul className="grid divide-y divide-[var(--kucur-border)]">{installments.map((row) => <li className="flex items-center justify-between gap-3 py-2.5 text-[15px]" key={row.id}><div className="min-w-0"><strong className="block">{fill(copy.installment, { number: row.installmentNumber })}</strong><span className="text-sm text-[var(--kucur-text-muted)]">{row.status === "PAID" ? fill(copy.paidOn, { date: day(row.paidAt) }) : isPending(row) ? copy.pending : fill(copy.dueOn, { date: day(row.dueAt) })}</span></div><div className="text-right"><strong className="block">{formatCurrency(row.status === "PAID" ? row.principalAmount : installmentAmount(row))}</strong><StatusBadge status={row.status} /></div></li>)}</ul>
+          </>}
+        </section>
 
-      <section className="finance-card">
-        <header><h2>{t("merchantFinancePage.adminFee")}</h2><p>{t("merchantFinancePage.adminFeeHint")}</p></header>
-        {visibleObligations.length ? <><label className="finance-select-all"><input ref={selectAllRef} type="checkbox" disabled={!selectableObligationIds.length || Boolean(busyAction)} checked={allVisibleSelected} onChange={(event) => toggleAllVisibleObligations(event.target.checked)}/><span><strong>{t("merchantFinancePage.selectAllOutstanding")}</strong><small>{t("merchantFinancePage.selectedObligations", { selected: selectedVisibleCount, total: selectableObligationIds.length })}</small></span></label><div className="finance-list">{pageObligations.map((row, index) => <label className="finance-obligation" key={row.id}><input type="checkbox" disabled={row.status !== "OUTSTANDING" || Boolean(busyAction)} checked={selected.includes(row.id)} onChange={(event) => setSelected((current) => event.target.checked ? [...current, row.id] : current.filter((id) => id !== row.id))}/><span><strong>{t("merchantFinancePage.obligation", { number: (obligationPage - 1) * PAGE_SIZE + index + 1 })}</strong><small>{statusLabel(row.feeTypeSnapshot)}{" \u00B7 "}{t("merchantFinancePage.cutoff", { date: date(row.cutoffAt) })}</small><b>{formatCurrency(row.feeAmount)}{" \u00B7 "}{statusLabel(row.status)}</b></span></label>)}</div><Pagination page={obligationPage} pageSize={PAGE_SIZE} totalItems={visibleObligations.length} onPageChange={setObligationPage}/></> : <EmptyState title={t(filter.period ? "merchantFinancePage.filteredObligationsEmpty" : "merchantFinancePage.emptyObligations")} description={t(filter.period ? "merchantFinancePage.filteredEmptyHint" : "merchantFinancePage.emptyObligationsHint")}/>} 
-        {selected.length > 0 && <button className="finance-action-button" type="button" disabled={Boolean(busyAction)} onClick={() => act("settlement", () => financeService.settle(storeId, selected, selectedTotal))}>{busyAction === "settlement" ? t("merchantFinancePage.submitting") : t("merchantFinancePage.submitSettlement", { amount: formatCurrency(selectedTotal) })}</button>}
-      </section>
-    </> : !loading && !error && <EmptyState title={t("merchantFinancePage.unavailable")} description={t("merchantFinancePage.unavailableHint")}/>}
-  </div>;
+        <section className="grid gap-3 rounded-2xl border border-[var(--kucur-border)] bg-[var(--kucur-surface)] p-4 sm:p-5" aria-labelledby="finance-admin">
+          <div><h2 className="text-lg font-extrabold" id="finance-admin">{copy.adminFee}</h2>{rate && <p className="text-sm text-[var(--kucur-text-muted)]">{fill(copy.adminHint, { rate })}</p>}</div>
+          {months.length ? <ul className="finance-months grid divide-y divide-[var(--kucur-border)]">{months.map((month) => <li className="flex items-center justify-between gap-3 py-2.5 text-[15px]" key={month.key}><div className="min-w-0"><strong className="block">{formatDate(month.date, { month: "long", year: "numeric" })}</strong><span className="text-sm text-[var(--kucur-text-muted)]">{fill(month.rows.length === 1 ? copy.order : copy.orders, { count: month.rows.length })}</span></div><div className="text-right"><strong className="block">{formatCurrency(month.total)}</strong><span className={`text-sm font-bold ${month.unpaid ? "text-amber-700 dark:text-amber-300" : "text-[var(--kucur-green-ink)]"}`}>{month.unpaid ? copy.unpaid : copy.paid}</span></div></li>)}</ul> : <EmptyState title={copy.noFees} description={copy.noFeesHint} />}
+        </section>
+      </div>
+    </>}
+  </PageContainer>;
 }
