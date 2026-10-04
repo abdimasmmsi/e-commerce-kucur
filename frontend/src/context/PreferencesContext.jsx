@@ -6,7 +6,7 @@ const LANGUAGE_KEY = "kucur_language";
 const THEME_KEY = "kucur_theme";
 const resources = { id, en };
 const PreferencesContext = createContext(null);
-const storedLanguage = () => localStorage.getItem(LANGUAGE_KEY) === "id" ? "id" : "en";
+const storedLanguage = () => localStorage.getItem(LANGUAGE_KEY) === "en" ? "en" : "id";
 const storedTheme = () => localStorage.getItem(THEME_KEY) === "dark" ? "dark" : "light";
 
 const resolveKey = (resource, key) => key.split(".").reduce((value, part) => value?.[part], resource);
@@ -38,7 +38,7 @@ export function PreferencesProvider({ children }) {
   }, [language, theme]);
   useEffect(() => {
     const sync = (event) => {
-    if (event.key === LANGUAGE_KEY) setLanguageState(event.newValue === "id" ? "id" : "en");
+    if (event.key === LANGUAGE_KEY) setLanguageState(event.newValue === "en" ? "en" : "id");
       if (event.key === THEME_KEY) setThemeState(event.newValue === "dark" ? "dark" : "light");
     };
     window.addEventListener("storage", sync);

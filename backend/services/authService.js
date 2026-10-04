@@ -47,7 +47,7 @@ function createAuthService(repository) {
       const email = validateEmail(input.email);
       if (await repository.users.findByEmail(email)) throw errors.conflict("Email sudah digunakan.");
       const timestamp = new Date().toISOString();
-      const user = await repository.users.create({ fullName: requiredString(input.fullName, "fullName", { max: 120 }), email, phone: validatePhone(input.phone), passwordHash: await hashPassword(input.password), passwordChangedAt: timestamp, passwordResetRequired: false, status: "active", language: "en", theme: "light", roles: ["customer"], createdAt: timestamp, updatedAt: timestamp });
+      const user = await repository.users.create({ fullName: requiredString(input.fullName, "fullName", { max: 120 }), email, phone: validatePhone(input.phone), passwordHash: await hashPassword(input.password), passwordChangedAt: timestamp, passwordResetRequired: false, status: "active", language: "id", theme: "light", roles: ["customer"], createdAt: timestamp, updatedAt: timestamp });
       return publicUser(user);
     },
     async login(input) {

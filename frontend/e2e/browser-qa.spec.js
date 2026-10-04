@@ -22,28 +22,29 @@ for (const [label, width, height] of viewports) {
 }
 
 test("language and theme controls persist through refresh", async ({ qaPage: page }) => {
+  // Pengunjung baru: Bahasa Indonesia + mode terang.
   await page.setViewportSize({ width: 390, height: 844 });
   await page.goto("/");
-  await expect(page.locator("html")).toHaveAttribute("lang", "en");
+  await expect(page.locator("html")).toHaveAttribute("lang", "id");
   await expect(page.locator("html")).toHaveAttribute("data-theme", "light");
-  await qaScreenshot(page, "en-light", "customer-home-390-en-light");
-  await page.getByRole("button", { name: "ID" }).click();
-  await expect(page.locator("html")).toHaveAttribute("lang", "id");
   await qaScreenshot(page, "id-light", "customer-home-390-id-light");
-  await page.reload();
-  await expect(page.locator("html")).toHaveAttribute("lang", "id");
-  await page.getByRole("button", { name: /Mode gelap/i }).click();
-  await expect(page.locator("html")).toHaveAttribute("data-theme", "dark");
-  await page.reload();
-  await expect(page.locator("html")).toHaveAttribute("data-theme", "dark");
-  await qaScreenshot(page, "id-dark", "customer-home-390-id-dark");
   await page.getByRole("button", { name: "EN" }).click();
   await expect(page.locator("html")).toHaveAttribute("lang", "en");
-  await qaScreenshot(page, "en-dark", "customer-home-390-en-dark");
-  await page.getByRole("button", { name: /Light mode/i }).click();
-  await expect(page.locator("html")).toHaveAttribute("data-theme", "light");
+  await qaScreenshot(page, "en-light", "customer-home-390-en-light");
   await page.reload();
   await expect(page.locator("html")).toHaveAttribute("lang", "en");
+  await page.getByRole("button", { name: /Dark mode/i }).click();
+  await expect(page.locator("html")).toHaveAttribute("data-theme", "dark");
+  await page.reload();
+  await expect(page.locator("html")).toHaveAttribute("data-theme", "dark");
+  await qaScreenshot(page, "en-dark", "customer-home-390-en-dark");
+  await page.getByRole("button", { name: "ID" }).click();
+  await expect(page.locator("html")).toHaveAttribute("lang", "id");
+  await qaScreenshot(page, "id-dark", "customer-home-390-id-dark");
+  await page.getByRole("button", { name: /Mode terang/i }).click();
+  await expect(page.locator("html")).toHaveAttribute("data-theme", "light");
+  await page.reload();
+  await expect(page.locator("html")).toHaveAttribute("lang", "id");
   await expect(page.locator("html")).toHaveAttribute("data-theme", "light");
 });
 

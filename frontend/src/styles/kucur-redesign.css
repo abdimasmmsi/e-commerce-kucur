@@ -46,11 +46,13 @@ body {
 
 #root { min-height: 100svh; background: var(--kucur-cream); }
 
+@layer base {
 h1, h2, h3, h4, strong { color: var(--kucur-ink); }
 h1, h2, h3, h4 { line-height: 1.22; letter-spacing: -.022em; }
 h1 { font-weight: 680; }
 h2, h3, h4 { font-weight: 630; }
 p { line-height: 1.62; }
+}
 
 a, button, input, select, textarea { transition: color 160ms ease, background-color 160ms ease, border-color 160ms ease, box-shadow 160ms ease, transform 160ms ease; }
 

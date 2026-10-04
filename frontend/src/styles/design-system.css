@@ -45,8 +45,10 @@
 html { color-scheme: light; background: var(--kucur-bg); }
 body, #root { background: var(--kucur-bg); color: var(--kucur-text); }
 body { font-family: var(--kucur-font); font-size: 16px; line-height: 1.5; -webkit-text-size-adjust: 100%; }
+@layer base {
 button, input, select, textarea { font-family: inherit; }
 h1, h2, h3, h4, strong { color: var(--kucur-text); }
+}
 a:focus-visible, button:focus-visible, input:focus-visible, select:focus-visible, textarea:focus-visible, summary:focus-visible { outline: 3px solid var(--kucur-green); outline-offset: 2px; }
 
 .card { border-color: var(--kucur-border); border-radius: var(--radius-card); background: var(--kucur-surface); box-shadow: var(--shadow-soft); }
