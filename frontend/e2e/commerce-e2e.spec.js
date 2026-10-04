@@ -46,7 +46,8 @@ test.describe.serial("canonical cross-role commerce", () => {
     expect(orderId).toBeTruthy();
     expect(orderCode).toBeTruthy();
     await orderLink.click();
-    await expect(customer.getByRole("heading", { name: orderCode })).toBeVisible();
+    await expect(customer.getByRole("heading", { level: 1, name: new RegExp(orderCode.slice(-4)) })).toBeVisible();
+    await expect(customer.getByText(orderCode, { exact: true })).toBeVisible();
     await qaScreenshot(customer, "final/customer/id-light", `checkout-order-${runId}`);
 
     await loginThroughUi(merchant, "merchantB");
