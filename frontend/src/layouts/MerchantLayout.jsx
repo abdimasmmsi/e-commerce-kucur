@@ -47,7 +47,7 @@ const MerchantNavLink = ({ children, icon, ...props }) => (
 function MerchantLayout() {
   const location = useLocation();
   const navigate = useNavigate();
-  const { activeStore, activeStoreId, setActiveStore, stores: merchantStores } = useStore();
+  const { activeStore, activeStoreId, loading: storesLoading, setActiveStore, stores: merchantStores } = useStore();
   const { language, t } = usePreferences();
   const tabCopy = language === "id" ? { home: "Beranda", homeLong: "Beranda Lapak", orders: "Pesanan", products: "Produk", menu: "Menu" } : { home: "Home", homeLong: "Store Home", orders: "Orders", products: "Products", menu: "Menu" };
   const mismatchCopy = language === "id" ? { eyebrow: "Workspace tidak cocok", title: "Fitur tidak tersedia untuk jenis lapak ini", body: "{store} adalah lapak {type}. Pilih menu yang sesuai dengan jenis lapak aktif.", back: "Kembali ke Beranda Lapak" } : { eyebrow: "Workspace mismatch", title: "This feature is not available for this store type", body: "{store} is a {type} store. Choose a menu that matches the active store.", back: "Back to Store Home" };
@@ -77,7 +77,8 @@ function MerchantLayout() {
   }, [sidebarOpen]);
 
   useEffect(() => {
-    if (!routeStoreId || ["new", "add"].includes(routeStoreId)) return;
+    // Tunggu daftar lapak selesai dimuat; tanpa ini, membuka/refresh URL lapak langsung terlempar ke daftar lapak.
+    if (storesLoading || !merchantStores.length || !routeStoreId || ["new", "add"].includes(routeStoreId)) return;
 
     const routeStore = merchantStores.find((store) => String(store.id) === canonicalStoreId(routeStoreId));
     if (routeStore) {
@@ -92,7 +93,7 @@ function MerchantLayout() {
     } else {
       navigate("/merchant/stores", { replace: true });
     }
-  }, [activeStoreId, merchantStores, navigate, routeStoreId, setActiveStore]);
+  }, [activeStoreId, merchantStores, navigate, routeStoreId, setActiveStore, storesLoading]);
 
   const allowAllStores = [
     "/merchant",

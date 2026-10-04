@@ -19,3 +19,6 @@
 @media(max-width:900px){.create-store-layout{grid-template-columns:minmax(0,1fr)}.create-store-card-preview{position:static;max-width:420px}}
 @media(max-width:620px){.create-store-grid{grid-template-columns:minmax(0,1fr)}.create-store-full{grid-column:auto}.create-store-actions{display:grid;grid-template-columns:1fr}.create-store-actions>*{width:100%}.create-store-image-input{grid-template-columns:1fr}.create-store-image-preview{width:min(180px,100%)}}
 @media(max-width:390px){.create-store-section,.create-store-card-preview{padding:16px}.create-store-preview-image{margin-inline:-16px}.create-store-image-input>div:last-child{display:grid}.create-store-upload-button,.create-store-remove-image{width:100%}}
+
+/* HP: pratinjau kartu lapak disembunyikan agar form tidak terlalu panjang. */
+@media (max-width: 767px) { .create-store-card-preview { display: none; } }

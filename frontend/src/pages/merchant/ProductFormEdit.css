@@ -104,3 +104,7 @@
   .merchant-edit-product__variant-image { grid-column: auto; }
   .merchant-edit-product__actions { display: grid; grid-template-columns: 1fr 1fr; padding-inline: .75rem; }
 }
+
+/* HP: bar Simpan/Batal tetap terlihat di atas menu bawah workspace. */
+@media (max-width: 767px) { .merchant-edit-product__actions { bottom: calc(66px + env(safe-area-inset-bottom)); } }
+.merchant-edit-product__field > span { color: var(--kucur-text); }

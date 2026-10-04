@@ -253,9 +253,9 @@ function ProductFormWorkspace({ mode, storeId, productId, routeStore }) {
     return <PageContainer><EmptyState title={t("productForm.notFound")} description={t("productForm.notFoundHint")} action={<Button as={Link} variant="secondary" to={`/merchant/stores/${storeId}/products`}>{t("productForm.backProducts")}</Button>}/></PageContainer>;
   }
 
-  if (isEdit) {
+  {
     const productsPath = `/merchant/stores/${storeId}/products`;
-    const uploadInputId = `product-images-${productId}`;
+    const uploadInputId = `product-images-${productId ?? "new"}`;
     const sectionHeader = (title, description, side = null, titleId) => (
       <header className="merchant-edit-product__section-header">
         <div><h2 id={titleId}>{title}</h2>{description && <p>{description}</p>}</div>
@@ -268,9 +268,9 @@ function ProductFormWorkspace({ mode, storeId, productId, routeStore }) {
         <header className="merchant-edit-product__page-header">
           <div>
             <Link className="merchant-edit-product__back" to={productsPath}><span aria-hidden="true">←</span>{t("productForm.backProducts")}</Link>
-            <h1>{t("productForm.editTitle")}</h1>
-            <p>{t("productForm.editDescription")}</p>
-            <div className="merchant-edit-product__context"><strong>{existingProduct?.name}</strong><span aria-hidden="true">•</span><span>{routeStore?.name ?? t("productForm.activeStore")}</span></div>
+            <h1>{t(isEdit ? "productForm.editTitle" : "productForm.createTitle")}</h1>
+            <p>{isEdit ? t("productForm.editDescription") : t("productForm.createSubtitle", { store: routeStore?.name ?? t("productForm.activeStore") })}</p>
+            {isEdit && <div className="merchant-edit-product__context"><strong>{existingProduct?.name}</strong><span aria-hidden="true">•</span><span>{routeStore?.name ?? t("productForm.activeStore")}</span></div>}
           </div>
         </header>
 
@@ -376,105 +376,13 @@ function ProductFormWorkspace({ mode, storeId, productId, routeStore }) {
 
           <footer className="merchant-edit-product__actions">
             <Link className="merchant-edit-product__button merchant-edit-product__button--secondary" to={productsPath}>{t("productForm.cancel")}</Link>
-            <button className="merchant-edit-product__button merchant-edit-product__button--save" type="submit" disabled={saving || processingImages}>{t(saving ? "productForm.saving" : "productForm.saveChanges")}</button>
+            <button className="merchant-edit-product__button merchant-edit-product__button--save" type="submit" disabled={saving || processingImages}>{t(saving ? "productForm.saving" : isEdit ? "productForm.saveChanges" : "productForm.save")}</button>
           </footer>
         </form>
       </PageContainer>
     );
   }
 
-  return (
-    <PageContainer className="space-y-5 [&_h1]:text-2xl [&_h1]:font-extrabold [&_section]:rounded-2xl [&_section]:border [&_section]:border-[var(--kucur-border)] [&_section]:bg-[var(--kucur-surface)] [&_section]:p-4 [&_input]:max-w-full [&_input]:rounded-xl [&_input]:border [&_input]:border-[var(--kucur-border-strong)] [&_input]:px-3 [&_input]:py-2.5 [&_select]:max-w-full [&_select]:rounded-xl [&_select]:border [&_select]:border-[var(--kucur-border-strong)] [&_select]:px-3 [&_select]:py-2.5 [&_textarea]:max-w-full [&_textarea]:rounded-xl [&_textarea]:border [&_textarea]:border-[var(--kucur-border-strong)] [&_textarea]:p-3 [&_button]:rounded-xl [&_button]:border [&_button]:border-[var(--kucur-border-strong)] [&_button]:px-3 [&_button]:py-2 [&_button]:font-semibold">
-      <header className="flex min-w-0 max-w-full flex-wrap items-start justify-between gap-3">
-        <div>
-          <h1>{t(isEdit ? "productForm.editTitle" : "productForm.createTitle")}</h1>
-          <p>{t(isEdit ? "productForm.editSubtitle" : "productForm.createSubtitle", { store: routeStore?.name ?? t("productForm.activeStore") })}</p>
-        </div>
-        <Link to={`/merchant/stores/${storeId}/products`}>{t("productForm.back")}</Link>
-      </header>
-
-      <form className="grid min-w-0 max-w-full gap-5 rounded-2xl border border-[var(--kucur-border)] bg-[var(--kucur-surface)] p-4 sm:p-6" onSubmit={handleSubmit} noValidate>
-        {apiError && <section role="alert"><strong>{t("productForm.saveFailed")}</strong><p>{apiError}</p></section>}
-        <div className="grid min-w-0 max-w-full gap-4 sm:grid-cols-2 [&>label]:grid [&>label]:min-w-0 [&>label]:gap-1.5 [&_small]:text-sm [&_small]:text-rose-700">
-          <label className="min-w-0 max-w-full grid gap-4">
-            <span>{t("productForm.name")}</span>
-            <input name="name" value={form.name} onChange={handleChange} placeholder={t("productForm.namePlaceholder")} />
-            {errors.name && <small>{errors.name}</small>}
-          </label>
-
-          <label className="min-w-0 max-w-full grid gap-4">
-            <span>{t("productForm.category")}</span>
-            <select name="category" value={form.category} onChange={handleChange}>
-              <option value="">{t("productForm.selectCategory")}</option>
-              {productCategories.map((category) => <option value={category} key={category}>{category}</option>)}
-            </select>
-            {errors.category && <small>{errors.category}</small>}
-          </label>
-
-          {!hasVariants && <label className="min-w-0 max-w-full grid gap-4">
-            <span>{t("productForm.price")}</span>
-            <input name="price" type="number" min="1" value={form.price} onChange={handleChange} placeholder="0" />
-            {errors.price && <small>{errors.price}</small>}
-          </label>}
-
-          {!hasVariants && <label className="min-w-0 max-w-full grid gap-4">
-            <span>{t("productForm.stock")}</span>
-            <input name="stock" type="number" min="0" step="1" value={form.stock} onChange={handleChange} placeholder="0" />
-            {errors.stock && <small>{errors.stock}</small>}
-          </label>}
-
-          <label className="min-w-0 max-w-full grid gap-4">
-            <span>{t("productForm.description")}</span>
-            <textarea name="description" value={form.description} onChange={handleChange} rows="5" placeholder={t("productForm.descriptionPlaceholder")} />
-            {errors.description && <small>{errors.description}</small>}
-          </label>
-
-          <section className="col-span-full grid min-w-0 max-w-full gap-4">
-            <div><span>{t("productForm.images")}</span><strong>{images.length}/3</strong></div>
-            <p>{t("productForm.imageHelp")}</p>
-            <label className="min-w-0 max-w-full grid gap-4"><input type="file" accept="image/jpeg,image/png,image/webp" multiple onChange={uploadImages} disabled={processingImages || images.length >= 3} /><span>{t(processingImages ? "productForm.processing" : "productForm.chooseGallery")}</span></label>
-            {imageError && <small className="min-w-0 max-w-full grid gap-4">{imageError}</small>}
-            <div className="min-w-0 max-w-full grid gap-4">{images.map((image) => <article key={image.id}><ProductImage image={image} product={existingProduct} alt={t("productForm.productPhoto")} />{image.isPrimary && <b>{t("productForm.cover")}</b>}<div>{!image.isPrimary && <button type="button" onClick={() => setPrimaryImage(image.id)}>{t("productForm.makeCover")}</button>}<button type="button" className="min-w-0 max-w-full" onClick={() => removeImage(image.id)}>{t("productForm.remove")}</button></div></article>)}</div>
-          </section>
-
-          <section className="col-span-full grid min-w-0 max-w-full gap-4">
-            <label className="min-w-0 max-w-full grid gap-4"><input type="checkbox" checked={hasVariants} onChange={(event) => { setHasVariants(event.target.checked); setVariantError(""); }} /><span>{t("productForm.hasVariants")}</span></label>
-            {hasVariants && <>
-              <div className="min-w-0 max-w-full grid gap-4">{variantGroups.map((group) => <article key={group.id}>
-                <div><input value={group.name} onChange={(event) => renameVariantGroup(group.id, event.target.value)} placeholder={t("productForm.variantNamePlaceholder")} /><button type="button" onClick={() => removeVariantGroup(group.id)}>{t("productForm.removeGroup")}</button></div>
-                <div className="min-w-0 max-w-full grid gap-4">{group.options.map((option) => <span key={option}>{option}<button type="button" aria-label={t("productForm.removeOption", { option })} onClick={() => removeVariantOption(group.id, option)}>{"\u00D7"}</button></span>)}</div>
-                <div><input value={optionDrafts[group.id] ?? ""} onChange={(event) => setOptionDrafts((current) => ({ ...current, [group.id]: event.target.value }))} placeholder={t("productForm.newOption")} /><button type="button" onClick={() => addVariantOption(group.id)}>{t("productForm.addOption")}</button></div>
-              </article>)}</div>
-              {variantGroups.length < 2 && <button className="min-w-0 max-w-full grid gap-4" type="button" onClick={addVariantGroup}>{t("productForm.addGroup")}</button>}
-              {variantError && <small className="min-w-0 max-w-full grid gap-4">{variantError}</small>}
-              {variants.length > 0 && <div className="min-w-0 max-w-full grid gap-4">{variants.map((variant) => {
-                const variantName = Object.values(variant.options).join(" / ");
-                return <article key={variant.id}><strong>{variantName}</strong><small>{variant.sku}</small>
-                  <div className="min-w-0 max-w-full grid gap-4">{variant.image && <ProductImage image={variant.image} alt={t("productForm.variantPhoto", { variant: variantName })} />}{variant.image ? <button type="button" onClick={() => removeVariantImage(variant.id)}>{t("productForm.removePhoto")}</button> : <label className="min-w-0 max-w-full grid gap-4"><input type="file" accept="image/jpeg,image/png,image/webp" onChange={(event) => uploadVariantImage(variant.id, event.target.files[0])} disabled={processingImages} /><span>{t("productForm.chooseVariantPhoto")}</span></label>}</div>
-                  <label><span>{t("productForm.price")}</span><input type="number" min="1" value={variant.price} onChange={(event) => updateVariant(variant.id, "price", event.target.value)} /></label>
-                  <label><span>{t("productForm.stock")}</span><input type="number" min="0" value={variant.stock} onChange={(event) => updateVariant(variant.id, "stock", event.target.value)} /></label>
-                  <label><span>{t("productForm.status")}</span><select value={variant.status} onChange={(event) => updateVariant(variant.id, "status", event.target.value)}><option value="active">{t("productForm.active")}</option><option value="inactive">{t("productForm.inactive")}</option></select></label>
-                </article>;
-              })}</div>}
-            </>}
-          </section>
-
-          <label className="min-w-0 max-w-full grid gap-4">
-            <span>{t("productForm.status")}</span>
-            <select name="status" value={form.status} onChange={handleChange}>
-              <option value="active">{t("productForm.active")}</option>
-              <option value="inactive">{t("productForm.inactive")}</option>
-            </select>
-          </label>
-        </div>
-
-        <div className="min-w-0 max-w-full grid gap-4">
-          <Link to={`/merchant/stores/${storeId}/products`}>{t("productForm.cancel")}</Link>
-          <button type="submit" disabled={saving || processingImages}>{t(saving ? "productForm.saving" : isEdit ? "productForm.update" : "productForm.save")}</button>
-        </div>
-      </form>
-    </PageContainer>
-  );
 }
 
 function ProductForm({ mode = "create" }) {

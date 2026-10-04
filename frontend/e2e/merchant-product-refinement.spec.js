@@ -129,3 +129,16 @@ test("product cards and edit routes remain scoped to their owning store", async 
   await page.goto(`/merchant/stores/${storeId}/products`);
   await expect(page.locator(`a[href="/merchant/stores/${storeId}/products/${variantProductId}/edit"]`)).toBeVisible();
 });
+
+test("merchant add product form fits a phone and keeps the save button reachable", async ({ qaPage: page }) => {
+  await page.setViewportSize({ width: 360, height: 800 });
+  await loginThroughUi(page, "merchant");
+  await page.goto("/merchant/stores/10000000-0000-4000-8000-000000000001/products/add");
+  await expect(page.getByRole("heading", { level: 1, name: /Tambah Produk|Add Product/i })).toBeVisible();
+  const save = page.getByRole("button", { name: /Simpan Produk|Save Product/i });
+  await expect(save).toBeVisible();
+  const box = await save.boundingBox();
+  const nav = await page.locator(".merchant-bottom-nav").boundingBox();
+  expect(box.y + box.height).toBeLessThanOrEqual(nav.y + 1);
+  await assertNoHorizontalOverflow(page);
+});

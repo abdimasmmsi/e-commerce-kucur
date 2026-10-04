@@ -44,3 +44,15 @@
 .dark .merchant-review-card-status .is-answered{background:#16351e;color:#86efac}.dark .merchant-review-card-status .is-unanswered{background:#3b2c10;color:#fde68a}.dark .merchant-review-success{border-color:#166534;background:#102a18;color:#86efac}.dark .merchant-review-error,.dark .merchant-review-modal-error{border-color:#7f1d1d;background:#2b1212!important;color:#fca5a5!important}.dark .merchant-review-error button{border-color:#7f1d1d;background:var(--kucur-surface);color:#fca5a5}
 @media(max-width:760px){.merchant-review-summary{grid-template-columns:repeat(2,minmax(0,1fr))}.merchant-review-summary article:last-child{grid-column:1/-1}.merchant-review-grid{grid-template-columns:1fr}.merchant-review-toolbar button{flex:1 1 calc(50% - 8px)}.merchant-review-card>header{flex-direction:column}.merchant-review-card-status{width:100%;grid-auto-flow:column;justify-content:space-between;justify-items:start}.merchant-review-card>footer button{width:100%}}
 @media(max-width:420px){.merchant-review-summary article{padding:15px}.merchant-review-summary strong{font-size:1.55rem}.merchant-review-card{padding:16px}.merchant-review-modal form{padding:16px}.merchant-review-modal footer{display:grid;grid-template-columns:1fr 1fr}.merchant-review-modal footer button{padding-inline:8px}}
+
+/* Redesign HP: ringkasan 3 kolom kecil, filter jadi chip yang bisa digeser. */
+@media (max-width: 767px) {
+  .merchant-review-summary { grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 8px; }
+  .merchant-review-summary article, .merchant-review-summary article:last-child { grid-column: auto; padding: 12px; gap: 4px; }
+  .merchant-review-summary span { font-size: .72rem; letter-spacing: 0; text-transform: none; }
+  .merchant-review-summary strong { font-size: 1.35rem; }
+  .merchant-review-toolbar { padding: 0 !important; border: 0 !important; background: transparent !important; }
+  .merchant-review-toolbar > strong { display: none; }
+  .merchant-review-toolbar > div { display: flex !important; gap: 8px; margin-inline: -16px; padding: 0 16px 4px; overflow-x: auto; scrollbar-width: none; }
+  .merchant-review-toolbar > div button { flex: 0 0 auto; min-height: 44px; padding: 0 16px; border-radius: 999px; white-space: nowrap; }
+}
