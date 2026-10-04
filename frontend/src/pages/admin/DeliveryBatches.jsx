@@ -7,10 +7,12 @@ import PageHeader from "../../components/ui/PageHeader";
 import StatusBadge from "../../components/ui/StatusBadge";
 import { usePreferences } from "../../context/PreferencesContext";
 import { deliveryApi } from "../../services/deliveryApiService";
+import { shortOrderCode } from "../../utils/orderCode";
 import "./AdminDeliveryFinance.css";
 
 const TERMINAL = new Set(["DELIVERED", "FAILED", "CANCELLED"]);
 const LOCKED = new Set(["PICKED_UP", "OUT_FOR_DELIVERY", "DELIVERED"]);
+const FINISHED_BATCH = new Set(["COMPLETED", "CANCELLED", "FAILED"]);
 
 export default function AdminDeliveryBatches() {
   const { formatDate, language, t } = usePreferences();
@@ -43,9 +45,14 @@ export default function AdminDeliveryBatches() {
     catch { setError(t("adminDelivery.loadFailed")); }
     finally { setBusy(false); }
   };
-  const groupedBatches = useMemo(() => Object.entries(batches.reduce((groups, batch) => {
+  const groupByDate = (rows) => Object.entries(rows.reduce((groups, batch) => {
     const date = String(batch.deliveryDate).slice(0, 10); (groups[date] ||= []).push(batch); return groups;
-  }, {})).sort(([left], [right]) => right.localeCompare(left)), [batches]);
+  }, {})).sort(([left], [right]) => right.localeCompare(left));
+  const activeGroups = useMemo(() => groupByDate(batches.filter((batch) => !FINISHED_BATCH.has(batch.status))), [batches]);
+  const finishedGroups = useMemo(() => groupByDate(batches.filter((batch) => FINISHED_BATCH.has(batch.status))), [batches]);
+  const finishedCount = batches.filter((batch) => FINISHED_BATCH.has(batch.status)).length;
+  const historyLabel = language === "id" ? `Riwayat batch selesai (${finishedCount})` : `Finished batch history (${finishedCount})`;
+  const noActive = language === "id" ? "Tidak ada batch yang sedang berjalan." : "No batches are in progress.";
   const allSelected = eligible.items.length > 0 && eligible.items.every((order) => selected.includes(order.id));
 
   return <><div className="page-container admin-delivery-page min-w-0">
@@ -63,17 +70,30 @@ export default function AdminDeliveryBatches() {
       </section>
       <section className="delivery-batches-section">
         <div className="admin-section-heading"><div><h2>{t("adminDelivery.batches")}</h2><p>{t("adminDelivery.batchesHint")}</p></div></div>
-        {groupedBatches.length ? groupedBatches.map(([date, dateBatches]) => <section className="batch-date-group" key={date}><h3>{formatDate(`${date}T12:00:00`)}</h3><div className="batch-grid">{dateBatches.map((batch) => {
+        {batches.length ? <>
+          {activeGroups.length ? activeGroups.map(([date, dateBatches]) => <section className="batch-date-group" key={date}><h3>{formatDate(`${date}T12:00:00`)}</h3><div className="batch-grid">{dateBatches.map((batch) => {
           const completed = batch.orders.filter((row) => row.status === "DELIVERED").length;
           const failed = batch.orders.filter((row) => ["FAILED", "CANCELLED"].includes(row.status)).length;
           const irreversible = batch.orders.some((row) => LOCKED.has(row.status));
           return <article className={`admin-ops-panel batch-card ${failed ? "has-attention" : ""}`} key={batch.id}>
             <header><div><strong>{batch.courier?.fullName || t("adminDelivery.selectCourier")}</strong><span>{t("adminDelivery.orders", { count: batch.orders.length })} · {t("adminDelivery.completed", { count: completed })}{failed ? ` · ${t("adminDelivery.failed", { count: failed })}` : ""}</span></div><StatusBadge status={batch.status}/></header>
             <dl><div><dt>{t("adminDelivery.dispatch")}</dt><dd>{batch.dispatchAt ? formatDate(batch.dispatchAt, { dateStyle: "short", timeStyle: "short" }) : t("adminFinance.notAvailable")}</dd></div><div><dt>{t("adminDelivery.lastUpdate")}</dt><dd>{formatDate(batch.updatedAt || batch.createdAt, { dateStyle: "short", timeStyle: "short" })}</dd></div></dl>
-            <div className="batch-order-list">{batch.orders.map((assignment) => <div className={`batch-order ${["FAILED", "CANCELLED"].includes(assignment.status) ? "needs-attention" : ""}`} key={assignment.id}><span><strong>{assignment.commerceOrder?.orderCode}</strong><small>{assignment.commerceOrder?.storeName}</small></span><StatusBadge status={assignment.status}/><div>{["FAILED", "CANCELLED"].includes(assignment.status) ? <Button variant="secondary" disabled={busy || !courierUserId} onClick={() => mutate(() => deliveryApi.rebatch(assignment.commerceOrderId, { courierUserId, deliveryDate: eligible.deliveryDate }))}>{t("adminDelivery.rebatch")}</Button> : <Button variant="ghost" disabled={busy || !["PLANNED", "READY"].includes(batch.status) || assignment.status !== "WAITING_PICKUP"} onClick={() => mutate(() => deliveryApi.removeOrder(batch.id, assignment.commerceOrderId))}>{t("adminDelivery.remove")}</Button>}</div></div>)}</div>
-            <footer><Button variant="danger" disabled={busy || irreversible || !["PLANNED", "READY"].includes(batch.status) || batch.orders.every((row) => TERMINAL.has(row.status))} onClick={() => setCancelTarget(batch)}>{t("adminDelivery.cancelBatch")}</Button></footer>
+            <div className="batch-order-list">{batch.orders.map((assignment) => <div className={`batch-order ${["FAILED", "CANCELLED"].includes(assignment.status) ? "needs-attention" : ""}`} key={assignment.id}><span><strong title={assignment.commerceOrder?.orderCode}>{shortOrderCode(assignment.commerceOrder?.orderCode)}</strong><small>{assignment.commerceOrder?.storeName}</small></span><StatusBadge status={assignment.status}/><div>{["FAILED", "CANCELLED"].includes(assignment.status) ? <Button variant="secondary" disabled={busy || !courierUserId} onClick={() => mutate(() => deliveryApi.rebatch(assignment.commerceOrderId, { courierUserId, deliveryDate: eligible.deliveryDate }))}>{t("adminDelivery.rebatch")}</Button> : ["PLANNED", "READY"].includes(batch.status) && assignment.status === "WAITING_PICKUP" ? <Button variant="ghost" disabled={busy} onClick={() => mutate(() => deliveryApi.removeOrder(batch.id, assignment.commerceOrderId))}>{t("adminDelivery.remove")}</Button> : null}</div></div>)}</div>
+            {!irreversible && ["PLANNED", "READY"].includes(batch.status) && !batch.orders.every((row) => TERMINAL.has(row.status)) && <footer><Button variant="danger" disabled={busy} onClick={() => setCancelTarget(batch)}>{t("adminDelivery.cancelBatch")}</Button></footer>}
           </article>;
-        })}</div></section>) : <EmptyState title={t("adminDelivery.noBatches")} description={t("adminDelivery.noBatchesHint")} />}
+        })}</div></section>) : <p className="text-[15px] text-[var(--kucur-text-muted)]">{noActive}</p>}
+          {finishedCount > 0 && <details className="mt-4 rounded-2xl border border-[var(--kucur-border)] bg-[var(--kucur-surface)] px-4"><summary className="flex min-h-12 cursor-pointer items-center text-[15px] font-bold">{historyLabel}</summary><div className="pb-4">{finishedGroups.map(([date, dateBatches]) => <section className="batch-date-group" key={date}><h3>{formatDate(`${date}T12:00:00`)}</h3><div className="batch-grid">{dateBatches.map((batch) => {
+          const completed = batch.orders.filter((row) => row.status === "DELIVERED").length;
+          const failed = batch.orders.filter((row) => ["FAILED", "CANCELLED"].includes(row.status)).length;
+          const irreversible = batch.orders.some((row) => LOCKED.has(row.status));
+          return <article className={`admin-ops-panel batch-card ${failed ? "has-attention" : ""}`} key={batch.id}>
+            <header><div><strong>{batch.courier?.fullName || t("adminDelivery.selectCourier")}</strong><span>{t("adminDelivery.orders", { count: batch.orders.length })} · {t("adminDelivery.completed", { count: completed })}{failed ? ` · ${t("adminDelivery.failed", { count: failed })}` : ""}</span></div><StatusBadge status={batch.status}/></header>
+            <dl><div><dt>{t("adminDelivery.dispatch")}</dt><dd>{batch.dispatchAt ? formatDate(batch.dispatchAt, { dateStyle: "short", timeStyle: "short" }) : t("adminFinance.notAvailable")}</dd></div><div><dt>{t("adminDelivery.lastUpdate")}</dt><dd>{formatDate(batch.updatedAt || batch.createdAt, { dateStyle: "short", timeStyle: "short" })}</dd></div></dl>
+            <div className="batch-order-list">{batch.orders.map((assignment) => <div className={`batch-order ${["FAILED", "CANCELLED"].includes(assignment.status) ? "needs-attention" : ""}`} key={assignment.id}><span><strong title={assignment.commerceOrder?.orderCode}>{shortOrderCode(assignment.commerceOrder?.orderCode)}</strong><small>{assignment.commerceOrder?.storeName}</small></span><StatusBadge status={assignment.status}/><div>{["FAILED", "CANCELLED"].includes(assignment.status) ? <Button variant="secondary" disabled={busy || !courierUserId} onClick={() => mutate(() => deliveryApi.rebatch(assignment.commerceOrderId, { courierUserId, deliveryDate: eligible.deliveryDate }))}>{t("adminDelivery.rebatch")}</Button> : ["PLANNED", "READY"].includes(batch.status) && assignment.status === "WAITING_PICKUP" ? <Button variant="ghost" disabled={busy} onClick={() => mutate(() => deliveryApi.removeOrder(batch.id, assignment.commerceOrderId))}>{t("adminDelivery.remove")}</Button> : null}</div></div>)}</div>
+            {!irreversible && ["PLANNED", "READY"].includes(batch.status) && !batch.orders.every((row) => TERMINAL.has(row.status)) && <footer><Button variant="danger" disabled={busy} onClick={() => setCancelTarget(batch)}>{t("adminDelivery.cancelBatch")}</Button></footer>}
+          </article>;
+        })}</div></section>)}</div></details>}
+        </> : <EmptyState title={t("adminDelivery.noBatches")} description={t("adminDelivery.noBatchesHint")} />}
       </section>
     </>}
   </div><ActionDialog open={Boolean(cancelTarget)} busy={busy} destructive title={t("adminDelivery.cancelBatch")} description={t("adminDelivery.cancelConfirm")} cancelLabel={language === "id" ? "Kembali" : "Go back"} confirmLabel={t("adminDelivery.cancelBatch")} onCancel={() => setCancelTarget(null)} onConfirm={async () => { if (!cancelTarget) return; await mutate(() => deliveryApi.cancelBatch(cancelTarget.id)); setCancelTarget(null); }}/></>;

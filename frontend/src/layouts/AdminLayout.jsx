@@ -5,6 +5,7 @@ import WorkspaceNavIcon from "../components/WorkspaceNavIcon";
 import ChatUnreadBadge from "../components/ChatUnreadBadge";
 import { usePreferences } from "../context/PreferencesContext";
 import "./AdminLayout.css";
+import "../components/CustomerBottomNav.css";
 import "../styles/workspace-shell.css";
 
 const adminNavigation = [
@@ -18,7 +19,8 @@ const adminNavigation = [
 
 function AdminLayout() {
   const [sidebarOpen, setSidebarOpen] = useState(false);
-  const { t } = usePreferences();
+  const { language, t } = usePreferences();
+  const tabCopy = language === "id" ? { home: "Beranda", orders: "Transaksi", delivery: "Pengiriman", menu: "Menu" } : { home: "Home", orders: "Orders", delivery: "Delivery", menu: "Menu" };
   const closeSidebar = () => setSidebarOpen(false);
 
   useEffect(() => {
@@ -51,6 +53,12 @@ function AdminLayout() {
         <Outlet />
       </main>
       </div>
+      <nav className="customer-bottom-nav admin-bottom-nav" aria-label={t("workspace.navigation")}>
+        <NavLink to="/admin" end onClick={closeSidebar}><WorkspaceNavIcon type="dashboard"/><span>{tabCopy.home}</span></NavLink>
+        <NavLink to="/admin/transactions" onClick={closeSidebar}><WorkspaceNavIcon type="transactions"/><span>{tabCopy.orders}</span></NavLink>
+        <NavLink to="/admin/delivery-batches" onClick={closeSidebar}><WorkspaceNavIcon type="delivery"/><span>{tabCopy.delivery}</span></NavLink>
+        <button type="button" aria-expanded={sidebarOpen} onClick={() => setSidebarOpen((open) => !open)}><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" aria-hidden="true"><path d="M4 7h16M4 12h16M4 17h16"/></svg><span>{tabCopy.menu}</span></button>
+      </nav>
     </div>
   );
 }

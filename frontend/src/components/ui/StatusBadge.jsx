@@ -29,4 +29,4 @@ const statusTone = {
   visible: "bg-emerald-50 text-emerald-800 ring-emerald-200 dark:bg-emerald-950 dark:text-emerald-200 dark:ring-emerald-800",
   hidden: "bg-slate-100 text-[var(--kucur-text)] ring-slate-200",
 };
-export default function StatusBadge({ status, children, className = "" }) { const { statusLabel } = usePreferences(); const toneKey = String(status ?? "").toLowerCase().replaceAll("_", "-"); return <span className={`inline-flex w-fit items-center rounded-full px-2.5 py-1 text-xs font-bold ring-1 ring-inset ${statusTone[toneKey] ?? "bg-slate-100 text-[var(--kucur-text)] ring-slate-200"} ${className}`}>{children ?? statusLabel(status)}</span>; }
+export default function StatusBadge({ status, children, className = "" }) { const { statusLabel } = usePreferences(); const toneKey = String(status ?? "").toLowerCase().replaceAll("_", "-"); return <span className={`inline-flex w-fit shrink-0 items-center whitespace-nowrap rounded-full px-2.5 py-1 text-xs font-bold ring-1 ring-inset ${statusTone[toneKey] ?? "bg-slate-100 text-[var(--kucur-text)] ring-slate-200"} ${className}`}>{children ?? statusLabel(status)}</span>; }
