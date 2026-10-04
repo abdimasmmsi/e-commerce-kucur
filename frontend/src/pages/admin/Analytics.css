@@ -2,7 +2,7 @@
 .quick-filter-list { display: flex; flex-wrap: wrap; gap: 8px; }
 .quick-filter-list button { border: 1px solid var(--kucur-border-strong); border-radius: 999px; padding: 8px 12px; background: var(--kucur-paper); color: var(--kucur-muted); font-size: .8rem; font-weight: 700; }
 .quick-filter-list button:hover { border-color: var(--kucur-green); color: var(--kucur-text); }
-.quick-filter-list button.active { border-color: var(--kucur-forest); background: var(--kucur-forest); color: var(--kucur-button-text, #fff); }
+.quick-filter-list button.active { border-color:var(--kucur-green); background:var(--kucur-green); color:var(--kucur-forest-dark); }
 .custom-range { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; }
 .custom-range label { display: grid; gap: 6px; color: var(--kucur-muted); font-size: .8rem; font-weight: 700; }
 .custom-range input { border: 1px solid var(--kucur-border); border-radius: 9px; padding: 10px; background: var(--kucur-input-bg, var(--kucur-paper)); color: var(--kucur-text); color-scheme: light dark; }

@@ -607,9 +607,9 @@
 
 .merchant-workspace .stores-add-button,
 .merchant-workspace .store-manage-button {
-  border: 1px solid var(--kucur-forest);
-  background: var(--kucur-forest);
-  color: #fff;
+  border:1px solid var(--kucur-green);
+  background:var(--kucur-green);
+  color:var(--kucur-forest-dark);
 }
 
 .merchant-workspace .store-card {

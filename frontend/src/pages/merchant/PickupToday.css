@@ -13,7 +13,7 @@
 .pickup-reason-error{padding:10px 12px!important;border:1px solid #fecaca;border-radius:10px;background:#fef2f2!important;color:#b91c1c!important}
 .pickup-reason-modal footer{display:flex;justify-content:flex-end;gap:10px;padding-top:2px}
 .pickup-reason-modal footer button{min-height:44px;padding:10px 16px;border:1px solid var(--kucur-border-strong);border-radius:var(--kucur-control-radius,12px);background:var(--kucur-surface);color:var(--kucur-text);font:inherit;font-weight:750;cursor:pointer}
-.pickup-reason-modal footer button.is-primary{border-color:var(--kucur-forest);background:var(--kucur-forest);color:#fff}
+.pickup-reason-modal footer button.is-primary{border-color:var(--kucur-green);background:var(--kucur-green);color:var(--kucur-forest-dark)}
 .pickup-reason-modal button:disabled{cursor:not-allowed;opacity:.55}
 .dark .pickup-reason-error{border-color:#7f1d1d;background:#2b1212!important;color:#fca5a5!important}
 @media(max-width:480px){.pickup-reason-modal{align-items:end;padding:10px}.pickup-reason-modal form{width:100%;max-height:calc(100dvh - 20px);padding:17px;border-radius:18px}.pickup-reason-modal footer{display:grid;grid-template-columns:1fr 1fr}.pickup-reason-modal footer button{padding-inline:8px}}
