@@ -28,7 +28,7 @@ Prinsip UX dari Steven: **SIMPLE > clever, CLEAR > compact, CONSISTENT > decorat
 - Database: **MySQL 8.4** di Docker, port dev **3307** (sebelumnya PostgreSQL, sudah dipindah). UUID `CHAR(36)`, waktu `DATETIME(3)`, uang `DECIMAL`.
 - Peta/lokasi: Leaflet + OpenStreetMap; jarak via OpenRouteService dengan fallback **Haversine** kalau jaringan gagal. Koordinat Store diisi manual (Steven mencicil saat ke desa).
 - Pembayaran: **COD aktif**. **Midtrans** hanya placeholder (belum ada kredensial); tanpa kredensial backend membalas `PAYMENT_PROVIDER_NOT_CONFIGURED`. Transfer manual dihindari (risiko seller nakal).
-- Dev: Windows, repo di `D:\kucur-platform` (`frontend/`, `backend/`, `docs/final-documentation/`). Frontend `http://localhost:5173`, backend `http://localhost:3000`. Workspace **tidak punya metadata .git** saat freeze **[VERIFIKASI]** (Steven bilang sempat "branched", cek apakah sekarang sudah ada repo git).
+- Dev: Windows, repo di `D:\kucur-platform` (`frontend/`, `backend/`, `docs/final-documentation/`). Frontend `http://localhost:5173`, backend `http://localhost:3000`. Repo git lokal dibuat 2026-10-04 (branch `main`, commit baseline `dead544 snapshot: feature freeze baseline`, belum ada remote). `core.autocrlf=false`; `.gitignore` root mengecualikan `.env*`, `node_modules`, `uploads`, `.tmp`, `artifacts`, `*.zip`.
 - Tooling: coding dilakukan lewat Codex di VS Code; ChatGPT dipakai sebagai perencana dan penulis prompt. Sekarang pindah ke Claude.
 - Akun QA (password semua `123456`): `merchant@kucur.test`, `merchant2@kucur.test`, `customer@kucur.test`, `courier1@kucur.test`, `admin@kucur.test`. Kredensial ditaruh di halaman login untuk demo.
 
