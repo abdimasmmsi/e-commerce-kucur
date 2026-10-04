@@ -106,13 +106,8 @@ Catatan desain: gambar/opsi produk disimpan JSON; reservasi stok di `CommerceOrd
 - **Database demo terpisah `kucur_demo`** (untuk screenshot jurnal & demo TA; `kucur` tetap untuk e2e). Isi via `prisma/seed-demo.js` (5 lapak aktif + 1 pengajuan pending, 17 produk tanpa foto, ~33 order 4 minggu terakhir lewat service asli, batch harian, ulasan, iuran, chat). Akun sama dengan halaman login (`KucurDev123!`). Perintah backend: `npm run dev:demo` (backend ke kucur_demo) dan `npm run db:demo:reset` (Prisma menolak reset jika dijalankan AI, jadi Steven yang menjalankan).
 - PPN diterapkan di checkout (2026-10-04): `taxAmount = round(productTotal × taxPercent%)` per order, snapshot `taxPercentSnapshot`, masuk ke `grandTotal`/tagihan COD; baris PPN tampil di checkout dan detail order Customer/Merchant/Admin. Halaman kurir menampilkan total COD yang harus ditagih.
 - COD otomatis lunas saat kurir upload bukti antar: order `paymentStatus=PAID`, `PaymentAttempt` COD `PAID` + `paidAt`, `completedAt` diisi (disetujui Steven 2026-10-04).
-- Sisa tugas berurutan:
-  1. Selesaikan polish detail page dan modal.
-  2. Bersihkan demo data.
-  3. Ambil screenshot untuk jurnal.
-  4. Render diagram Mermaid (`docs/final-documentation/fig-*.mmd`) jadi SVG/PDF (Mermaid CLI belum terpasang).
-  5. Finalisasi jurnal dan sitasi.
-  6. Persiapan demo TA.
+- **Jurnal sudah disubmit** (dikonfirmasi Steven 2026-10-04): screenshot jurnal, render Mermaid, dan finalisasi sitasi tidak perlu dikerjakan lagi.
+- Sisa tugas: persiapan demo TA (data demo via `npm run db:demo:reset`, dijalankan Steven).
 - Ide masa depan (di luar scope): SMTP/Roundcube untuk notifikasi email, payment gateway Midtrans, kembali ke Tourism/Live In, integrasi SIG.
 
 ## 10. Jurnal dan dokumen
