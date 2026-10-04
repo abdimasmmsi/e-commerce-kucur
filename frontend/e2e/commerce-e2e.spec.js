@@ -88,7 +88,9 @@ test.describe.serial("canonical cross-role commerce", () => {
     await expect(courier.getByText(/PICKED_UP|Picked Up|Sudah diambil/i).first()).toBeVisible();
     await courier.getByRole("button", { name: /Mulai Antar|Start Delivery/i }).click();
     await expect(courier.getByText(/OUT_FOR_DELIVERY|Out for Delivery|Sedang diantar/i).first()).toBeVisible();
-    await courier.getByPlaceholder(/URL foto bukti|Proof photo URL/i).fill("https://example.test/proofs/e2e-commerce.jpg");
+    // Kurir memotret barang yang diterima; foto diunggah sebagai bukti antar.
+    const proofPhoto = await courier.screenshot({ type: "png" });
+    await courier.getByLabel(/Foto & selesaikan|Take photo & finish/i).setInputFiles({ name: "bukti-antar.png", mimeType: "image/png", buffer: proofPhoto });
     await courier.getByRole("button", { name: /Selesaikan dengan Bukti|Complete with Proof/i }).click();
     await expect(courier.getByText(/DELIVERED|Terkirim/i).first()).toBeVisible();
     await qaScreenshot(courier, "final/courier/id-light", `delivered-${runId}`);
@@ -96,6 +98,9 @@ test.describe.serial("canonical cross-role commerce", () => {
     await customer.goto(`/orders/${orderId}`);
     await expect(customer.getByText(/Terkirim|Selesai|Completed/i).first()).toBeVisible();
     await expect(customer.getByRole("heading", { name: /Bukti Pengiriman/i })).toBeVisible();
+    const proofImage = customer.getByRole("img", { name: /Bukti pesanan|Proof that the order/i });
+    await expect(proofImage).toBeVisible();
+    expect(await proofImage.evaluate((image) => image.complete && image.naturalWidth > 0)).toBeTruthy();
     await qaScreenshot(customer, "final/customer/id-light", `completed-${runId}`);
     await customer.getByRole("button", { name: "5 bintang" }).click();
     const reviewText = `Review browser ${runId}`;

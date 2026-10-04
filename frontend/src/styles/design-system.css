@@ -423,6 +423,6 @@ label>span:first-child, .field-group label { color: #39483c; }
 
 /* Halaman yang memakai class .page-container langsung di layout Customer (tanpa padding bawaan layout)
    mendapat jarak tepi yang sama dengan komponen PageContainer. */
-#customer-content > .page-container { margin-inline: auto; padding: 24px 16px; }
-@media (min-width: 640px) { #customer-content > .page-container { padding: 32px 24px; } }
-@media (min-width: 1024px) { #customer-content > .page-container { padding: 40px 32px; } }
+#customer-content > .page-container:not(.mx-auto) { margin-inline: auto; padding: 24px 16px; }
+@media (min-width: 640px) { #customer-content > .page-container:not(.mx-auto) { padding: 32px 24px; } }
+@media (min-width: 1024px) { #customer-content > .page-container:not(.mx-auto) { padding: 40px 32px; } }

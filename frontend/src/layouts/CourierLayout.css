@@ -1,1 +1,8 @@
 /* Courier inherits the canonical workspace shell from styles/workspace-shell.css. */
+
+/* HP: menu bawah menggantikan header hamburger; laci menu tetap bisa dibuka lewat tombol Menu. */
+@media (max-width: 767px) {
+  .courier-workspace .courier-mobile-header { display: none !important; }
+  .courier-workspace .courier-main { padding-bottom: calc(84px + env(safe-area-inset-bottom)); }
+  .courier-workspace .courier-sidebar { padding-bottom: calc(84px + env(safe-area-inset-bottom)); }
+}

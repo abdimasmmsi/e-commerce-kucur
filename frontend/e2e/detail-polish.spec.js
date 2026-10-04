@@ -36,13 +36,13 @@ test("merchant order and product edit details use the shared responsive grid", a
   await verifyDetailAtSupportedWidths(page, productHref);
 });
 
-test("courier batch detail uses the shared responsive timeline", async ({ qaPage: page }) => {
+test("courier batch detail shows delivery progress at every width", async ({ qaPage: page }) => {
   await loginThroughUi(page, "courier");
   await page.goto("/courier/batches");
   const href = await page.locator('a[href^="/courier/batches/"]').first().getAttribute("href");
   expect(href).toBeTruthy();
   await verifyDetailAtSupportedWidths(page, href);
-  await expect(page.locator("ol[aria-label]").first()).toBeVisible();
+  await expect(page.getByRole("progressbar").first()).toBeVisible();
 });
 
 test("admin order detail uses the shared responsive detail system", async ({ qaPage: page }) => {

@@ -24,12 +24,17 @@ function decodeImage(dataUrl) {
   return { bytes, extension: extensions[mimeType] };
 }
 
-async function saveStoreImage(dataUrl) {
+// Simpan gambar (data URL tervalidasi) ke uploads/<folder> dan kembalikan path publiknya.
+async function saveImage(dataUrl, folder) {
   const { bytes, extension } = decodeImage(dataUrl);
-  await fs.mkdir(uploadDirectory, { recursive: true });
+  const directory = path.resolve(__dirname, "../uploads", folder);
+  await fs.mkdir(directory, { recursive: true });
   const filename = `${crypto.randomUUID()}.${extension}`;
-  await fs.writeFile(path.join(uploadDirectory, filename), bytes, { flag: "wx" });
-  return `/uploads/stores/${filename}`;
+  await fs.writeFile(path.join(directory, filename), bytes, { flag: "wx" });
+  return `/uploads/${folder}/${filename}`;
 }
 
-module.exports = { saveStoreImage, uploadDirectory };
+const saveStoreImage = (dataUrl) => saveImage(dataUrl, "stores");
+const saveProofImage = (dataUrl) => saveImage(dataUrl, "proofs");
+
+module.exports = { saveProofImage, saveStoreImage, uploadDirectory };

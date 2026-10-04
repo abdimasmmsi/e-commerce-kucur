@@ -1,81 +1,117 @@
-import { useCallback, useEffect, useState } from "react";
+import { useCallback, useEffect, useRef, useState } from "react";
 import { Link, useParams } from "react-router-dom";
 import ActionDialog from "../../components/ui/ActionDialog";
 import Button from "../../components/ui/Button";
 import EmptyState from "../../components/ui/EmptyState";
 import LoadingPanel from "../../components/ui/LoadingPanel";
 import PageContainer from "../../components/ui/PageContainer";
-import PageHeader from "../../components/ui/PageHeader";
 import StatusBadge from "../../components/ui/StatusBadge";
-import StatusTimeline from "../../components/ui/StatusTimeline";
 import { usePreferences } from "../../context/PreferencesContext";
 import { deliveryApi } from "../../services/deliveryApiService";
+import { prepareProofPhoto } from "../../services/proofImageService";
+import { shortOrderCode } from "../../utils/orderCode";
 
-const lifecycle = ["WAITING_PICKUP", "PICKED_UP", "OUT_FOR_DELIVERY", "DELIVERED"];
+const ACTIVE = ["WAITING_PICKUP", "PICKED_UP", "OUT_FOR_DELIVERY"];
+const mapsLink = (order) => {
+  const location = order.deliveryLocation;
+  const query = Number.isFinite(Number(location?.latitude)) && Number.isFinite(Number(location?.longitude)) ? `${location.latitude},${location.longitude}` : order.deliveryAddress;
+  return `https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(query ?? "")}`;
+};
 
+// Layar kerja kurir: satu kartu per pemberhentian, satu tombol utama sesuai tahapnya.
 export default function BatchDetail() {
   const { batchId } = useParams();
-  const { formatCurrency, formatDate, statusLabel, t } = usePreferences();
+  const { formatCurrency, formatDate, language, statusLabel, t } = usePreferences();
+  const copy = language === "id" ? {
+    back: "Semua pengiriman", title: "Pengiriman {date}", depart: "Berangkat {time}", progress: "{done} dari {total} terkirim", collect: "Total COD ditagih", start: "Mulai pengiriman", stop: "Stop {number}",
+    pickupHint: "Ambil barang di {store}. Bayar harga barang ke penjual.", pickup: "Konfirmasi Pickup", deliverHint: "Barang sudah di tangan. Berangkat ke alamat pembeli.", startDelivery: "Mulai Antar", proofHint: "Serahkan barang, tagih uang, lalu foto barang yang diterima.",
+    photo: "Foto & selesaikan", photoAgain: "Ganti foto", finish: "Selesaikan dengan Bukti", call: "Telepon", maps: "Buka Maps", codCollect: "Tagih dari pembeli", codPaid: "Sudah dibayar", tip: "termasuk tip {amount}", fail: "Gagal antar", photoError: "Foto tidak bisa dipakai. Coba ambil ulang.",
+  } : {
+    back: "All deliveries", title: "Delivery {date}", depart: "Leaves {time}", progress: "{done} of {total} delivered", collect: "COD to collect", start: "Start delivery", stop: "Stop {number}",
+    pickupHint: "Pick up at {store}. Pay the item price to the seller.", pickup: "Confirm Pickup", deliverHint: "You have the items. Head to the buyer's address.", startDelivery: "Start Delivery", proofHint: "Hand over the items, collect payment, then photograph the delivered items.",
+    photo: "Take photo & finish", photoAgain: "Retake photo", finish: "Complete with Proof", call: "Call", maps: "Open Maps", codCollect: "Collect from buyer", codPaid: "Already paid", tip: "includes {amount} tip", fail: "Delivery failed", photoError: "This photo cannot be used. Please take it again.",
+  };
+  const fill = (text, values) => Object.entries(values).reduce((value, [key, replacement]) => value.replace(`{${key}}`, replacement), text);
   const [batch, setBatch] = useState(null);
   const [state, setState] = useState({ loading: true, busy: "", error: "" });
-  const [proofs, setProofs] = useState({});
+  const [photos, setPhotos] = useState({});
   const [failure, setFailure] = useState({ orderId: "", reason: "" });
+  const fileInputs = useRef({});
   const load = useCallback(async () => {
     setState((value) => ({ ...value, loading: true, error: "" }));
     try { setBatch(await deliveryApi.courierBatch(batchId)); }
     catch (cause) { setState((value) => ({ ...value, error: cause.message })); }
     finally { setState((value) => ({ ...value, loading: false })); }
   }, [batchId]);
-  useEffect(() => { void load(); }, [load]);
+  useEffect(() => { queueMicrotask(() => void load()); }, [load]);
   const mutate = async (key, action) => {
     setState((value) => ({ ...value, busy: key, error: "" }));
     try { await action(); setFailure({ orderId: "", reason: "" }); await load(); }
     catch (cause) { setState((value) => ({ ...value, error: cause.message })); }
     finally { setState((value) => ({ ...value, busy: "" })); }
   };
+  const choosePhoto = async (orderId, file) => {
+    if (!file) return;
+    try { const dataUrl = await prepareProofPhoto(file); setPhotos((rows) => ({ ...rows, [orderId]: dataUrl })); }
+    catch { setState((value) => ({ ...value, error: copy.photoError })); }
+  };
 
   if (state.loading && !batch) return <PageContainer><LoadingPanel label={t("courierDelivery.loading")} rows={4}/></PageContainer>;
-  if (!batch) return <PageContainer><EmptyState title={t("courierDelivery.empty")} description={state.error || t("courierDelivery.emptyHint")} action={<Button as={Link} to="/courier/batches" variant="secondary">{t("courierDelivery.allBatches")}</Button>}/></PageContainer>;
+  if (!batch) return <PageContainer><EmptyState title={t("courierDelivery.empty")} description={state.error || t("courierDelivery.emptyHint")} action={<Button as={Link} to="/courier/batches" variant="secondary">{copy.back}</Button>}/></PageContainer>;
 
-  const completedCount = batch.orders.filter((item) => item.status === "DELIVERED").length;
-  const problemCount = batch.orders.filter((item) => ["FAILED", "CANCELLED"].includes(item.status)).length;
+  const stops = [...batch.orders].sort((a, b) => (a.pickupSequence ?? 99) - (b.pickupSequence ?? 99));
+  const delivered = stops.filter((item) => item.status === "DELIVERED").length;
+  const codTotal = stops.filter((item) => item.commerceOrder.paymentMethod === "COD" && item.commerceOrder.paymentStatus !== "paid" && ACTIVE.includes(item.status)).reduce((sum, item) => sum + Number(item.commerceOrder.totalAmount || 0), 0);
+  const actionClass = "inline-flex min-h-12 w-full items-center justify-center rounded-xl bg-[var(--kucur-green)] px-4 text-base font-bold text-[var(--kucur-forest-dark)] disabled:opacity-50";
+  const smallClass = "inline-flex min-h-11 items-center justify-center gap-2 rounded-xl border border-[var(--kucur-border-strong)] px-3 text-sm font-bold";
 
-  return <><PageContainer as="main" className="text-[var(--kucur-text)]">
-    <Link className="mb-4 inline-flex items-center gap-2 text-sm font-semibold text-kucur-forest" to="/courier/batches"><span aria-hidden="true">←</span>{t("courierDelivery.allBatches")}</Link>
-    <PageHeader eyebrow={t("workspace.courier")} title={t("courierDelivery.batchTitle", { date: formatDate(batch.deliveryDate) })} description={t("courierDelivery.dispatch", { date: formatDate(batch.dispatchAt, { dateStyle: "medium", timeStyle: "short" }) })} actions={<StatusBadge status={batch.status}/>} />
-    <section className="mb-5 grid gap-3 rounded-kucur-card border border-[var(--kucur-border)] bg-[var(--kucur-surface)] p-4 sm:grid-cols-2 lg:grid-cols-4"><div><span className="text-xs text-[var(--kucur-text-muted)]">{t("courierIa.courier")}</span><strong className="mt-1 block">{batch.courier?.fullName || t("workspace.courier")}</strong></div><div><span className="text-xs text-[var(--kucur-text-muted)]">{t("courierIa.orderCount")}</span><strong className="mt-1 block">{batch.orders.length}</strong></div><div><span className="text-xs text-[var(--kucur-text-muted)]">{t("courierIa.delivered")}</span><strong className="mt-1 block">{completedCount}</strong></div><div><span className="text-xs text-[var(--kucur-text-muted)]">{t("courierIa.issueFailed")}</span><strong className="mt-1 block">{problemCount}</strong></div></section>
-    {state.error && <section className="mb-4 rounded-kucur-card border border-rose-300 bg-rose-50 p-4 text-sm text-rose-800 dark:border-rose-800 dark:bg-rose-950 dark:text-rose-200" role="alert">{state.error}</section>}
-    {["PLANNED", "READY"].includes(batch.status) && <div className="mb-5"><Button disabled={Boolean(state.busy)} onClick={() => void mutate(`batch-${batch.id}`, () => deliveryApi.startBatch(batch.id))}>{t("courierDelivery.start")}</Button></div>}
-    <section className="grid gap-4">
-      {batch.orders.map(({ commerceOrder: order, ...assignment }) => {
-        const proof = proofs[order.id] || "";
-        return <article className="grid min-w-0 gap-4 rounded-kucur-card border border-[var(--kucur-border)] bg-[var(--kucur-surface)] p-4 sm:p-5" key={assignment.id}>
-          <div className="flex min-w-0 flex-wrap items-start justify-between gap-3 border-b border-[var(--kucur-border)] pb-4">
-            <div className="min-w-0"><span className="text-xs font-bold uppercase tracking-wide text-[var(--kucur-text-muted)]">{t("merchantOrderDetail.orderNumber")}</span><h2 className="break-words text-lg font-semibold text-kucur-ink">#{order.orderCode || order.orderNumber}</h2><p className="mt-1 break-words text-sm text-[var(--kucur-text-muted)]">{order.storeName}</p></div>
+  return <><PageContainer as="main" className="space-y-4 text-[var(--kucur-text)]">
+    <header className="grid gap-1">
+      <Link className="w-fit text-[15px] font-bold text-[var(--kucur-green-ink)]" to="/courier/batches">← {copy.back}</Link>
+      <div className="flex flex-wrap items-center justify-between gap-2"><h1 className="text-2xl font-extrabold">{fill(copy.title, { date: formatDate(batch.deliveryDate, { weekday: "long", day: "numeric", month: "long" }) })}</h1><StatusBadge status={batch.status}/></div>
+      <p className="text-[15px] text-[var(--kucur-text-muted)]">{fill(copy.depart, { time: formatDate(batch.dispatchAt, { timeStyle: "short" }) })} · {fill(copy.progress, { done: delivered, total: stops.length })}</p>
+    </header>
+
+    <section className="grid gap-3 rounded-2xl border border-[var(--kucur-border)] bg-[var(--kucur-surface)] p-4">
+      <div className="h-2.5 overflow-hidden rounded-full bg-[var(--kucur-surface-muted)]" role="progressbar" aria-valuemin={0} aria-valuemax={stops.length} aria-valuenow={delivered}><i className="block h-full rounded-full bg-[var(--kucur-green)]" style={{ width: `${stops.length ? delivered / stops.length * 100 : 0}%` }} /></div>
+      {codTotal > 0 && <div className="flex items-center justify-between gap-3"><span className="text-[15px] text-[var(--kucur-text-muted)]">{copy.collect}</span><strong className="text-xl font-extrabold">{formatCurrency(codTotal)}</strong></div>}
+      {["PLANNED", "READY"].includes(batch.status) && <button className={actionClass} type="button" disabled={Boolean(state.busy)} onClick={() => void mutate(`batch-${batch.id}`, () => deliveryApi.startBatch(batch.id))}>{copy.start}</button>}
+    </section>
+    {state.error && <p className="rounded-xl border border-rose-300 bg-rose-50 p-4 text-[15px] text-rose-800 dark:border-rose-800 dark:bg-rose-950 dark:text-rose-200" role="alert">{state.error}</p>}
+
+    <section className="grid gap-3 lg:grid-cols-2">
+      {stops.map(({ commerceOrder: order, ...assignment }, index) => {
+        const photo = photos[order.id];
+        const active = ACTIVE.includes(assignment.status);
+        const code = order.orderCode || order.orderNumber;
+        return <article className={`grid min-w-0 gap-3 rounded-2xl border bg-[var(--kucur-surface)] p-4 ${active ? "border-[var(--kucur-border)]" : "border-[var(--kucur-border)] opacity-80"}`} key={assignment.id}>
+          <div className="flex min-w-0 items-start justify-between gap-3">
+            <div className="min-w-0"><span className="text-sm font-bold text-[var(--kucur-green-ink)]">{fill(copy.stop, { number: assignment.pickupSequence ?? index + 1 })} · {shortOrderCode(code)}</span><h2 className="break-words text-lg font-extrabold">{order.recipientName || t("merchantOrderDetail.unavailableValue")}</h2><p className="break-all text-[12px] text-[var(--kucur-text-muted)]">{code}</p></div>
             <StatusBadge status={assignment.status}/>
           </div>
-          {!['FAILED', 'CANCELLED'].includes(assignment.status) && <StatusTimeline currentIndex={Math.max(0, lifecycle.indexOf(assignment.status))} label={statusLabel(assignment.status)} steps={lifecycle.map((step) => ({ key: step, label: statusLabel(step) }))}/>} 
-          <dl className="grid gap-3 rounded-xl bg-kucur-sand p-3 sm:grid-cols-2 lg:grid-cols-4">
-            <div className="min-w-0"><dt className="text-xs text-[var(--kucur-text-muted)]">{t("merchantOrderDetail.customerName")}</dt><dd className="mt-1 break-words text-sm font-semibold">{order.recipientName || t("merchantOrderDetail.unavailableValue")}</dd></div>
-            <div className="min-w-0"><dt className="text-xs text-[var(--kucur-text-muted)]">{t("merchantOrderDetail.deliveryAddress")}</dt><dd className="mt-1 break-words text-sm font-semibold">{order.deliveryAddress || t("merchantOrderDetail.unavailableValue")}</dd></div>
-            <div><dt className="text-xs text-[var(--kucur-text-muted)]">{t("courierDelivery.pickupSequence")}</dt><dd className="mt-1 text-sm font-semibold">{assignment.pickupSequence || "—"}</dd></div>
-            <div><dt className="text-xs text-[var(--kucur-text-muted)]">{t("courierDelivery.tip")}</dt><dd className="mt-1 text-sm font-semibold">{formatCurrency(order.courierTip)}</dd></div>
-          </dl>
-          {order.paymentMethod === "COD" && <div className="flex min-w-0 flex-wrap items-center justify-between gap-2 rounded-xl border border-[var(--kucur-border)] px-3 py-2.5"><div className="min-w-0"><p className="text-sm font-semibold text-kucur-ink">{order.paymentStatus === "paid" ? t("courierDelivery.codPaid") : t("courierDelivery.codCollect")}</p><p className="text-xs text-[var(--kucur-text-muted)]">{t("courierDelivery.codHint")}</p></div><strong className="text-lg text-kucur-ink">{formatCurrency(order.totalAmount)}</strong></div>}
-          {assignment.status === "OUT_FOR_DELIVERY" && <section className="grid gap-3 rounded-xl border border-[var(--kucur-border)] p-3 sm:grid-cols-[minmax(0,1fr)_auto]">
-            <label className="grid min-w-0 gap-1.5 text-sm font-semibold">{t("merchantOrderDetail.deliveryProof")}<input className="min-h-11 w-full rounded-kucur-control border border-[var(--kucur-border-strong)] bg-[var(--kucur-surface)] px-3 text-[var(--kucur-text)]" placeholder={t("courierDelivery.proofPlaceholder")} value={proof} onChange={(event) => setProofs((rows) => ({ ...rows, [order.id]: event.target.value }))}/></label>
-            <Button className="self-end" disabled={!proof.trim() || Boolean(state.busy)} onClick={() => void mutate(`proof-${order.id}`, () => deliveryApi.proof(order.id, { photoUrl: proof }))}>{t("courierDelivery.completeWithProof")}</Button>
-            {proof && <img className="max-h-48 w-full rounded-xl border border-[var(--kucur-border)] object-contain sm:col-span-2" src={proof} alt={t("merchantOrderDetail.deliveryProof")} onError={(event) => { event.currentTarget.hidden = true; }}/>} 
-          </section>}
-          <div className="flex flex-wrap gap-2">
-            <Button as={Link} variant="secondary" to={`/courier/active-deliveries/${order.id}`}>{t("courierIa.openDelivery")}</Button>
-            {assignment.status === "WAITING_PICKUP" && <Button disabled={Boolean(state.busy)} onClick={() => void mutate(`pickup-${order.id}`, () => deliveryApi.pickup(order.id))}>{t("courierDelivery.confirmPickup")}</Button>}
-            {assignment.status === "PICKED_UP" && <Button disabled={Boolean(state.busy)} onClick={() => void mutate(`delivery-${order.id}`, () => deliveryApi.outForDelivery(order.id))}>{t("courierDelivery.startDelivery")}</Button>}
-            {["WAITING_PICKUP", "PICKED_UP", "OUT_FOR_DELIVERY"].includes(assignment.status) && failure.orderId !== order.id && <Button variant="danger" disabled={Boolean(state.busy)} onClick={() => setFailure({ orderId: order.id, reason: "" })}>{t("courierDelivery.markFailed")}</Button>}
-          </div>
+          <p className="break-words text-[15px] leading-6">{order.deliveryAddress}</p>
+          <p className="text-sm text-[var(--kucur-text-muted)]">{order.storeName}</p>
+          {active && <div className="grid grid-cols-2 gap-2">
+            {order.recipientPhone ? <a className={smallClass} href={`tel:${order.recipientPhone}`}><svg className="size-5" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true"><path d="M5 4h4l2 5-2.5 1.5a11 11 0 0 0 5 5L15 13l5 2v4a2 2 0 0 1-2 2A16 16 0 0 1 3 6a2 2 0 0 1 2-2"/></svg>{copy.call}</a> : <span />}
+            <a className={smallClass} href={mapsLink(order)} target="_blank" rel="noreferrer"><svg className="size-5" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true"><path d="M12 21s-7-6.2-7-11.5a7 7 0 0 1 14 0C19 14.8 12 21 12 21Z"/><circle cx="12" cy="9.5" r="2.5"/></svg>{copy.maps}</a>
+          </div>}
+          {order.paymentMethod === "COD" && <div className={`flex items-center justify-between gap-3 rounded-xl p-3 ${order.paymentStatus === "paid" ? "bg-[var(--kucur-green-soft)]" : "bg-amber-50 dark:bg-amber-950/40"}`}><div className="min-w-0"><span className="block text-[15px] font-bold">{order.paymentStatus === "paid" ? copy.codPaid : copy.codCollect}</span><span className="text-[13px] text-[var(--kucur-text-muted)]">{Number(order.courierTip) > 0 ? fill(copy.tip, { amount: formatCurrency(order.courierTip) }) : t("courierDelivery.codHint")}</span></div><strong className="text-xl font-extrabold">{formatCurrency(order.totalAmount)}</strong></div>}
+
+          {assignment.status === "WAITING_PICKUP" && <><p className="text-sm text-[var(--kucur-text-muted)]">{fill(copy.pickupHint, { store: order.storeName })}</p><button className={actionClass} type="button" disabled={Boolean(state.busy)} onClick={() => void mutate(`pickup-${order.id}`, () => deliveryApi.pickup(order.id))}>{copy.pickup}</button></>}
+          {assignment.status === "PICKED_UP" && <><p className="text-sm text-[var(--kucur-text-muted)]">{copy.deliverHint}</p><button className={actionClass} type="button" disabled={Boolean(state.busy)} onClick={() => void mutate(`delivery-${order.id}`, () => deliveryApi.outForDelivery(order.id))}>{copy.startDelivery}</button></>}
+          {assignment.status === "OUT_FOR_DELIVERY" && <div className="grid gap-2">
+            <p className="text-sm text-[var(--kucur-text-muted)]">{copy.proofHint}</p>
+            <input ref={(node) => { fileInputs.current[order.id] = node; }} className="sr-only" type="file" accept="image/jpeg,image/png,image/webp" capture="environment" aria-label={copy.photo} onChange={(event) => void choosePhoto(order.id, event.target.files?.[0])} />
+            {photo && <img className="max-h-56 w-full rounded-xl border border-[var(--kucur-border)] object-contain" src={photo} alt={t("merchantOrderDetail.deliveryProof")} />}
+            {photo
+              ? <div className="grid grid-cols-[auto_minmax(0,1fr)] gap-2"><button className={smallClass} type="button" onClick={() => fileInputs.current[order.id]?.click()}>{copy.photoAgain}</button><button className={actionClass} type="button" disabled={Boolean(state.busy)} onClick={() => void mutate(`proof-${order.id}`, () => deliveryApi.proof(order.id, { photoDataUrl: photo }))}>{copy.finish}</button></div>
+              : <button className={actionClass} type="button" onClick={() => fileInputs.current[order.id]?.click()}>{copy.photo}</button>}
+          </div>}
+          {active && <button className="w-fit text-sm font-bold text-rose-700 underline dark:text-rose-300" type="button" disabled={Boolean(state.busy)} onClick={() => setFailure({ orderId: order.id, reason: "" })}>{copy.fail}</button>}
+          {!active && <p className="text-sm text-[var(--kucur-text-muted)]">{statusLabel(assignment.status)}</p>}
         </article>;
       })}
     </section>
-    {!batch.orders.length && <EmptyState title={t("courierDelivery.empty")} description={t("courierDelivery.emptyHint")}/>} 
-  </PageContainer><ActionDialog open={Boolean(failure.orderId)} busy={Boolean(state.busy)} destructive confirmDisabled={!failure.reason.trim()} title={t("courierDelivery.markFailed")} description={t("courierDelivery.reason")} cancelLabel={t("merchantPickup.cancel")} confirmLabel={t("courierDelivery.markFailed")} onCancel={() => setFailure({ orderId: "", reason: "" })} onConfirm={() => void mutate(`fail-${failure.orderId}`, () => deliveryApi.failed(failure.orderId, failure.reason))}><label className="grid gap-1.5 text-sm font-semibold text-kucur-ink">{t("courierDelivery.reason")}<textarea autoFocus className="min-h-24 w-full resize-y rounded-kucur-control border border-[var(--kucur-border-strong)] bg-[var(--kucur-surface)] p-3 text-[var(--kucur-text)]" required maxLength="1000" value={failure.reason} onChange={(event) => setFailure((value) => ({ ...value, reason: event.target.value }))}/></label></ActionDialog></>;
+    {!stops.length && <EmptyState title={t("courierDelivery.empty")} description={t("courierDelivery.emptyHint")}/>}
+  </PageContainer><ActionDialog open={Boolean(failure.orderId)} busy={Boolean(state.busy)} destructive confirmDisabled={!failure.reason.trim()} title={copy.fail} description={t("courierDelivery.reason")} cancelLabel={t("merchantPickup.cancel")} confirmLabel={copy.fail} onCancel={() => setFailure({ orderId: "", reason: "" })} onConfirm={() => void mutate(`fail-${failure.orderId}`, () => deliveryApi.failed(failure.orderId, failure.reason))}><label className="grid gap-1.5 text-[15px] font-semibold">{t("courierDelivery.reason")}<textarea autoFocus className="min-h-24 w-full resize-y rounded-xl border border-[var(--kucur-border-strong)] bg-[var(--kucur-surface)] p-3 text-base text-[var(--kucur-text)]" required maxLength="1000" value={failure.reason} onChange={(event) => setFailure((value) => ({ ...value, reason: event.target.value }))}/></label></ActionDialog></>;
 }

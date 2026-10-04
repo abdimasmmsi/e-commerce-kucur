@@ -1,3 +1,4 @@
+const { saveProofImage } = require("../services/storeImageService");
 const express = require("express");
 const handler = (work, status = 200) => async (req, res, next) => { try { res.status(status).json({ data: await work(req) }); } catch (error) { next(error); } };
 
@@ -13,7 +14,12 @@ function courierRoutes({ deliveryService, authMiddleware }) {
   router.patch("/deliveries/:id/pickup", handler((req) => deliveryService.pickup(req.params.id, req.body || {}, req.auth.user)));
   router.patch("/deliveries/:id/out-for-delivery", handler((req) => deliveryService.outForDelivery(req.params.id, req.body || {}, req.auth.user)));
   router.patch("/deliveries/:id/failed", handler((req) => deliveryService.failed(req.params.id, req.body || {}, req.auth.user)));
-  router.post("/deliveries/:id/proof", handler((req) => deliveryService.proof(req.params.id, req.body || {}, req.auth.user), 201));
+  // Kurir boleh mengirim foto langsung (photoDataUrl); disimpan dulu lalu dicatat sebagai photoUrl.
+  router.post("/deliveries/:id/proof", handler(async (req) => {
+    const input = { ...(req.body || {}) };
+    if (input.photoDataUrl) { input.photoUrl = `${req.protocol}://${req.get("host")}${await saveProofImage(input.photoDataUrl)}`; delete input.photoDataUrl; }
+    return deliveryService.proof(req.params.id, input, req.auth.user);
+  }, 201));
   return router;
 }
 

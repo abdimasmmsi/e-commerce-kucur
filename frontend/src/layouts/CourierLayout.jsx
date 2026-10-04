@@ -4,10 +4,12 @@ import AppHeader from "../components/AppHeader";
 import WorkspaceNavIcon from "../components/WorkspaceNavIcon";
 import { usePreferences } from "../context/PreferencesContext";
 import "./CourierLayout.css";
+import "../components/CustomerBottomNav.css";
 import "../styles/workspace-shell.css";
 
 function CourierLayout() {
-  const { t } = usePreferences();
+  const { language, t } = usePreferences();
+  const tabCopy = language === "id" ? { home: "Beranda", deliver: "Antar", history: "Riwayat", menu: "Menu" } : { home: "Home", deliver: "Deliver", history: "History", menu: "Menu" };
   const [sidebarOpen, setSidebarOpen] = useState(false);
 
   const closeSidebar = () => setSidebarOpen(false);
@@ -92,6 +94,12 @@ function CourierLayout() {
         <Outlet />
       </main>
       </div>
+      <nav className="customer-bottom-nav courier-bottom-nav" aria-label={t("workspace.navigation")}>
+        <NavLink to="/courier" end onClick={closeSidebar}><WorkspaceNavIcon type="dashboard"/><span>{tabCopy.home}</span></NavLink>
+        <NavLink to="/courier/batches" onClick={closeSidebar}><WorkspaceNavIcon type="delivery"/><span>{tabCopy.deliver}</span></NavLink>
+        <NavLink to="/courier/history" onClick={closeSidebar}><WorkspaceNavIcon type="history"/><span>{tabCopy.history}</span></NavLink>
+        <button type="button" aria-expanded={sidebarOpen} onClick={() => setSidebarOpen((open) => !open)}><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" aria-hidden="true"><path d="M4 7h16M4 12h16M4 17h16"/></svg><span>{tabCopy.menu}</span></button>
+      </nav>
     </div>
   );
 }
