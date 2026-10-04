@@ -85,7 +85,7 @@ export async function setPreferences(page, { language, theme } = {}) {
     await expect(html).toHaveAttribute("lang", language);
   }
   if (theme && await html.getAttribute("data-theme") !== theme) {
-    await change(rows.locator(".theme-toggle"));
+    await change(rows.getByRole("button", { name: theme === "dark" ? /Mode gelap|Dark mode/i : /Mode terang|Light mode/i }));
     await expect(html).toHaveAttribute("data-theme", theme);
   }
   if (!new URL(returnTo).pathname.startsWith("/settings")) await page.goto(returnTo);

@@ -15,12 +15,14 @@ const Icon = ({ name }) => {
     reports: <><path d="M6 3h9l3 3v15H6V3Z"/><path d="M9 11h6M9 15h6M14 3v4h4"/></>,
     bug: <><path d="M8 9h8v7a4 4 0 0 1-8 0V9Z"/><path d="M10 9V7a2 2 0 0 1 4 0v2M4 12h4m8 0h4M5 18l3-2m8 0 3 2"/></>,
     store: <><path d="M4 10h16l-2-6H6l-2 6Z"/><path d="M5 10v10h14V10M9 20v-6h6v6"/></>,
+    logout: <><path d="M15 4h4v16h-4M10 8l-4 4 4 4M6 12h10"/></>,
   };
   return <svg viewBox="0 0 24 24" aria-hidden="true" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round">{paths[name]}</svg>;
 };
 
 function AccountLayout() {
-  const { activeRole, user } = useAuth();
+  const { activeRole, logout, user } = useAuth();
+  const handleLogout = async () => { await logout(); window.location.replace("/"); };
   const { t } = usePreferences();
   const groups = [
     { label: t("accountNav.account"), items: [
@@ -37,7 +39,7 @@ function AccountLayout() {
     <AppHeader accountMode workspaceRole={activeRole === "customer" ? "" : activeRole} />
     <div className="account-layout-shell">
       <aside className="account-layout-sidebar">
-        <nav aria-label={t("workspace.navigation")}>{groups.map((group) => <section className="account-nav-group" key={group.label}><h2>{group.label}</h2>{group.items.map((item) => <NavLink to={item.to} state={item.state} key={item.to}><Icon name={item.icon}/><span>{item.label}</span></NavLink>)}</section>)}</nav>
+        <nav aria-label={t("workspace.navigation")}>{groups.map((group) => <section className="account-nav-group" key={group.label}><h2>{group.label}</h2>{group.items.map((item) => <NavLink to={item.to} state={item.state} key={item.to}><Icon name={item.icon}/><span>{item.label}</span></NavLink>)}</section>)}<button className="account-nav-logout" type="button" onClick={handleLogout}><Icon name="logout"/><span>{t("header.logout")}</span></button></nav>
       </aside>
       <main className="account-layout-main"><Outlet /></main>
     </div>
