@@ -22,7 +22,7 @@ function ProductImage({ product, image: suppliedImage, alt = "", className = "" 
   }, [image?.storageKey, image?.url]);
 
   if (!source) return <span
-    className={`${className} product-image-fallback relative isolate grid place-items-center overflow-hidden p-5 text-center`}
+    className={`${className} product-image-fallback relative isolate grid h-full w-full place-items-center overflow-hidden p-5 text-center`}
     style={{ background: "linear-gradient(145deg, var(--kucur-sand), color-mix(in srgb, var(--kucur-green) 13%, var(--kucur-surface)))" }}
     role="img"
     aria-label={alt || product?.name || "Produk Kucur"}

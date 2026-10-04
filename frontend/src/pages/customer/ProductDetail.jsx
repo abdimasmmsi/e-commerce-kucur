@@ -5,9 +5,9 @@ import { useAuth } from "../../context/AuthContext";
 import { useChat } from "../../context/ChatContext";
 import { cartService } from "../../services/commerceService";
 import { productService } from "../../services/productService";
+import { getAverageRating, reviewService } from "../../services/reviewService";
 import ProductImage from "../../components/ProductImage";
 import { getPrimaryProductImage } from "../../services/productImageStorage";
-import CartShortcut from "../../components/CartShortcut";
 import { usePreferences } from "../../context/PreferencesContext";
 import Button from "../../components/ui/Button";
 import EmptyState from "../../components/ui/EmptyState";
@@ -27,12 +27,14 @@ function ProductDetail() {
   const [message, setMessage] = useState("");
   const [selectedImageId, setSelectedImageId] = useState(null);
   const [selectedOptions, setSelectedOptions] = useState({});
+  const [reviews, setReviews] = useState(null);
 
   useEffect(() => {
     let active = true;
     productService.get(productId).then((row) => { if (active) setProduct(row); }).catch((error) => {
       if (active) setLoadError(error.message);
     }).finally(() => { if (active) setLoading(false); });
+    reviewService.publicForTarget("product", productId).then((result) => { if (active) setReviews((result.items || []).filter((review) => !review.isHidden)); }).catch(() => { if (active) setReviews([]); });
     return () => { active = false; };
   }, [productId]);
 
@@ -102,7 +104,7 @@ function ProductDetail() {
       <section className="min-w-0"><div className="aspect-square max-w-full overflow-hidden rounded-2xl bg-slate-100 [&_img]:h-full [&_img]:w-full [&_img]:object-cover"><ProductImage key={selectedImage?.id ?? "fallback"} product={product} image={selectedImage} alt={product.name} /></div>{galleryImages.length > 1 && <div className="mt-3 flex max-w-full gap-2 overflow-x-auto pb-1 [&_button]:h-16 [&_button]:w-16 [&_button]:shrink-0 [&_button]:overflow-hidden [&_button]:rounded-xl [&_button]:border-2 [&_button]:border-transparent [&_button.active]:border-emerald-600 [&_img]:h-full [&_img]:w-full [&_img]:object-cover">{galleryImages.map((image) => <button className={image.id === selectedImage?.id || (!selectedImageId && image.storageKey === variantImage?.storageKey) ? "active" : ""} type="button" key={image.id} onClick={() => setSelectedImageId(image.id)}><ProductImage product={product} image={image} alt={image.variantLabel ?? ""} /></button>)}</div>}</section>
       <section className="grid min-w-0 content-start gap-4 rounded-2xl border border-[var(--kucur-border)] bg-[var(--kucur-surface)] p-4 sm:p-6 [&_h1]:break-words [&_h1]:text-2xl [&_h1]:font-extrabold sm:[&_h1]:text-3xl">
         <span className="w-fit rounded-full bg-emerald-100 px-3 py-1 text-xs font-bold text-emerald-800">{product.category}</span><h1>{product.name}</h1>
-        <div className="flex flex-wrap gap-3 text-sm text-[var(--kucur-text-muted)] [&_span:first-child]:font-bold [&_span:first-child]:text-amber-600"><span>★ 5.0</span><span>{t("commerce.reviewCount", { count: 1 })}</span></div>
+        <div className="flex flex-wrap gap-3 text-sm text-[var(--kucur-text-muted)] [&_span:first-child]:font-bold [&_span:first-child]:text-amber-600">{reviews?.length ? <><span>★ {getAverageRating(reviews)}</span><span>{t("commerce.reviewCount", { count: reviews.length })}</span></> : <span className="!font-normal !text-[var(--kucur-text-muted)]">{t("reviewsUi.noReviews")}</span>}</div>
         <strong className="break-words text-2xl font-extrabold text-emerald-700">{priceLabel}</strong>
         <p className={`w-fit rounded-full px-3 py-1 text-sm font-bold ${availableStock <= 0 ? "bg-rose-100 text-rose-700" : "bg-[var(--kucur-surface-elevated)] text-[var(--kucur-text)]"}`}>{availableStock > 0 ? t("commerce.stock", { count: selectedVariant ? selectedStock : availableStock }) : t("commerce.outOfStock")}</p>
         {variantSelectors}
@@ -111,12 +113,12 @@ function ProductDetail() {
         <div className="flex flex-wrap items-center justify-between gap-3 border-y border-slate-100 py-4 [&>div:first-child]:grid [&_span]:text-sm [&_span]:text-[var(--kucur-text-muted)]"><div><strong>{detailCopy.quantity}</strong><span>{selectionComplete ? `${detailCopy.remaining} ${selectedStock}` : detailCopy.choose}</span></div><div className="flex items-center overflow-hidden rounded-xl border border-[var(--kucur-border-strong)] [&_button]:px-3 [&_button]:py-2 [&_button:disabled]:text-slate-300 [&_strong]:min-w-9 [&_strong]:text-center"><button type="button" onClick={() => changeQuantity(quantity - 1)} disabled={quantity <= 1}>−</button><strong>{quantity}</strong><button type="button" onClick={() => changeQuantity(quantity + 1)} disabled={!selectionComplete || quantity >= selectedStock}>+</button></div></div>
         <section className="flex flex-wrap items-center justify-between gap-3 rounded-xl bg-[var(--kucur-surface-elevated)] p-3 [&>div]:grid [&_span]:text-sm [&_span]:text-[var(--kucur-text-muted)] [&_button]:rounded-lg [&_button]:border [&_button]:border-[var(--kucur-border-strong)] [&_button]:px-3 [&_button]:py-2 [&_button]:text-sm [&_button]:font-semibold"><div><strong>{store?.name ?? t("commerce.store")}</strong><span>{t("commerce.localProduct")}</span></div><button type="button" onClick={handleSellerChat}>{t("commerce.chatSeller")}</button></section>
         <div className="grid gap-1 rounded-xl border border-amber-200 bg-amber-50 p-3 text-sm text-amber-900 dark:border-amber-800 dark:bg-amber-950 dark:text-amber-200"><strong>{detailCopy.official}</strong><span>{detailCopy.officialHint}</span></div>
-        {purchaseActions}
+        <div className="hidden lg:block">{purchaseActions}</div>
         {message && <p className="rounded-xl border border-emerald-200 bg-emerald-50 p-3 text-sm text-emerald-800" role="status">{message}</p>}
       </section>
     </div>
-    <div className="grid gap-4 [&>section]:min-w-0 [&>section]:rounded-2xl [&>section]:border [&>section]:border-[var(--kucur-border)] [&>section]:bg-[var(--kucur-surface)] [&>section]:p-5 [&_h2]:mb-3 [&_h2]:text-xl [&_h2]:font-semibold"><section><h2>{detailCopy.description}</h2><p className="whitespace-pre-wrap break-words leading-7 text-[var(--kucur-text)]">{product.description}</p></section><section><h2>{detailCopy.information}</h2><div className="grid gap-3 sm:grid-cols-2 [&>div]:grid [&_span]:text-sm [&_span]:text-[var(--kucur-text-muted)] [&_strong]:break-words"><div><span>{detailCopy.category}</span><strong>{product.category}</strong></div><div><span>{detailCopy.sellerLocation}</span><strong>{store?.address ?? "-"}</strong></div></div></section><section><h2>{detailCopy.reviews}</h2><ReviewList targetType="product" targetId={product.id}/></section></div>
-    <div className="sticky bottom-[calc(60px+env(safe-area-inset-bottom))] z-20 -mx-4 grid gap-2 border-t border-[var(--kucur-border)] bg-[var(--kucur-surface)]/95 p-3 backdrop-blur md:bottom-0 lg:hidden"><div className="flex justify-end"><CartShortcut className="min-h-9 min-w-9" showLabel /></div>{purchaseActions}</div>
+    <div className="grid gap-4 [&>section]:min-w-0 [&>section]:rounded-2xl [&>section]:border [&>section]:border-[var(--kucur-border)] [&>section]:bg-[var(--kucur-surface)] [&>section]:p-5 [&_h2]:mb-3 [&_h2]:text-xl [&_h2]:font-semibold"><section><h2>{detailCopy.description}</h2><p className="whitespace-pre-wrap break-words leading-7 text-[var(--kucur-text)]">{product.description}</p></section><section><h2>{detailCopy.information}</h2><div className="grid gap-3 sm:grid-cols-2 [&>div]:grid [&_span]:text-sm [&_span]:text-[var(--kucur-text-muted)] [&_strong]:break-words"><div><span>{detailCopy.category}</span><strong>{product.category}</strong></div><div><span>{detailCopy.sellerLocation}</span><strong>{store?.location?.address || store?.address || t("merchantOrderDetail.unavailableValue")}</strong></div></div></section><section><h2>{detailCopy.reviews}</h2><ReviewList reviews={reviews ?? []}/></section></div>
+    <div className="sticky bottom-[calc(60px+env(safe-area-inset-bottom))] z-20 -mx-4 border-t border-[var(--kucur-border)] bg-[var(--kucur-surface)]/95 p-3 backdrop-blur md:bottom-0 lg:hidden">{purchaseActions}</div>
   </PageContainer>;
 }
 

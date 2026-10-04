@@ -1,5 +1,7 @@
 @import "tailwindcss";
 @import "leaflet/dist/leaflet.css";
+/* dark: mengikuti toggle tema aplikasi (class .dark dari PreferencesContext), bukan setting OS. */
+@custom-variant dark (&:where(.dark, .dark *));
 
 @theme inline {
   --color-kucur-green: var(--kucur-green);
