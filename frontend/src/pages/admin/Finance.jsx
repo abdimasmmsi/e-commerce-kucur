@@ -3,7 +3,6 @@ import Button from "../../components/ui/Button";
 import EmptyState from "../../components/ui/EmptyState";
 import LoadingPanel from "../../components/ui/LoadingPanel";
 import PageHeader from "../../components/ui/PageHeader";
-import StatusBadge from "../../components/ui/StatusBadge";
 import { usePreferences } from "../../context/PreferencesContext";
 import { financeService } from "../../services/financeService";
 import "./AdminDeliveryFinance.css";
@@ -12,7 +11,8 @@ const upper = (value) => String(value || "").toUpperCase();
 const amountOf = (row) => Number(row.amount ?? row.totalAmount ?? 0);
 
 export default function AdminFinance() {
-  const { formatCurrency, formatDate, t } = usePreferences();
+  const { formatCurrency, formatDate, language, t } = usePreferences();
+  const storeCopy = language === "id" ? { store: "Lapak", unpaid: "Belum dibayar", paid: "Sudah dibayar", bills: "Tagihan", nearest: "Batas bayar", overdue: "Lewat batas", clear: "Lunas", hint: "Ringkasan biaya admin per lapak." } : { store: "Store", unpaid: "Unpaid", paid: "Paid", bills: "Bills", nearest: "Pay by", overdue: "Overdue", clear: "Paid up", hint: "Admin fee summary per store." };
   const [data, setData] = useState(null);
   const [message, setMessage] = useState("");
   const [error, setError] = useState("");
@@ -30,6 +30,23 @@ export default function AdminFinance() {
     finally { setBusy(false); }
   };
 
+  const perStore = useMemo(() => {
+    const groups = new Map();
+    for (const row of data?.adminFees ?? []) {
+      const key = row.store?.id ?? row.storeId;
+      const group = groups.get(key) ?? { key, name: row.store?.name, unpaid: 0, paid: 0, count: 0, nearest: null, overdue: false };
+      const amount = Number(row.feeAmount || row.amount || 0);
+      group.count += 1;
+      if (upper(row.status) === "PAID") group.paid += amount;
+      else {
+        group.unpaid += amount;
+        if (row.cutoffAt && (!group.nearest || new Date(row.cutoffAt) < new Date(group.nearest))) group.nearest = row.cutoffAt;
+        if (row.cutoffAt && new Date(row.cutoffAt).getTime() < currentTime) group.overdue = true;
+      }
+      groups.set(key, group);
+    }
+    return [...groups.values()].sort((a, b) => Number(b.overdue) - Number(a.overdue) || b.unpaid - a.unpaid);
+  }, [currentTime, data]);
   const derived = useMemo(() => {
     if (!data) return null;
     const installments = data.initialFees.flatMap((fee) => fee.installments || []);
@@ -66,8 +83,8 @@ export default function AdminFinance() {
       </section>
 
       <section className="finance-obligations-section">
-        <div className="admin-section-heading"><div><h2>{t("adminFinance.obligations")}</h2><p>{t("adminFinance.obligationsHint")}</p></div></div>
-        {data.adminFees.length ? <div className="finance-table-wrap"><table className="finance-table"><thead><tr><th>{t("adminFinance.store")}</th><th>{t("adminFinance.feeType")}</th><th>{t("adminFinance.dueDate")}</th><th className="numeric">{t("adminFinance.amount")}</th><th>{t("adminFinance.status")}</th></tr></thead><tbody>{data.adminFees.map((row) => <tr key={row.id}><td data-label={t("adminFinance.store")}><strong>{row.store?.name || t("adminFinance.unknownStore")}</strong></td><td data-label={t("adminFinance.feeType")}>{t("adminFinance.adminFee")}</td><td data-label={t("adminFinance.dueDate")}>{row.cutoffAt ? formatDate(row.cutoffAt) : t("adminFinance.notAvailable")}</td><td className="numeric" data-label={t("adminFinance.amount")}>{formatCurrency(row.feeAmount || row.amount || 0)}</td><td data-label={t("adminFinance.status")}><StatusBadge status={row.status}/></td></tr>)}</tbody></table></div> : <EmptyState title={t("adminFinance.noFees")} description={t("adminFinance.noFeesHint")} />}
+        <div className="admin-section-heading"><div><h2>{t("adminFinance.obligations")}</h2><p>{storeCopy.hint}</p></div></div>
+        {perStore.length ? <div className="finance-table-wrap"><table className="finance-table"><thead><tr><th>{storeCopy.store}</th><th className="numeric">{storeCopy.unpaid}</th><th className="numeric">{storeCopy.paid}</th><th>{storeCopy.bills}</th><th>{storeCopy.nearest}</th></tr></thead><tbody>{perStore.map((row) => <tr key={row.key}><td data-label={storeCopy.store}><strong>{row.name || t("adminFinance.unknownStore")}</strong></td><td className="numeric" data-label={storeCopy.unpaid}><strong className={row.overdue ? "text-rose-700 dark:text-rose-300" : ""}>{formatCurrency(row.unpaid)}</strong></td><td className="numeric" data-label={storeCopy.paid}>{formatCurrency(row.paid)}</td><td data-label={storeCopy.bills}>{row.count}</td><td data-label={storeCopy.nearest}>{row.unpaid ? <span className={row.overdue ? "font-bold text-rose-700 dark:text-rose-300" : ""}>{row.overdue ? storeCopy.overdue : formatDate(row.nearest)}</span> : <span className="font-bold text-[var(--kucur-green-ink)]">{storeCopy.clear}</span>}</td></tr>)}</tbody></table></div> : <EmptyState title={t("adminFinance.noFees")} description={t("adminFinance.noFeesHint")} />}
       </section>
     </>}
   </div>;
