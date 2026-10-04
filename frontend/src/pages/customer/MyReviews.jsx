@@ -16,9 +16,9 @@ function MyReviews() {
     <PageHeader eyebrow={t("account.eyebrow")} title={t("myReviews.title")} description={t("myReviews.subtitle")} />
     {error && <p role="alert">{error}</p>}
     <div className="review-management-grid">{rows.map((row) => <article className="card" key={row.id}>
-      <span>{t("myReviews.product")}</span><h2>{row.transactionContext?.targetName}</h2>
+      <h2 className="text-base font-bold">{row.transactionContext?.targetName}</h2>
       {row.isHidden && <p className="customer-warning">{t("myReviews.hidden", { reason: row.moderationReason })}</p>}
-      <ReviewList reviews={[row]} includeHidden />
+      <ReviewList reviews={[row]} includeHidden showSummary={false} />
     </article>)}</div>
     {!rows.length && !error && <section className="card customer-empty-state"><h2>{t("myReviews.empty")}</h2><p>{t("myReviews.emptyHint")}</p></section>}
   </div>;
