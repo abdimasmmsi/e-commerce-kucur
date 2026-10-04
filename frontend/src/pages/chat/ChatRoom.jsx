@@ -3,7 +3,6 @@ import { Link, useParams } from "react-router-dom";
 import { useAuth } from "../../context/AuthContext";
 import { useChat } from "../../context/ChatContext";
 import { usePreferences } from "../../context/PreferencesContext";
-import ChronologyOrderControl from "../../components/ChronologyOrderControl";
 import "./Chat.css";
 import "./ChatOrderToolbar.css";
 
@@ -15,7 +14,7 @@ function ChatRoom({ adminMode = false }) {
   const quickReplies = [t("chatRoom.quickHello"), t("chatRoom.quickWait"), t("chatRoom.quickThanks")];
   const roleLabel = (role) => t(`role.${String(role).toLowerCase()}`);
   const [text, setText] = useState("");
-  const [messageOrder, setMessageOrder] = useState("asc");
+  const messageOrder = "asc";
   const conversation = useMemo(() => conversations.find((item) => String(item.id) === String(conversationId)), [conversationId, conversations]);
   const canAccess = conversation && (adminMode
     ? activeRole === "admin" && conversation.type === "admin-support"
@@ -93,12 +92,12 @@ function ChatRoom({ adminMode = false }) {
     <div className="chat-room-header"><Link to={adminMode ? "/admin/support-chats" : "/messages"}>← {t("chat.backInbox")}</Link><div><span className="chat-avatar">{counterpart.name.charAt(0).toUpperCase()}</span><div><h1>{adminMode ? conversation.participants.find((participant) => participant.role !== "admin")?.name : counterpart.name}</h1><p>{conversation.subject} · {conversation.type === "admin-support" ? t("chat.customerService") : conversation.storeName}</p></div></div>{adminMode && conversation.status === "open" && <button type="button" onClick={() => closeConversation(conversation.id)}>{t("chat.markComplete")}</button>}</div>
     {contextPath && <section className="chat-context-card"><div><span>{conversation.orderId ? t("chat.orderContext") : t("chat.productContext")}</span><strong>{conversation.orderNumber ?? conversation.productName ?? conversation.subject}</strong></div><Link to={contextPath}>{t("chat.viewDetail")}</Link></section>}
     <section className="card chat-room">
-      <div className="chat-order-toolbar"><span>{t("chat.messages", { count: conversation.messages.length })}</span><ChronologyOrderControl value={messageOrder} onChange={setMessageOrder} /></div>
+      <div className="chat-order-toolbar"><span>{t("chat.messages", { count: conversation.messages.length })}</span></div>
       <div className="chat-message-list" aria-live="polite">
         {!conversation.messages.length && <div className="chat-room-welcome"><strong>{t("chat.startConversation")}</strong><p>{t("chat.safety")}</p></div>}
         {orderedMessages.map((message) => {
           const own = message.senderId === user.id;
-          return <article className={`chat-message ${own ? "own" : "other"}`} key={message.id}><div><span>{message.senderName}</span><em>{roleLabel(message.senderRole)}</em></div><p>{message.text}</p><time>{formatDate(message.createdAt, { dateStyle: "medium", timeStyle: "short" })}</time></article>;
+          return <article className={`chat-message ${own ? "own" : "other"}`} key={message.id}><div><span>{message.senderName}</span>{message.senderRole && <em>{roleLabel(message.senderRole)}</em>}</div><p>{message.text}</p><time>{formatDate(message.createdAt, { dateStyle: "medium", timeStyle: "short" })}</time></article>;
         })}
       </div>
       {requesterCanClose && <label className="chat-requester-close"><input type="checkbox" onChange={(event) => { if (event.target.checked) closeConversation(conversation.id); }} /><span><strong>{t("chat.completeConversation")}</strong><small>{t("chat.completeHint")}</small></span></label>}

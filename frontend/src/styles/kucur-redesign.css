@@ -500,7 +500,7 @@ label > small, .field-group small { color: var(--kucur-muted); }
 .chat-message { border-radius: 10px 10px 10px 2px; background: #efede6; }
 .chat-message.own { border-radius: 10px 10px 2px 10px; background: #dfe8df; }
 .chat-context-card { border-color: #cbd6c8; border-radius: var(--radius-control); background: #eef3eb; }
-.chat-context-card span, .chat-context-card a { color: var(--kucur-forest); }
+.chat-context-card span, .chat-context-card a { color: var(--kucur-green-ink); }
 
 .bug-form { max-width: 780px; padding: 0; border: 0; background: transparent; }
 .bug-form > label { padding-bottom: 17px; border-bottom: 1px solid var(--kucur-border); }

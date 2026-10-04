@@ -10,3 +10,15 @@
 @media(max-width:900px){.account-layout-main>.chat-page{width:100%;max-width:100%}}
 @media(max-width:800px){.chat-inbox-workspace{grid-template-columns:minmax(0,1fr);min-height:0}.chat-conversation-pane{border-right:0}.chat-inbox-empty-panel{display:none}}
 @media(max-width:600px){.chat-support-button{width:100%}.chat-inbox-toolbar{grid-template-columns:minmax(0,1fr)}.chat-conversation-card{grid-template-columns:36px minmax(0,1fr);padding-inline:12px}.chat-card-status{grid-column:2;align-items:center;flex-direction:row}}
+
+/* Redesign: kartu percakapan rata kiri, teks terbaca di HP, warna dari token tema. */
+a.chat-conversation-card{grid-template-columns:44px minmax(0,1fr) auto;align-items:start;gap:12px;padding:14px 16px;text-align:left}
+a.chat-conversation-card .chat-avatar{width:44px;height:44px;font-size:1rem}
+a.chat-conversation-card .chat-conversation-copy{justify-items:start;text-align:left;gap:2px}
+a.chat-conversation-card .chat-conversation-copy>div{flex-direction:row;align-items:baseline;justify-content:space-between;width:100%}
+a.chat-conversation-card .chat-conversation-copy strong{font-size:15px;color:var(--kucur-text)}
+a.chat-conversation-card .chat-conversation-copy time{font-size:12px;color:var(--kucur-text-muted)}
+a.chat-conversation-card .chat-conversation-copy>span{font-size:13px;color:var(--kucur-green-ink)}
+a.chat-conversation-card .chat-conversation-copy h2{font-size:15px;color:var(--kucur-text)}
+a.chat-conversation-card .chat-conversation-copy p{font-size:14px;color:var(--kucur-text-muted)}
+@media(max-width:600px){a.chat-conversation-card{grid-template-columns:44px minmax(0,1fr)}a.chat-conversation-card .chat-card-status{grid-column:2;display:flex;align-items:center;gap:8px}}
