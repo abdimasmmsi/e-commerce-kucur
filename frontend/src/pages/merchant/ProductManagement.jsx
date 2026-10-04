@@ -5,6 +5,8 @@ import ProductImage from "../../components/ProductImage";
 import StatusBadge from "../../components/ui/StatusBadge";
 import Pagination from "../../components/ui/Pagination";
 import LoadingPanel from "../../components/ui/LoadingPanel";
+import EmptyState from "../../components/ui/EmptyState";
+import PageContainer from "../../components/ui/PageContainer";
 import { usePreferences } from "../../context/PreferencesContext";
 import { canonicalStoreId } from "../../services/legacyStoreReferences";
 import { paginate } from "../../utils/pagination";
@@ -12,23 +14,6 @@ import { getProductDisplayPrice, getProductTotalStock, hasLowProductStock, produ
 
 const filterValues = ["all", "active", "inactive", "low-stock"];
 const PAGE_SIZE = 12;
-
-function ProductActions({ product, storeId, updating, onToggle, t }) {
-  return <div className="merchant-product-actions">
-    <Link className="merchant-product-edit" to={`/merchant/stores/${storeId}/products/${product.id}/edit`}>
-      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" aria-hidden="true"><path strokeLinecap="round" strokeLinejoin="round" d="m14.7 6.3 3 3M5 19l3.8-.8L19 8a2.1 2.1 0 0 0-3-3L5.8 15.2 5 19Z" /></svg>
-      {t("productManagement.edit")}
-    </Link>
-    <button
-      className={`merchant-product-status-action${product.status === "active" ? " is-danger" : ""}`}
-      type="button"
-      disabled={updating}
-      onClick={() => void onToggle(product)}
-    >
-      {updating ? t("productManagement.processing") : t(product.status === "active" ? "productManagement.deactivate" : "productManagement.activate")}
-    </button>
-  </div>;
-}
 
 function ProductManagement() {
   const { storeId: routeStoreId } = useParams();
@@ -77,12 +62,38 @@ function ProductManagement() {
     catch (caught) { setError(caught.message); }
     finally { setUpdatingId(null); }
   };
-  if (loading) return <div className="merchant-standard-page"><LoadingPanel label={t("productManagement.loading")} rows={4} /></div>;
-  return <div className="merchant-standard-page merchant-product-management space-y-5 [&_button]:rounded-xl [&_button]:border [&_button]:border-[var(--kucur-border-strong)] [&_button]:px-3 [&_button]:py-2 [&_input]:rounded-xl [&_input]:border [&_input]:border-[var(--kucur-border-strong)] [&_input]:px-3 [&_input]:py-2.5 [&_select]:rounded-xl [&_select]:border [&_select]:border-[var(--kucur-border-strong)] [&_select]:px-3 [&_select]:py-2.5">
-    <header className="flex flex-wrap items-start justify-between gap-3"><div><h1 className="text-2xl font-extrabold">{t("productManagement.title")}</h1><p>{t("productManagement.subtitle", { store: store?.name ?? t("productManagement.activeStore") })}</p></div><Link to={`/merchant/stores/${storeId}/products/add`}>{t("productManagement.add")}</Link></header>
-    <section className="merchant-standard-toolbar grid min-w-0 gap-3 md:grid-cols-[minmax(220px,1fr)_minmax(220px,1fr)_auto] md:items-end" aria-label={t("productManagement.filters")}><label className="grid min-w-0 gap-1"><span>{t("productManagement.search")}</span><input type="search" value={search} onChange={(event) => { setSearch(event.target.value); setPage(1); }} placeholder={t("productManagement.searchPlaceholder")} /></label><label className="grid min-w-0 gap-1"><span>{t("productManagement.category")}</span><select value={category} onChange={(event) => { setCategory(event.target.value); setPage(1); }}><option value="all">{t("productManagement.allCategories")}</option>{categories.map((item) => <option key={item}>{item}</option>)}</select></label><div className="merchant-product-filter-chips flex min-w-0 flex-wrap gap-2">{filters.map((item) => <button type="button" key={item.value} aria-pressed={status === item.value} onClick={() => changeStatus(item.value)} className={status === item.value ? "active" : ""}>{item.label}</button>)}</div></section>
-    {error && <section role="alert" className="rounded-2xl border border-rose-400 p-4"><strong>{t("productManagement.loadFailed")}</strong><p>{errorMessage(error.code, t("productManagement.loadFailed"))}</p><button type="button" onClick={load}>{t("productManagement.retry")}</button></section>}
-    {loading ? <section role="status" className="rounded-2xl border border-[var(--kucur-border)] p-4">{t("productManagement.loading")}</section> : !error && shown.length ? <><div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">{visibleProducts.map((product) => <article key={product.id} className="merchant-product-card grid min-w-0 gap-3 rounded-2xl border border-[var(--kucur-border)] bg-[var(--kucur-surface)] p-4"><ProductImage className="aspect-square w-full rounded-xl object-cover" product={product} alt={product.name} /><div className="merchant-product-card-heading min-w-0"><div className="min-w-0"><strong className="block truncate">{product.name}</strong><span>{product.category}</span></div><div className="merchant-product-badges"><StatusBadge status={product.status}/>{hasLowProductStock(product) && <StatusBadge status="pending">{t("productManagement.lowStock")}</StatusBadge>}</div></div><dl className="grid grid-cols-2 gap-2"><div><dt>{t("productManagement.price")}</dt><dd>{product.hasVariants ? t("productManagement.startsFrom") : ""}{formatCurrency(getProductDisplayPrice(product))}</dd></div><div><dt>{t("productManagement.stock")}</dt><dd className={hasLowProductStock(product) ? "font-bold text-amber-700" : ""}>{getProductTotalStock(product)}</dd></div></dl><ProductActions product={product} storeId={storeId} updating={updatingId === product.id} onToggle={toggle} t={t} /></article>)}</div><Pagination page={page} pageSize={PAGE_SIZE} totalItems={shown.length} onPageChange={setPage}/></> : !error ? <section className="rounded-2xl border border-[var(--kucur-border)] p-4"><strong>{t(search.trim() || category !== "all" || status !== "all" ? "productManagement.notFound" : "productManagement.empty")}</strong><p>{t("productManagement.emptyHint")}</p></section> : null}
-  </div>;
+  const counts = { active: products.filter((item) => item.status === "active").length, inactive: products.filter((item) => item.status !== "active").length, "low-stock": products.filter((item) => hasLowProductStock(item)).length };
+  if (loading) return <PageContainer><LoadingPanel label={t("productManagement.loading")} rows={4} /></PageContainer>;
+  const chipClass = (active) => `inline-flex min-h-11 shrink-0 items-center rounded-full border px-4 text-sm font-bold ${active ? "border-[var(--kucur-text)] bg-[var(--kucur-text)] text-[var(--kucur-bg)]" : "border-[var(--kucur-border-strong)] bg-[var(--kucur-surface)] text-[var(--kucur-text)]"}`;
+  const fieldClass = "min-h-12 w-full min-w-0 rounded-xl border border-[var(--kucur-border-strong)] bg-[var(--kucur-surface)] px-3 text-base text-[var(--kucur-text)]";
+  return <PageContainer className="merchant-standard-page merchant-product-management space-y-4">
+    <header className="flex flex-wrap items-end justify-between gap-3"><div><h1 className="text-2xl font-extrabold sm:text-3xl">{t("productManagement.title")}</h1><p className="text-[15px] text-[var(--kucur-text-muted)]">{store?.name ?? t("productManagement.activeStore")} · {products.length}</p></div><Link to={`/merchant/stores/${storeId}/products/add`}>{t("productManagement.add")}</Link></header>
+    <section className="grid min-w-0 gap-3" aria-label={t("productManagement.filters")}>
+      <div className="grid min-w-0 gap-3 sm:grid-cols-[minmax(0,1fr)_220px]">
+        <label className="relative block"><span className="sr-only">{t("productManagement.search")}</span><svg className="pointer-events-none absolute left-3.5 top-1/2 size-5 -translate-y-1/2 text-[var(--kucur-text-muted)]" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" aria-hidden="true"><circle cx="11" cy="11" r="7"/><path d="m20 20-3.5-3.5"/></svg><input className={`${fieldClass} !pl-11`} type="search" value={search} onChange={(event) => { setSearch(event.target.value); setPage(1); }} placeholder={t("productManagement.searchPlaceholder")} /></label>
+        <label className="block"><span className="sr-only">{t("productManagement.category")}</span><select className={fieldClass} value={category} onChange={(event) => { setCategory(event.target.value); setPage(1); }}><option value="all">{t("productManagement.allCategories")}</option>{categories.map((item) => <option key={item}>{item}</option>)}</select></label>
+      </div>
+      <div className="-mx-4 flex gap-2 overflow-x-auto px-4 pb-1 sm:mx-0 sm:flex-wrap sm:px-0">{filters.map((item) => <button className={chipClass(status === item.value)} type="button" key={item.value} aria-pressed={status === item.value} onClick={() => changeStatus(item.value)}>{item.label}{item.value !== "all" && counts[item.value] > 0 && <span className="ml-2 rounded-full bg-[var(--kucur-surface-muted)] px-2 text-xs text-[var(--kucur-text)]">{counts[item.value]}</span>}</button>)}</div>
+    </section>
+    {error && <section role="alert" className="grid gap-2 rounded-2xl border border-rose-300 bg-rose-50 p-4 text-rose-800 dark:border-rose-800 dark:bg-rose-950 dark:text-rose-200"><strong>{t("productManagement.loadFailed")}</strong><p>{errorMessage(error.code, t("productManagement.loadFailed"))}</p><button className="w-fit min-h-11 rounded-xl border border-current px-4 font-bold" type="button" onClick={load}>{t("productManagement.retry")}</button></section>}
+    {!error && shown.length ? <><div className="grid gap-3 md:grid-cols-2 xl:grid-cols-3">{visibleProducts.map((product) => {
+      const stock = getProductTotalStock(product);
+      const low = hasLowProductStock(product) || stock <= 0;
+      return <article key={product.id} className={`merchant-product-card grid min-w-0 gap-3 rounded-2xl border border-[var(--kucur-border)] bg-[var(--kucur-surface)] p-3 ${product.status !== "active" ? "opacity-75" : ""}`}>
+        <div className="grid min-w-0 grid-cols-[72px_minmax(0,1fr)] items-start gap-3">
+          <span className="block size-[72px] overflow-hidden rounded-xl bg-[var(--kucur-surface-elevated)] [&_img]:h-full [&_img]:w-full [&_img]:object-cover"><ProductImage product={product} alt="" /></span>
+          <div className="grid min-w-0 gap-0.5">
+            <strong className="line-clamp-2 text-[15px] leading-snug">{product.name}</strong>
+            <span className="text-base font-extrabold">{product.hasVariants ? t("productManagement.startsFrom") : ""}{formatCurrency(getProductDisplayPrice(product))}</span>
+            <div className="flex flex-wrap items-center gap-x-2 gap-y-1 text-sm"><span className={low ? "font-bold text-amber-700 dark:text-amber-300" : "text-[var(--kucur-text-muted)]"}>{t("productManagement.stock")} {stock}</span>{product.status !== "active" && <StatusBadge status={product.status}/>}</div>
+          </div>
+        </div>
+        <div className="merchant-product-actions grid grid-cols-2 gap-2">
+          <Link className="merchant-product-edit inline-flex min-h-11 items-center justify-center gap-2 rounded-xl border border-[var(--kucur-border-strong)] px-3 text-sm font-bold" to={`/merchant/stores/${storeId}/products/${product.id}/edit`}>{t("productManagement.edit")}</Link>
+          <button className={`merchant-product-status-action inline-flex min-h-11 items-center justify-center rounded-xl border px-3 text-sm font-bold disabled:opacity-50 ${product.status === "active" ? "is-danger border-[var(--kucur-border-strong)] text-[var(--kucur-text-muted)]" : "border-[var(--kucur-green)] text-[var(--kucur-green-ink)]"}`} type="button" disabled={updatingId === product.id} onClick={() => void toggle(product)}>{updatingId === product.id ? t("productManagement.processing") : t(product.status === "active" ? "productManagement.deactivate" : "productManagement.activate")}</button>
+        </div>
+      </article>;
+    })}</div><Pagination page={page} pageSize={PAGE_SIZE} totalItems={shown.length} onPageChange={setPage}/></> : !error ? <EmptyState title={t(search.trim() || category !== "all" || status !== "all" ? "productManagement.notFound" : "productManagement.empty")} description={t("productManagement.emptyHint")} /> : null}
+  </PageContainer>;
 }
 export default ProductManagement;
