@@ -1,5 +1,5 @@
 import { useEffect, useRef, useState } from "react";
-import { Link, NavLink, useNavigate } from "react-router-dom";
+import { Link, NavLink, useLocation, useNavigate } from "react-router-dom";
 import { useAuth } from "../context/AuthContext";
 import { useNotifications } from "../context/NotificationContext";
 import { usePreferences } from "../context/PreferencesContext";
@@ -22,6 +22,7 @@ function SearchForm({ className = "", onSearch, query, setQuery, t }) {
 
 function AppHeader({ accountMode = false, workspaceRole = "" }) {
   const navigate = useNavigate();
+  const { pathname } = useLocation();
   const profileRef = useRef(null);
   const notificationRef = useRef(null);
   const { activeRole, initialized, isAuthenticated, logout, switchRole, updatePreferences, user } = useAuth();
@@ -124,7 +125,7 @@ function AppHeader({ accountMode = false, workspaceRole = "" }) {
         </div>}
       </div>
     </div>
-    {!accountMode && <SearchForm className="customer-mobile-search" onSearch={submitSearch} query={search} setQuery={setSearch} t={t} />}
+    {!accountMode && pathname !== "/products" && <SearchForm className="customer-mobile-search" onSearch={submitSearch} query={search} setQuery={setSearch} t={t} />}
   </PageContainer></header>;
 }
 
