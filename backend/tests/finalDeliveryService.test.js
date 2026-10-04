@@ -101,6 +101,7 @@ test("final Delivery service completes readiness, pickup, proof, history, and ba
   assert.equal((await service.proof(order.id, { photoUrl: "https://qa.invalid/other.jpg" }, { id: f.courierId })).id, proof.id);
   const assignment = await repository.delivery.latestAssignment(order.id);
   assert.equal(assignment.status, "DELIVERED");
+  assert.ok((await repository.commerce.findOrder(order.id)).completedAt, "order selesai wajib punya completedAt");
   assert.deepEqual((await repository.delivery.activities(order.id)).map((entry) => entry.status), ["BATCHED", "READY", "PICKED_UP", "OUT_FOR_DELIVERY", "DELIVERED"]);
   const completed = await service.completeBatch(batch.id, { id: f.courierId, roles: ["courier"] });
   assert.equal(completed.status, "COMPLETED");

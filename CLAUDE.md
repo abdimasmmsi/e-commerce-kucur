@@ -30,7 +30,7 @@ Prinsip UX dari Steven: **SIMPLE > clever, CLEAR > compact, CONSISTENT > decorat
 - Pembayaran: **COD aktif**. **Midtrans** hanya placeholder (belum ada kredensial); tanpa kredensial backend membalas `PAYMENT_PROVIDER_NOT_CONFIGURED`. Transfer manual dihindari (risiko seller nakal).
 - Dev: Windows, repo di `D:\kucur-platform` (`frontend/`, `backend/`, `docs/final-documentation/`). Frontend `http://localhost:5173`, backend `http://localhost:3000`. Repo git lokal dibuat 2026-10-04 (branch `main`, commit baseline `dead544 snapshot: feature freeze baseline`, belum ada remote). `core.autocrlf=false`; `.gitignore` root mengecualikan `.env*`, `node_modules`, `uploads`, `.tmp`, `artifacts`, `*.zip`.
 - Tooling: coding dilakukan lewat Codex di VS Code; ChatGPT dipakai sebagai perencana dan penulis prompt. Sekarang pindah ke Claude.
-- Akun QA (password semua `123456`): `merchant@kucur.test`, `merchant2@kucur.test`, `customer@kucur.test`, `courier1@kucur.test`, `admin@kucur.test`. Kredensial ditaruh di halaman login untuk demo.
+- Akun QA (password semua `KucurDev123!`, dipakai e2e): `admin@kucur.test`, `customer@kucur.test`, `merchant.a@kucur.test`, `merchant.b@kucur.test`, `courier@kucur.test`. Kredensial ditaruh di halaman login untuk demo.
 
 ## 4. Role
 
@@ -97,10 +97,12 @@ Catatan desain: gambar/opsi produk disimpan JSON; reservasi stok di `CommerceOrd
 
 ## 9. Status terakhir
 
-- Backend tests 87/87, final repository 22/22, router 21/21, Prisma validate/generate pass, Playwright authenticated **49/49**, lint dan build pass. Warning bundle Vite >500 kB (±697 kB) non-blocking.
+- Backend tests 87/87, final repository 22/22, router 21/21, Prisma validate/generate pass, Playwright e2e **53/53** (dicek ulang 2026-10-04), lint dan build pass. Warning bundle Vite >500 kB (±697 kB) non-blocking.
 - Integritas DB: 20 tabel, 40 FK, 0 orphan, 0 pelanggaran XOR.
 - **Feature freeze diberlakukan**: hanya boleh perbaikan blocking bug; tidak ada fitur baru, perubahan schema, atau refactor besar.
-- Pekerjaan terakhir yang berjalan: **polish halaman detail dan modal** di semua role (Customer/Merchant/Courier/Admin order detail, timeline status, upload UI, hierarki tombol). Prompt itu dibuat tapi hasilnya **belum terkonfirmasi** di chat **[VERIFIKASI]**.
+- Polish halaman detail dan modal **selesai** (dicek 2026-10-04): komponen bersama `DetailSection`, `StatusTimeline`, `ActionDialog` di `frontend/src/components/ui/`, dicover `e2e/detail-polish.spec.js`.
+- `prisma/seed.js` mayoritas menulis ke tabel **legacy**; runtime membaca tabel final (`Target*`). Fixture e2e yang perlu di-reset harus di-update juga di tabel final.
+- Order COD yang selesai lewat kurir tetap `paymentStatus=PENDING` (belum ada kode yang menandai PAID) **[VERIFIKASI keputusan Steven]**.
 - Sisa tugas berurutan:
   1. Selesaikan polish detail page dan modal.
   2. Bersihkan demo data.

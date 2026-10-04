@@ -31,6 +31,9 @@ async function seed() {
   const productStoreLocation = { locationLabel: "Desa Kucur", address: "Kucur, Dau, Malang", latitude: -7.957641, longitude: 112.543281, locationSource: "development-seed" };
   await prisma.store.upsert({ where: { id: "10000000-0000-4000-8000-000000000001" }, update: productStoreLocation, create: { id: "10000000-0000-4000-8000-000000000001", merchantUserId: users[2].id, name: "Lapak Merchant A", type: "product", description: "Store QA development", status: "active", ...productStoreLocation } });
   await prisma.store.upsert({ where: { id: "10000000-0000-4000-8000-000000000002" }, update: { merchantUserId: users[3].id, name: "Lapak Merchant B", type: "product", description: "Store produk QA development", status: "active", ...productStoreLocation }, create: { id: "10000000-0000-4000-8000-000000000002", merchantUserId: users[3].id, name: "Lapak Merchant B", type: "product", description: "Store produk QA development", status: "active", ...productStoreLocation } });
+  // Runtime membaca tabel final, jadi fixture approval E2E juga di-reset di sana agar test bisa diulang.
+  await prisma.targetStore.updateMany({ where: { id: "12000000-0000-4000-8000-000000000001" }, data: { status: "PENDING", rejectionReason: null, reviewedAt: null, reviewedByUserId: null } });
+  await prisma.targetProduct.updateMany({ where: { id: "20000000-0000-4000-8000-000000000003" }, data: { stock: 12 } });
   await prisma.store.upsert({ where: { id: "12000000-0000-4000-8000-000000000001" }, update: { approvalStatus: "PENDING", rejectionReason: null, reviewedAt: null, reviewedByUserId: null }, create: { id: "12000000-0000-4000-8000-000000000001", merchantUserId: users[3].id, name: "E2E Approval Store", type: "product", description: "Dedicated deterministic browser approval fixture", status: "pending_initial_payment", approvalStatus: "PENDING", ...productStoreLocation } });
 
   const products = [
