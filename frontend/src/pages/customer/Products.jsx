@@ -15,7 +15,7 @@ function Products() {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState("");
   const [search, setSearch] = useState(() => searchParams.get("search") ?? "");
-  const [category, setCategory] = useState("All");
+  const [category, setCategory] = useState(() => searchParams.get("category") ?? "All");
   const [storeId, setStoreId] = useState("All");
   const [minimumPrice, setMinimumPrice] = useState("");
   const [maximumPrice, setMaximumPrice] = useState("");
@@ -26,7 +26,7 @@ function Products() {
     productService.list().then((rows) => { if (active) setProducts(rows); }).catch((cause) => { if (active) setError(cause.message); }).finally(() => { if (active) setLoading(false); });
     return () => { active = false; };
   }, []);
-  useEffect(() => { queueMicrotask(() => setSearch(searchParams.get("search") ?? "")); }, [searchParams]);
+  useEffect(() => { queueMicrotask(() => { setSearch(searchParams.get("search") ?? ""); setCategory(searchParams.get("category") ?? "All"); }); }, [searchParams]);
 
   const activeProducts = useMemo(() => products.filter((product) => product.status === "active"), [products]);
   const stores = useMemo(() => [...new Map(activeProducts.filter((product) => product.store?.type === "product").map((product) => [String(product.store.id), product.store])).values()].sort((a, b) => a.name.localeCompare(b.name)), [activeProducts]);

@@ -1,22 +1,21 @@
-import { useEffect, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import { Link } from "react-router-dom";
 import ProductCard from "../../components/customer/ProductCard";
 import { productStockBadge } from "../../utils/productStock";
-import { CustomerEmpty, CustomerLinkButton, CustomerLoading, CustomerPage, CustomerPanel, CustomerSection } from "../../components/customer/CustomerUI";
+import { categoryStyle } from "../../utils/productCategory";
+import { CustomerEmpty, CustomerLinkButton, CustomerLoading, CustomerPage, CustomerPanel } from "../../components/customer/CustomerUI";
 import { useAuth } from "../../context/AuthContext";
 import { usePreferences } from "../../context/PreferencesContext";
+import { useSystemSettings } from "../../context/SystemSettingsContext";
 import { getProductDisplayPrice, getProductTotalStock, productService } from "../../services/productService";
 
-const trustIcons = [
-  "M6 8.5h12l-1 10H7l-1-10ZM9 9V7a3 3 0 0 1 6 0v2",
-  "m5 12 4 4L19 6",
-  "M3 7h11v9H3V7Zm11 3h3l3 3v3h-6v-6ZM7 19h.01M17 19h.01",
-];
+const Icon = ({ path, className = "size-7" }) => <svg className={className} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true"><path d={path} /></svg>;
 
 function Home() {
-  const { isAuthenticated } = useAuth();
-  const { formatCurrency, t } = usePreferences();
-  const text = (key) => t(`customer.home.${key}`);
+  const { isAuthenticated, user } = useAuth();
+  const { formatCurrency, language, t } = usePreferences();
+  const { settings } = useSystemSettings();
+  const text = (key, values) => t(`commerceHome.${key}`, values);
   const [products, setProducts] = useState([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(false);
@@ -30,43 +29,49 @@ function Home() {
     return () => { active = false; };
   }, []);
 
-  const featured = products
-    .filter((product) => product.status === "active" && getProductTotalStock(product) > 0)
-    .slice(0, 5);
-  const benefits = [text("localProducts"), t("commerceHome.easyShopping"), t("commerceHome.trackedDelivery")];
+  const available = useMemo(() => products.filter((product) => product.status === "active" && getProductTotalStock(product) > 0), [products]);
+  const featured = available.slice(0, 10);
+  const categories = useMemo(() => [...new Set(available.map((product) => product.category).filter(Boolean))].slice(0, 4), [available]);
+  const clock = (value) => { const time = String(value ?? "").slice(0, 5); return language === "id" ? time.replace(":", ".") : time; };
+  const cutoff = clock(settings?.deliveryOrderCutoffTime);
+  const dispatch = clock(settings?.deliveryDispatchTime);
+  const firstName = user?.fullName?.split(" ")[0];
 
-  return <CustomerPage className="space-y-6 sm:space-y-8">
-    <CustomerPanel className="relative isolate overflow-hidden bg-[color-mix(in_srgb,var(--kucur-sand)_64%,var(--kucur-surface))] px-5 py-7 sm:px-8 sm:py-9 lg:flex lg:items-center lg:justify-between lg:gap-10">
-      <span className="pointer-events-none absolute -right-16 -top-24 size-64 rounded-full border-[34px] border-kucur-green/10" aria-hidden="true" />
-      <div className="relative max-w-3xl">
-        <span className="text-xs font-extrabold uppercase tracking-[0.16em] text-kucur-clay">{t("commerceHome.eyebrow")}</span>
-        <h1 className="mt-2 max-w-2xl text-balance text-3xl font-black leading-tight tracking-[-0.04em] text-[var(--kucur-text)] sm:text-4xl">{t("commerceHome.title")}</h1>
-        <p className="mt-3 max-w-2xl text-sm leading-6 text-[var(--kucur-text-muted)] sm:text-base">{t("commerceHome.description")}</p>
+  return <CustomerPage className="space-y-5 sm:space-y-8">
+    <div className="grid min-w-0 gap-4 lg:grid-cols-[minmax(0,1fr)_380px] lg:items-stretch">
+      <CustomerPanel className="grid content-start gap-4 p-4 sm:p-6">
+        <div>
+          <h1 className="text-2xl font-extrabold tracking-[-0.02em] text-[var(--kucur-text)] sm:text-3xl">{firstName ? text("hello", { name: firstName }) : text("helloGuest")}</h1>
+          <p className="mt-1 text-[15px] text-[var(--kucur-text-muted)]">{text("subtitle")}</p>
+        </div>
+        {categories.length > 0 && <nav aria-label={text("categories")} className="grid grid-cols-4 gap-2 sm:gap-3">
+          {categories.map((category) => { const style = categoryStyle(category); return <Link className="grid min-w-0 justify-items-center gap-1.5 rounded-xl p-1 text-center text-[13px] font-semibold leading-tight text-[var(--kucur-text)] hover:bg-[var(--kucur-surface-elevated)] sm:flex sm:items-center sm:gap-3 sm:border sm:border-[var(--kucur-border)] sm:p-2.5 sm:text-left sm:text-sm" key={category} to={`/products?category=${encodeURIComponent(category)}`}>
+            <span className={`grid size-14 shrink-0 place-items-center rounded-2xl sm:size-11 sm:rounded-xl ${style.tint}`}><Icon path={style.path} className="size-7 sm:size-6" /></span>
+            <span className="line-clamp-2 break-words">{category}</span>
+          </Link>; })}
+        </nav>}
+      </CustomerPanel>
+      <div className="flex items-start gap-3 rounded-2xl bg-[var(--kucur-green-soft)] p-4 text-[15px] text-[var(--kucur-text)] sm:p-6">
+        <Icon className="mt-0.5 size-6 shrink-0 text-[var(--kucur-green-ink)]" path="M3 6h11v10H3zM14 9h4l3 3.5V16h-7M7 19.3a1.8 1.8 0 1 0 0-3.6 1.8 1.8 0 0 0 0 3.6Zm10 0a1.8 1.8 0 1 0 0-3.6 1.8 1.8 0 0 0 0 3.6Z" />
+        <div>
+          <strong className="block text-base font-bold lg:text-lg">{cutoff ? text("deliveryTitle", { cutoff }) : text("deliveryTitleGeneric")}</strong>
+          <p className="mt-1 leading-6">{dispatch ? text("deliveryText", { dispatch }) : text("deliveryTextGeneric")}</p>
+        </div>
       </div>
-      <div className="relative mt-5 flex shrink-0 flex-wrap gap-2 lg:mt-0">
-        <CustomerLinkButton to="/products">{text("exploreProducts")}</CustomerLinkButton>
-        {isAuthenticated && <CustomerLinkButton secondary to="/orders">{t("commerceHome.myOrders")}</CustomerLinkButton>}
+    </div>
+
+    <section className="min-w-0" aria-labelledby="home-featured">
+      <div className="mb-3 flex items-baseline justify-between gap-4">
+        <h2 className="text-lg font-extrabold text-[var(--kucur-text)] sm:text-xl" id="home-featured">{t("customer.home.selectedProducts")}</h2>
+        <Link className="shrink-0 text-sm font-bold text-[var(--kucur-green-ink)] hover:underline" to="/products">{t("customer.home.seeAll")}</Link>
       </div>
-    </CustomerPanel>
+      {loading ? <CustomerLoading label={t("commerce.loadingProducts")} count={4} /> : error ? <CustomerEmpty title={t("commerce.loadError", { message: t("error.NETWORK_ERROR") })} description={t("commerce.emptyProductsHint")} /> : featured.length ? <div className="grid grid-cols-2 gap-3 sm:gap-4 md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5">{featured.map((product) => <ProductCard key={product.id} product={product} storeName={product.store?.name ?? t("customer.home.localStore")} price={formatCurrency(getProductDisplayPrice(product))} {...productStockBadge(product, t)}/>)}</div> : <CustomerEmpty title={t("customer.home.noServices")} description={t("commerce.emptyProductsHint")} />}
+    </section>
 
-    <CustomerSection title={text("selectedProducts")} description={t("commerce.catalogDescription")} action={<Link className="shrink-0 text-sm font-bold text-kucur-forest hover:underline dark:text-emerald-300" to="/products">{text("seeAll")} <span aria-hidden="true">→</span></Link>}>
-      {loading ? <CustomerLoading label={t("commerce.loadingProducts")} count={4} /> : error ? <CustomerEmpty title={t("commerce.loadError", { message: t("error.NETWORK_ERROR") })} description={t("commerce.emptyProductsHint")} /> : featured.length ? <div className="grid grid-cols-2 gap-3 sm:gap-4 md:grid-cols-3 xl:grid-cols-4">{featured.map((product) => <ProductCard key={product.id} product={product} storeName={product.store?.name ?? text("localStore")} price={formatCurrency(getProductDisplayPrice(product))} {...productStockBadge(product, t)}/>)}</div> : <CustomerEmpty title={text("noServices")} description={t("commerce.emptyProductsHint")} />}
-    </CustomerSection>
-
-    <CustomerPanel className="p-5 sm:p-6">
-      <h2 className="text-lg font-extrabold text-[var(--kucur-text)]">{t("commerceHome.whyKucur")}</h2>
-      <div className="mt-4 grid gap-3 sm:grid-cols-3">
-        {benefits.map((benefit, index) => <div className="flex items-center gap-3 rounded-xl bg-[var(--kucur-surface-elevated)] p-3" key={benefit}>
-          <span className="grid size-10 shrink-0 place-items-center rounded-xl bg-kucur-sand text-kucur-forest" aria-hidden="true"><svg className="size-5" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8"><path strokeLinecap="round" strokeLinejoin="round" d={trustIcons[index]} /></svg></span>
-          <strong className="text-sm font-bold text-[var(--kucur-text)]">{benefit}</strong>
-        </div>)}
-      </div>
-    </CustomerPanel>
-
-    <CustomerPanel className="p-5 sm:flex sm:items-center sm:justify-between sm:gap-8 sm:p-6">
-      <div className="max-w-2xl"><span className="text-xs font-extrabold uppercase tracking-[0.14em] text-kucur-clay">{isAuthenticated ? text("yourAccount") : text("account")}</span><h2 className="mt-2 text-xl font-extrabold tracking-[-0.025em] text-[var(--kucur-text)]">{t(isAuthenticated ? "commerceHome.memberTitle" : "commerceHome.guestTitle")}</h2><p className="mt-1.5 text-sm leading-6 text-[var(--kucur-text-muted)]">{t(isAuthenticated ? "commerceHome.memberDescription" : "commerceHome.guestDescription")}</p></div>
-      <div className="mt-5 flex shrink-0 flex-wrap gap-2 sm:mt-0">{isAuthenticated ? <><CustomerLinkButton to="/cart">{text("openCart")}</CustomerLinkButton><CustomerLinkButton secondary to="/orders">{t("commerceHome.myOrders")}</CustomerLinkButton></> : <><CustomerLinkButton to="/login">{text("login")}</CustomerLinkButton><CustomerLinkButton secondary to="/register">{text("register")}</CustomerLinkButton></>}</div>
-    </CustomerPanel>
+    {!isAuthenticated && <CustomerPanel className="grid gap-4 p-4 sm:flex sm:items-center sm:justify-between sm:gap-8 sm:p-6">
+      <div><h2 className="text-lg font-extrabold text-[var(--kucur-text)]">{text("guestTitle")}</h2><p className="mt-1 text-[15px] leading-6 text-[var(--kucur-text-muted)]">{text("guestDescription")}</p></div>
+      <div className="grid grid-cols-2 gap-2 sm:flex sm:shrink-0"><CustomerLinkButton to="/login">{t("customer.home.login")}</CustomerLinkButton><CustomerLinkButton secondary to="/register">{t("customer.home.register")}</CustomerLinkButton></div>
+    </CustomerPanel>}
   </CustomerPage>;
 }
 

@@ -1,5 +1,6 @@
 import { useEffect, useState } from "react";
 import { getPrimaryProductImage, getProductImage } from "../services/productImageStorage";
+import { categoryStyle } from "../utils/productCategory";
 
 function ProductImage({ product, image: suppliedImage, alt = "", className = "" }) {
   const image = suppliedImage ?? getPrimaryProductImage(product);
@@ -21,20 +22,12 @@ function ProductImage({ product, image: suppliedImage, alt = "", className = "" 
     };
   }, [image?.storageKey, image?.url]);
 
-  if (!source) return <span
-    className={`${className} product-image-fallback relative isolate grid h-full w-full place-items-center overflow-hidden p-5 text-center`}
-    style={{ background: "linear-gradient(145deg, var(--kucur-sand), color-mix(in srgb, var(--kucur-green) 13%, var(--kucur-surface)))" }}
-    role="img"
-    aria-label={alt || product?.name || "Produk Kucur"}
-  >
-    <span className="pointer-events-none absolute -right-8 -top-8 size-28 rounded-full border-[18px] border-[var(--kucur-surface)] opacity-40" aria-hidden="true" />
-    <span className="relative grid justify-items-center gap-3">
-      <span className="grid size-14 place-items-center rounded-2xl bg-[var(--kucur-surface)] text-[var(--kucur-green-ink)] shadow-sm" aria-hidden="true">
-        <svg className="size-7" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.7"><path strokeLinecap="round" strokeLinejoin="round" d="M6 8.5h12l-1 10.5H7L6 8.5ZM9 9V7a3 3 0 0 1 6 0v2M9.5 13h5" /></svg>
-      </span>
-      <strong className="line-clamp-2 max-w-44 text-sm font-extrabold leading-5 text-[var(--kucur-text)]">{product?.category || "Produk Lokal Kucur"}</strong>
-    </span>
-  </span>;
+  if (!source) {
+    const style = categoryStyle(product?.category);
+    return <span className={`${className} product-image-fallback grid h-full w-full place-items-center ${style.tint}`} role="img" aria-label={alt || product?.name || "Produk Kucur"}>
+      <svg className="size-[30%] max-h-16 max-w-16 text-[var(--kucur-text)] opacity-55" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.6" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true"><path d={style.path} /></svg>
+    </span>;
+  }
   return <img className={className} src={source} alt={alt} onError={() => setSource("")} />;
 }
 

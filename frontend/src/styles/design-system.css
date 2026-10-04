@@ -310,7 +310,6 @@ label>span:first-child, .field-group label { color: #39483c; }
   color: var(--kucur-text);
 }
 .dark .chat-avatar,
-.dark .product-image-fallback,
 .dark .store-card-image.store-type-product {
   background: var(--kucur-surface-elevated);
   color: #dfffd8;
