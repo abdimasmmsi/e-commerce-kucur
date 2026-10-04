@@ -14,6 +14,7 @@ import { canonicalStoreId } from "../services/legacyStoreReferences";
 import "../styles/workspace-shell.css";
 import "../components/ui/LoadingPanel.css";
 import "./MerchantLayout.css";
+import "../components/CustomerBottomNav.css";
 
 const sectionStoreTypes = {
   products: "product",
@@ -47,7 +48,9 @@ function MerchantLayout() {
   const location = useLocation();
   const navigate = useNavigate();
   const { activeStore, activeStoreId, setActiveStore, stores: merchantStores } = useStore();
-  const { t } = usePreferences();
+  const { language, t } = usePreferences();
+  const tabCopy = language === "id" ? { home: "Beranda", homeLong: "Beranda Lapak", orders: "Pesanan", products: "Produk", menu: "Menu" } : { home: "Home", homeLong: "Store Home", orders: "Orders", products: "Products", menu: "Menu" };
+  const mismatchCopy = language === "id" ? { eyebrow: "Workspace tidak cocok", title: "Fitur tidak tersedia untuk jenis lapak ini", body: "{store} adalah lapak {type}. Pilih menu yang sesuai dengan jenis lapak aktif.", back: "Kembali ke Beranda Lapak" } : { eyebrow: "Workspace mismatch", title: "This feature is not available for this store type", body: "{store} is a {type} store. Choose a menu that matches the active store.", back: "Back to Store Home" };
   const [sidebarOpen, setSidebarOpen] = useState(false);
 
   const storeRouteMatch = location.pathname.match(/^\/merchant\/stores\/([^/]+)(?:\/([^/]+))?/);
@@ -157,7 +160,7 @@ function MerchantLayout() {
         <nav className="merchant-nav" aria-label={t("workspace.navigation")}>
           <section className="merchant-nav-group" aria-labelledby="merchant-nav-overview">
             <h3 id="merchant-nav-overview">{t("merchantSidebar.overview")}</h3>
-            <MerchantNavLink to="/merchant" end onClick={closeSidebar} icon="dashboard">{t("workspace.dashboard")}</MerchantNavLink>
+            <MerchantNavLink to="/merchant" end onClick={closeSidebar} icon="dashboard">{tabCopy.homeLong}</MerchantNavLink>
             <MerchantNavLink to="/merchant/stores" end onClick={closeSidebar} icon="stores">{t("workspace.stores")}</MerchantNavLink>
           </section>
 
@@ -194,19 +197,22 @@ function MerchantLayout() {
 
         {hasStoreTypeMismatch ? (
           <section className="merchant-feature-unavailable" role="status">
-            <span>Workspace tidak cocok</span>
-            <h1>Fitur tidak tersedia untuk jenis lapak ini</h1>
-            <p>
-              {routeStore.name} adalah lapak {storeTypeLabels[routeStore.type] ?? routeStore.type}.
-              Pilih menu yang sesuai dengan jenis lapak aktif.
-            </p>
-            <NavLink to="/merchant">Kembali ke Dashboard</NavLink>
+            <span>{mismatchCopy.eyebrow}</span>
+            <h1>{mismatchCopy.title}</h1>
+            <p>{mismatchCopy.body.replace("{store}", routeStore.name).replace("{type}", storeTypeLabels[routeStore.type] ?? routeStore.type)}</p>
+            <NavLink to="/merchant">{mismatchCopy.back}</NavLink>
           </section>
         ) : (
           <Outlet />
         )}
       </main>
       </div>
+      <nav className="customer-bottom-nav merchant-bottom-nav" aria-label={t("workspace.navigation")}>
+        <NavLink to="/merchant" end onClick={closeSidebar}><NavigationIcon type="dashboard" /><span>{tabCopy.home}</span></NavLink>
+        <NavLink to="/merchant/orders" onClick={closeSidebar}><NavigationIcon type="orders" /><span>{tabCopy.orders}</span></NavLink>
+        <NavLink to={activeStoreType === "product" && activeStore ? `/merchant/stores/${activeStore.id}/products` : "/merchant/stores"} onClick={closeSidebar}><NavigationIcon type="products" /><span>{tabCopy.products}</span></NavLink>
+        <button type="button" aria-expanded={sidebarOpen} onClick={() => setSidebarOpen((open) => !open)}><svg className="merchant-nav-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" aria-hidden="true"><path d="M4 7h16M4 12h16M4 17h16"/></svg><span>{tabCopy.menu}</span></button>
+      </nav>
     </div>
   );
 }

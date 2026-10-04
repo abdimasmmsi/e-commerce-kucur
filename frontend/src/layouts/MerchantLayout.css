@@ -793,3 +793,11 @@
   .merchant-product-card-heading { align-items: flex-start; }
   .merchant-product-actions { flex-wrap: nowrap; }
 }
+
+/* HP: menu bawah menggantikan header hamburger; laci menu tetap bisa dibuka lewat tombol Menu. */
+@media (max-width: 767px) {
+  .merchant-workspace .merchant-mobile-header { display: none !important; }
+  .merchant-workspace .merchant-main { padding-bottom: calc(84px + env(safe-area-inset-bottom)); }
+  .merchant-workspace .merchant-sidebar { padding-bottom: calc(84px + env(safe-area-inset-bottom)); }
+  .merchant-bottom-nav .merchant-nav-icon { width: 24px; height: 24px; }
+}
