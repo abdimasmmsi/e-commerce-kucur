@@ -30,17 +30,19 @@ test.describe.serial("canonical cross-role commerce", () => {
     await expect(customer.getByText(productName)).toBeVisible();
     await customer.getByRole("link", { name: /Checkout/i }).click();
     await customer.getByLabel(/Alamat Pengiriman|Delivery Address/i).fill(`Alamat QA ${runId}, Desa Kucur`);
-    await customer.getByRole("button", { name: /Hitung Total|Calculate Total/i }).click();
+    // Total dihitung otomatis setelah alamat terisi dan lokasi terdeteksi.
     await expect(customer.getByText(/^(Ongkir|Delivery Fee)$/i)).toBeVisible();
-    await expect(customer.getByText("Total", { exact: true })).toBeVisible();
+    await expect(customer.locator("text=/^(Total bayar|Total to pay)$/ >> visible=true")).toBeVisible();
     const createOrderResponse = customer.waitForResponse((response) => response.url().includes("/api/checkout") && response.request().method() === "POST");
     await customer.getByRole("button", { name: /Buat Pesanan|Create Order/i }).click();
-    expect((await createOrderResponse).ok()).toBeTruthy();
+    const createOrderResult = await createOrderResponse;
+    expect(createOrderResult.ok()).toBeTruthy();
+    const createdOrders = (await createOrderResult.json()).data?.orders ?? [];
     const orderLink = customer.locator('a[href^="/orders/"]').first();
     await expect(orderLink).toBeVisible();
     const orderHref = await orderLink.getAttribute("href");
     const orderId = orderHref.split("/").at(-1);
-    const orderCode = (await orderLink.textContent()).trim();
+    const orderCode = createdOrders.find((order) => order.id === orderId)?.orderCode;
     expect(orderId).toBeTruthy();
     expect(orderCode).toBeTruthy();
     await orderLink.click();

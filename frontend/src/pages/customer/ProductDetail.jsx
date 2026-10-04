@@ -137,7 +137,7 @@ function ProductDetail() {
       <section><h2>{copy.information}</h2><dl className="grid gap-3 text-[15px] [&>div]:grid [&_dt]:text-sm [&_dt]:text-[var(--kucur-text-muted)] [&_dd]:m-0 [&_dd]:break-words [&_dd]:font-semibold"><div><dt>{copy.category}</dt><dd>{product.category}</dd></div><div><dt>{copy.sellerLocation}</dt><dd>{store?.location?.address || store?.address || t("merchantOrderDetail.unavailableValue")}</dd></div></dl></section>
       <section className="lg:col-span-2" id="product-reviews"><h2>{copy.reviews}</h2><ReviewList reviews={reviews ?? []}/></section>
     </div>
-    <div className="sticky bottom-[calc(60px+env(safe-area-inset-bottom))] z-20 -mx-4 border-t border-[var(--kucur-border)] bg-[var(--kucur-surface)] px-4 py-3 md:bottom-0 lg:hidden">{purchaseActions}</div>
+    <div className="sticky bottom-[calc(66px+env(safe-area-inset-bottom))] z-20 -mx-4 border-t border-[var(--kucur-border)] bg-[var(--kucur-surface)] px-4 py-3 md:bottom-0 lg:hidden">{purchaseActions}</div>
   </PageContainer>;
 }
 
