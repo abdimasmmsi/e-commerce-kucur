@@ -55,6 +55,8 @@ test.describe.serial("canonical cross-role commerce", () => {
     const merchantOrder = merchant.getByRole("link").filter({ hasText: orderCode });
     await expect(merchantOrder).toBeVisible();
     await merchantOrder.click();
+    await expect(merchant).toHaveURL(/\/orders\/[^/]+$/);
+    await expect(merchant.getByRole("heading", { level: 1, name: /^(Pesanan|Order) #/ })).toBeVisible();
     for (const action of [/Konfirmasi Pesanan/i, /Mulai Proses/i, /Siap Diambil Kurir/i]) {
       await merchant.getByRole("button", { name: action }).click();
       await merchant.getByRole("dialog").getByRole("button", { name: /Ya, Lanjutkan/i }).click();

@@ -1,25 +1,37 @@
 import { useEffect, useState } from "react";
 import { Link, useParams } from "react-router-dom";
-import {
-  merchantTransitions,
-  orderService,
-} from "../../services/orderService";
+import { merchantTransitions, orderService } from "../../services/orderService";
 import { canonicalStoreId } from "../../services/legacyStoreReferences";
+import ProductImage from "../../components/ProductImage";
 import TransactionAttachmentImage from "../../components/TransactionAttachmentImage";
 import ActionDialog from "../../components/ui/ActionDialog";
 import Button from "../../components/ui/Button";
+import DetailSection from "../../components/ui/DetailSection";
 import EmptyState from "../../components/ui/EmptyState";
 import LoadingPanel from "../../components/ui/LoadingPanel";
 import PageContainer from "../../components/ui/PageContainer";
-import PageHeader from "../../components/ui/PageHeader";
 import StatusBadge from "../../components/ui/StatusBadge";
 import StatusTimeline from "../../components/ui/StatusTimeline";
 import { usePreferences } from "../../context/PreferencesContext";
+import { shortOrderCode } from "../../utils/orderCode";
 
-const lifecycleStatuses = ["pending", "confirmed", "processing", "ready-for-pickup", "courier-assigned", "picked-up", "on-delivery", "delivered", "completed"];
+// Tahap timeline (5) dari sudut pandang lapak.
+const stages = { pending: 0, confirmed: 1, processing: 1, "ready-for-pickup": 2, "courier-assigned": 2, "picked-up": 3, "on-delivery": 3, delivered: 4, completed: 4, cancelled: 0, failed: 3 };
+const actionKeys = { confirmed: ["actionConfirmed", "confirmConfirmed"], processing: ["actionProcessing", "confirmProcessing"], "ready-for-pickup": ["actionReady", "confirmReady"] };
 
 function OrderDetailWorkspace({ storeId, orderId }) {
-  const { formatCurrency, formatDate, statusLabel, t } = usePreferences();
+  const { formatCurrency, formatDate, language, statusLabel, t } = usePreferences();
+  const copy = language === "id" ? {
+    back: "Pesanan", title: "Pesanan {code}", steps: ["Masuk", "Dikemas", "Siap diambil", "Diantar", "Sampai"],
+    next: { pending: "Pesanan baru. Terima supaya pembeli tahu pesanannya diproses.", confirmed: "Pesanan diterima. Mulai siapkan barangnya.", processing: "Sedang dikemas. Tandai siap kalau barang sudah lengkap.", "ready-for-pickup": "Barang siap. Kurir akan mengambil sesuai jadwal pengiriman.", "courier-assigned": "Kurir sudah ditugaskan untuk mengambil barang.", "picked-up": "Barang sudah diambil kurir.", "on-delivery": "Sedang diantar ke pembeli.", delivered: "Pesanan sudah sampai ke pembeli.", completed: "Pesanan selesai.", cancelled: "Pesanan dibatalkan.", failed: "Pengiriman gagal." },
+    prepare: "Barang yang disiapkan", quantity: "{count} × {price}", receive: "Kamu menerima {amount} dari kurir saat barang diambil.", receiveDone: "Harga barang {amount} sudah dibayar kurir.", money: "Uang",
+    history: "Riwayat status", buyer: "Pembeli",
+  } : {
+    back: "Orders", title: "Order {code}", steps: ["New", "Packing", "Ready", "On the way", "Arrived"],
+    next: { pending: "New order. Accept it so the buyer knows it is being prepared.", confirmed: "Order accepted. Start preparing the items.", processing: "Packing in progress. Mark it ready when everything is complete.", "ready-for-pickup": "Ready. The courier will pick it up on the delivery schedule.", "courier-assigned": "A courier has been assigned to pick it up.", "picked-up": "The courier has picked up the items.", "on-delivery": "On the way to the buyer.", delivered: "The order reached the buyer.", completed: "Order completed.", cancelled: "Order cancelled.", failed: "Delivery failed." },
+    prepare: "Items to prepare", quantity: "{count} × {price}", receive: "You receive {amount} from the courier at pickup.", receiveDone: "The courier has paid {amount} for the items.", money: "Money",
+    history: "Status history", buyer: "Buyer",
+  };
   const [order, setOrder] = useState(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState("");
@@ -42,156 +54,82 @@ function OrderDetailWorkspace({ storeId, orderId }) {
   };
 
   if (loading) return <PageContainer><LoadingPanel label={t("merchantOrderDetail.loading")} rows={5} /></PageContainer>;
+  if (!order) return <PageContainer><EmptyState title={t("merchantOrderDetail.notFound")} description={error || t("merchantOrderDetail.notFoundHint")} action={<Button as={Link} variant="secondary" to={`/merchant/stores/${storeId}/orders`}>{t("merchantOrderDetail.backOrders")}</Button>} /></PageContainer>;
 
-  if (!order) {
-    return <PageContainer><EmptyState title={t("merchantOrderDetail.notFound")} description={error || t("merchantOrderDetail.notFoundHint")} action={<Button as={Link} variant="secondary" to={`/merchant/stores/${storeId}/orders`}>{t("merchantOrderDetail.backOrders")}</Button>} /></PageContainer>;
-  }
-
-  const currentIndex = Math.max(0, lifecycleStatuses.indexOf(order.status));
-  const timelineSteps = lifecycleStatuses.map((status) => ({ key: status, label: statusLabel(status) }));
+  const code = order.orderNumber ?? order.orderCode;
   const exceptional = ["cancelled", "failed"].includes(order.status);
+  const finished = ["delivered", "completed"].includes(order.status);
+  const waitingPayment = nextStatus && order.paymentMethod === "MIDTRANS" && order.paymentStatus !== "paid";
+  const pickedUp = ["picked-up", "on-delivery", "delivered", "completed"].includes(order.status);
+  const assignment = order.deliveryBatchOrders?.[0];
+  const breakdown = [[t("merchantOrderDetail.productTotal"), order.productTotal], ...(order.taxAmount > 0 ? [[t("merchantOrderDetail.tax", { percent: order.taxPercent }), order.taxAmount]] : []), [t("merchantOrderDetail.deliveryFee"), order.deliveryFee], ...(order.courierTip > 0 ? [[t("merchantOrderDetail.courierTip"), order.courierTip]] : []), [t("merchantOrderDetail.codTotal"), order.totalAmount]];
 
-  return (
-    <>
-    <PageContainer className="space-y-5 [&_h2]:text-lg [&_h2]:font-semibold [&_section]:min-w-0 [&_section]:rounded-kucur-card [&_section]:border [&_section]:border-[var(--kucur-border)] [&_section]:bg-[var(--kucur-surface)] [&_section]:p-4 sm:[&_section]:p-5 [&_strong]:break-words [&_p]:break-words [&_textarea]:w-full [&_textarea]:rounded-kucur-control [&_textarea]:border [&_textarea]:border-[var(--kucur-border-strong)] [&_textarea]:bg-[var(--kucur-surface)] [&_textarea]:p-3">
-      <PageHeader eyebrow={t("merchantOrderDetail.eyebrow")} title={order.orderNumber} description={t("merchantOrderDetail.created", { date: formatDate(order.createdAt, { dateStyle: "long", timeStyle: "short" }) })} actions={<><StatusBadge status={order.status}/><Button as={Link} variant="secondary" to={`/merchant/stores/${storeId}/orders`}>{t("merchantOrderDetail.back")}</Button></>} />
-      {error && <section role="alert"><strong>{t("merchantOrderDetail.processFailed")}</strong><p>{error}</p></section>}
+  return <>
+    <PageContainer className="space-y-4">
+      <header className="grid gap-1">
+        <Link className="w-fit text-[15px] font-bold text-[var(--kucur-green-ink)] hover:underline" to={`/merchant/stores/${storeId}/orders`}>← {copy.back}</Link>
+        <h1 className="text-2xl font-extrabold text-[var(--kucur-text)] sm:text-3xl">{copy.title.replace("{code}", shortOrderCode(code))}</h1>
+        <p className="text-sm text-[var(--kucur-text-muted)]">{t("merchantOrderDetail.created", { date: formatDate(order.createdAt, { dateStyle: "medium", timeStyle: "short" }) })}</p>
+        <p className="break-all text-[13px] text-[var(--kucur-text-muted)]">{code}</p>
+      </header>
+      {error && <p className="rounded-xl border border-rose-300 bg-rose-50 p-4 text-[15px] text-rose-800 dark:border-rose-800 dark:bg-rose-950 dark:text-rose-200" role="alert"><strong className="block">{t("merchantOrderDetail.processFailed")}</strong>{error}</p>}
 
-      <section><div className="mb-4 flex flex-wrap items-center justify-between gap-3"><h2>{t("merchantOrderDetail.currentStatus")}</h2><StatusBadge status={order.status}/></div><StatusTimeline currentIndex={currentIndex} exception={exceptional} label={t("merchantOrderDetail.currentStatus")} steps={timelineSteps}/></section>
-
-      <div className="grid min-w-0 max-w-full items-start gap-5 lg:grid-cols-[minmax(0,1fr)_minmax(280px,.38fr)]">
-        <div className="min-w-0 max-w-full">
-          <section className="min-w-0 max-w-full grid gap-4">
-            <div>
-              <span>{t("merchantOrderDetail.currentStatus")}</span>
-              <StatusBadge status={order.status} />
-            </div>
-            <div>
-              <span>{t("merchantOrderDetail.orderNumber")}</span>
-              <strong>{order.orderNumber}</strong>
-            </div>
-            <div>
-              <span>{t("merchantOrderDetail.orderDate")}</span>
-              <strong>{formatDate(order.createdAt, { dateStyle: "long", timeStyle: "short" })}</strong>
-            </div>
-            <div>
-              <span>{t("merchantOrderDetail.paymentMethod")}</span>
-              <strong>{order.paymentMethod === "MIDTRANS" ? t("merchantOrderDetail.onlinePayment") : t("merchantOrderDetail.cod")}</strong>
-              <small>{order.paymentMethod === "MIDTRANS" ? statusLabel(order.paymentStatus) : t("merchantOrderDetail.paidOnReceipt")}</small>
-            </div>
+      <div className="grid min-w-0 items-start gap-4 lg:grid-cols-[minmax(0,1.5fr)_minmax(300px,.7fr)]">
+        <main className="grid min-w-0 gap-4">
+          <section className="grid min-w-0 gap-4 rounded-2xl border border-[var(--kucur-border)] bg-[var(--kucur-surface)] p-4 sm:p-5" aria-label={t("merchantOrderDetail.currentStatus")}>
+            <StatusBadge status={order.status} />
+            <p className="text-lg font-bold leading-snug">{copy.next[order.status] ?? statusLabel(order.status)}</p>
+            <StatusTimeline currentIndex={finished ? copy.steps.length : stages[order.status] ?? 0} exception={exceptional} label={t("merchantOrderDetail.currentStatus")} steps={copy.steps.map((label, index) => ({ key: index, label }))} />
+            {nextStatus && !waitingPayment && <Button className="w-full sm:w-auto" type="button" onClick={() => setConfirmationOpen(true)}>{t(`merchantOrderDetail.${actionKeys[nextStatus][0]}`)}</Button>}
+            {waitingPayment && <p className="rounded-xl bg-amber-50 p-3 text-[15px] text-amber-900 dark:bg-amber-950/50 dark:text-amber-200"><strong className="block">{t("merchantOrderDetail.waitingPayment")}</strong>{t("merchantOrderDetail.waitingPaymentHint")}</p>}
           </section>
 
-          <section className="min-w-0 max-w-full grid gap-4">
-            <h2>{t("merchantOrderDetail.customer")}</h2>
-            <div className="min-w-0 max-w-full">
-              <div>
-                <span>{t("merchantOrderDetail.customerName")}</span>
-                <strong>{order.recipientName ?? order.customerName}</strong>
-              </div>
-              <div><span>{t("merchantOrderDetail.phone")}</span><strong>{order.recipientPhone ?? order.customerPhone ?? t("merchantOrderDetail.unavailableValue")}</strong></div>
-              <div>
-                <span>{t("merchantOrderDetail.deliveryAddress")}</span>
-                <p>{order.deliveryAddress}</p>
-              </div>
-            </div>
+          <DetailSection title={copy.prepare}>
+            <div className="divide-y divide-[var(--kucur-border)]">{order.items.map((item) => <article className="grid min-w-0 grid-cols-[56px_minmax(0,1fr)_auto] items-center gap-3 py-3 first:pt-0 last:pb-0" key={`${item.productId}-${item.productName}`}>
+              <span className="block size-14 overflow-hidden rounded-xl bg-[var(--kucur-surface-elevated)] [&_img]:h-full [&_img]:w-full [&_img]:object-cover"><ProductImage product={{ name: item.productName, category: item.product?.category ?? item.productName }} image={item.imageUrl ? { url: item.imageUrl } : undefined} alt="" /></span>
+              <div className="min-w-0"><strong className="block break-words text-[15px]">{item.productName}</strong>{Object.keys(item.selectedOptions ?? {}).length > 0 && <span className="block text-sm text-[var(--kucur-text-muted)]">{Object.entries(item.selectedOptions).map(([name, value]) => `${name}: ${value}`).join(" · ")}</span>}<span className="text-sm text-[var(--kucur-text-muted)]">{copy.quantity.replace("{count}", item.quantity).replace("{price}", formatCurrency(item.unitPrice ?? item.price))}</span></div>
+              <span className="grid size-11 place-items-center rounded-xl bg-[var(--kucur-green-soft)] text-lg font-extrabold text-[var(--kucur-green-ink)]" aria-label={t("merchantOrderDetail.quantity")}>{item.quantity}</span>
+            </article>)}</div>
+          </DetailSection>
+
+          <DetailSection title={copy.buyer}>
+            <div className="grid gap-1 text-[15px]"><strong>{order.recipientName ?? order.customerName}</strong><span className="text-[var(--kucur-text-muted)]">{order.recipientPhone ?? order.customerPhone ?? t("merchantOrderDetail.unavailableValue")}</span><span className="leading-6">{order.deliveryAddress}</span></div>
+          </DetailSection>
+
+          {(order.deliveryProof ?? []).length > 0 && <DetailSection title={t("merchantOrderDetail.deliveryProof")}><div className="grid gap-4 sm:grid-cols-2">{order.deliveryProof.map((attachment) => <article key={attachment.id}><TransactionAttachmentImage attachment={attachment} /></article>)}</div></DetailSection>}
+
+          <details className="group rounded-2xl border border-[var(--kucur-border)] bg-[var(--kucur-surface)] p-4 sm:p-5">
+            <summary className="flex min-h-11 cursor-pointer list-none items-center justify-between gap-3 text-lg font-extrabold">{copy.history}<svg className="size-6 text-[var(--kucur-text-muted)] transition group-open:rotate-180" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true"><path d="m6 9 6 6 6-6"/></svg></summary>
+            <ol className="mt-3 grid">{order.statusHistory.map((history, index) => <li className="relative grid grid-cols-[20px_minmax(0,1fr)] gap-3 pb-5 last:pb-0" key={`${history.status}-${history.timestamp}-${index}`}><span className="relative z-10 mt-1 size-3 rounded-full bg-[var(--kucur-green)] ring-4 ring-[var(--kucur-green-soft)]" />{index < order.statusHistory.length - 1 && <i className="absolute bottom-0 left-[5px] top-4 w-px bg-[var(--kucur-border-strong)]" />}<div><strong className="text-[15px]">{statusLabel(history.status)}</strong><p className="text-sm text-[var(--kucur-text-muted)]">{[history.actorType && t(`role.${String(history.actorType).toLowerCase()}`), history.actorName, formatDate(history.timestamp, { dateStyle: "medium", timeStyle: "short" })].filter(Boolean).join(" · ")}</p></div></li>)}</ol>
+          </details>
+        </main>
+
+        <aside className="grid min-w-0 gap-4 lg:sticky lg:top-24">
+          <section className="grid gap-3 rounded-2xl border border-[var(--kucur-border)] bg-[var(--kucur-surface)] p-4 sm:p-5" aria-labelledby="merchant-order-money">
+            <h2 className="text-lg font-extrabold" id="merchant-order-money">{copy.money}</h2>
+            {order.status !== "cancelled" && <p className="rounded-xl bg-[var(--kucur-green-soft)] p-3 text-[15px] font-semibold">{(pickedUp ? copy.receiveDone : copy.receive).replace("{amount}", formatCurrency(order.productTotal))}</p>}
+            <dl className="grid gap-2 text-[15px]">{breakdown.map(([label, value], index) => <div className={`flex justify-between gap-3 ${index === breakdown.length - 1 ? "border-t border-[var(--kucur-border)] pt-2 font-bold" : ""}`} key={label}><dt className={index === breakdown.length - 1 ? "" : "text-[var(--kucur-text-muted)]"}>{label}</dt><dd className="font-semibold">{formatCurrency(Number(value || 0))}</dd></div>)}</dl>
           </section>
-
-          {(order.deliveryProof ?? []).length > 0 && <section className="min-w-0 max-w-full grid gap-4"><div><h2>{t("merchantOrderDetail.deliveryProof")}</h2><span>{t("merchantOrderDetail.photos", { count: order.deliveryProof.length })}</span></div><div className="min-w-0 max-w-full grid gap-4">{order.deliveryProof.map((attachment) => <article key={attachment.id}><TransactionAttachmentImage attachment={attachment} /></article>)}</div></section>}
-
-          <section className="min-w-0 max-w-full grid gap-4">
-            <h2>{t("merchantOrderDetail.items")}</h2>
-            <div className="min-w-0 max-w-full">
-              <div className="min-w-0 max-w-full" aria-hidden="true">
-                <span>{t("merchantOrderDetail.product")}</span><span>{t("merchantOrderDetail.quantity")}</span><span>{t("merchantOrderDetail.price")}</span><span>{t("merchantOrderDetail.subtotal")}</span>
-              </div>
-              {order.items.map((item) => (
-                <article className="min-w-0 max-w-full" key={`${item.productId}-${item.productName}`}>
-                  <strong>{item.productName}</strong>
-                  {Object.entries(item.selectedOptions ?? {}).map(([name, value]) => <small key={name}>{name}: {value}</small>)}
-                  <div><span>{t("merchantOrderDetail.quantity")}</span>{item.quantity}</div>
-                  <div><span>{t("merchantOrderDetail.price")}</span>{formatCurrency(item.unitPrice ?? item.price)}</div>
-                  <div><span>{t("merchantOrderDetail.subtotal")}</span><strong>{formatCurrency(item.subtotal)}</strong></div>
-                </article>
-              ))}
-            </div>
-          </section>
-
-          <section className="min-w-0 max-w-full grid gap-4">
-            <h2>{t("merchantOrderDetail.history")}</h2>
-            <div className="min-w-0 max-w-full">
-              {order.statusHistory.map((history, index) => (
-                <article className="grid min-w-0 grid-cols-[14px_minmax(0,1fr)] gap-3 border-l-2 border-emerald-200 pb-5 pl-3" key={`${history.status}-${history.timestamp}-${index}`}>
-                  <div className="min-w-0 max-w-full" />
-                  <div>
-                    <div className="min-w-0 max-w-full">
-                      <strong>{statusLabel(history.status)}</strong>
-                      <span>{t(`role.${String(history.actorType).toLowerCase()}`)}</span>
-                    </div>
-                    <p>{history.actorName}</p>
-                    <time>{formatDate(history.timestamp, { dateStyle: "long", timeStyle: "short" })}</time>
-                  </div>
-                </article>
-              ))}
-            </div>
-          </section>
-        </div>
-
-        <aside className="min-w-0 max-w-full">
-          <section className="min-w-0 max-w-full grid gap-4">
-            <h2>{t("merchantOrderDetail.paymentSummary")}</h2>
-            <dl className="min-w-0 max-w-full">
-              <div><dt>{t("merchantOrderDetail.productTotal")}</dt><dd>{formatCurrency(order.productTotal)}</dd></div>
-              {order.taxAmount > 0 && <div><dt>{t("merchantOrderDetail.tax", { percent: order.taxPercent })}</dt><dd>{formatCurrency(order.taxAmount)}</dd></div>}
-              <div><dt>{t("merchantOrderDetail.deliveryFee")}</dt><dd>{formatCurrency(order.deliveryFee)}</dd></div>
-              <div><dt>{t("merchantOrderDetail.courierTip")}</dt><dd>{formatCurrency(order.courierTip)}</dd></div>
-              <div className="min-w-0 max-w-full"><dt>{t("merchantOrderDetail.codTotal")}</dt><dd>{formatCurrency(order.totalAmount)}</dd></div>
+          {assignment && <section className="grid gap-3 rounded-2xl border border-[var(--kucur-border)] bg-[var(--kucur-surface)] p-4 sm:p-5" aria-labelledby="merchant-order-delivery">
+            <h2 className="text-lg font-extrabold" id="merchant-order-delivery">{t("merchantOrderDetail.delivery")}</h2>
+            <dl className="grid gap-2 text-[15px] [&>div]:flex [&>div]:justify-between [&>div]:gap-3 [&_dt]:text-[var(--kucur-text-muted)] [&_dd]:text-right [&_dd]:font-semibold">
+              <div><dt>{t("merchantOrderDetail.courier")}</dt><dd>{assignment.batch.courier?.fullName ?? t("merchantOrderDetail.unavailableValue")}</dd></div>
+              <div><dt>{t("merchantOrderDetail.schedule")}</dt><dd>{formatDate(assignment.batch.deliveryDate, { dateStyle: "medium" })}</dd></div>
+              <div><dt>{t("merchantOrderDetail.delivery")}</dt><dd>{statusLabel(assignment.status)}</dd></div>
+              <div><dt>{t("merchantOrderDetail.pickupReadiness")}</dt><dd>{order.pickupConfirmations?.[0]?.isReady ? t("merchantOrderDetail.ready") : t("merchantOrderDetail.unconfirmed")}</dd></div>
             </dl>
-          </section>
-
-          {order.deliveryBatchOrders?.[0] && (
-            <section className="min-w-0 max-w-full grid gap-4">
-              <h2>{t("merchantOrderDetail.delivery")}</h2>
-              <dl><div><dt>{t("merchantOrderDetail.courier")}</dt><dd>{order.deliveryBatchOrders[0].batch.courier?.fullName ?? t("merchantOrderDetail.unavailableValue")}</dd></div><div><dt>{t("merchantOrderDetail.batch")}</dt><dd>{statusLabel(order.deliveryBatchOrders[0].batch.status)}</dd></div><div><dt>{t("merchantOrderDetail.delivery")}</dt><dd className="font-bold text-emerald-700 dark:text-emerald-300">{statusLabel(order.deliveryBatchOrders[0].status)}</dd></div><div><dt>{t("merchantOrderDetail.schedule")}</dt><dd>{formatDate(order.deliveryBatchOrders[0].batch.deliveryDate, { dateStyle: "long", timeStyle: "short" })}</dd></div><div><dt>{t("merchantOrderDetail.pickupReadiness")}</dt><dd>{order.pickupConfirmations?.[0]?.isReady ? t("merchantOrderDetail.ready") : t("merchantOrderDetail.unconfirmed")}</dd></div></dl>
-            </section>
-          )}
-
-          {nextStatus && !(order.paymentMethod === "MIDTRANS" && order.paymentStatus !== "paid") && (
-            <section className="min-w-0 max-w-full grid gap-4">
-              <h2>{t("merchantOrderDetail.merchantAction")}</h2>
-              <p>{t("merchantOrderDetail.actionHint")}</p>
-              <Button type="button" onClick={() => setConfirmationOpen(true)}>
-                {t(nextStatus === "confirmed" ? "merchantOrderDetail.actionConfirmed" : nextStatus === "processing" ? "merchantOrderDetail.actionProcessing" : "merchantOrderDetail.actionReady")}
-              </Button>
-            </section>
-          )}
-
-          {nextStatus && order.paymentMethod === "MIDTRANS" && order.paymentStatus !== "paid" && <section className="min-w-0 max-w-full grid gap-4"><strong>{t("merchantOrderDetail.waitingPayment")}</strong><p>{t("merchantOrderDetail.waitingPaymentHint")}</p></section>}
-
-          {!nextStatus && (
-            <section className="min-w-0 max-w-full grid gap-4">
-              <strong>{t("merchantOrderDetail.noAction")}</strong>
-              <p>{t("merchantOrderDetail.noActionHint")}</p>
-            </section>
-          )}
+          </section>}
         </aside>
       </div>
-
     </PageContainer>
-    <ActionDialog open={confirmationOpen} busy={transitioning} title={t(nextStatus === "confirmed" ? "merchantOrderDetail.confirmConfirmed" : nextStatus === "processing" ? "merchantOrderDetail.confirmProcessing" : "merchantOrderDetail.confirmReady")} description={t("merchantOrderDetail.irreversible")} cancelLabel={t("merchantOrderDetail.cancel")} confirmLabel={transitioning ? t("merchantOrderDetail.processing") : t("merchantOrderDetail.continue")} onCancel={() => setConfirmationOpen(false)} onConfirm={handleTransition} />
-    </>
-  );
+    <ActionDialog open={confirmationOpen} busy={transitioning} title={nextStatus ? t(`merchantOrderDetail.${actionKeys[nextStatus][1]}`) : ""} description={t("merchantOrderDetail.irreversible")} cancelLabel={t("merchantOrderDetail.cancel")} confirmLabel={transitioning ? t("merchantOrderDetail.processing") : t("merchantOrderDetail.continue")} onCancel={() => setConfirmationOpen(false)} onConfirm={handleTransition} />
+  </>;
 }
 
 function OrderDetail() {
   const { storeId, orderId } = useParams();
   const resolvedStoreId = canonicalStoreId(storeId);
-  return (
-    <OrderDetailWorkspace
-      key={`${resolvedStoreId}-${orderId}`}
-      storeId={resolvedStoreId}
-      orderId={orderId}
-    />
-  );
+  return <OrderDetailWorkspace key={`${resolvedStoreId}-${orderId}`} storeId={resolvedStoreId} orderId={orderId} />;
 }
 
 export default OrderDetail;
