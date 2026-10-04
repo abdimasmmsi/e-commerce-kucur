@@ -261,11 +261,9 @@ async function main() {
     const courierKey = dayIndex % 2 === 0 ? "courier" : "courier2";
     const deliveryDate = delivery.resolveDeliveryDate(new Date(wib(daysAgo, 8)), "16:00");
     const batch = await at(wib(daysAgo, 16, 5), () => delivery.createBatch({ courierUserId: users[courierKey].id, deliveryDate, commerceOrderIds: shipping.map((row) => row.order.id) }, admin));
+    for (const [i, row] of shipping.entries()) await at(wib(daysAgo, 16, 30 + i), () => delivery.confirmReady(row.order.id, { isReady: true, note: "Barang sudah dikemas." }, row.merchant));
     await at(wib(daysAgo, 17), () => delivery.startBatch(batch.id, courierActor(courierKey)));
-    for (const [i, row] of shipping.entries()) {
-      await at(wib(daysAgo, 16, 30 + i), () => delivery.confirmReady(row.order.id, { isReady: true, note: "Barang sudah dikemas." }, row.merchant));
-      await at(wib(daysAgo, 17, 5 + i * 5), () => delivery.pickup(row.order.id, { note: "Diambil di lapak." }, courierActor(courierKey)));
-    }
+    for (const [i, row] of shipping.entries()) await at(wib(daysAgo, 17, 5 + i * 5), () => delivery.pickup(row.order.id, { note: "Diambil di lapak." }, courierActor(courierKey)));
     for (const [i, row] of shipping.entries()) {
       await at(wib(daysAgo, 17, 30 + i * 2), () => delivery.outForDelivery(row.order.id, {}, courierActor(courierKey)));
       if (row.fate === "delivery") continue;
