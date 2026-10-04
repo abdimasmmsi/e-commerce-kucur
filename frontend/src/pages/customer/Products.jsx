@@ -1,18 +1,15 @@
 import { useEffect, useMemo, useState } from "react";
-import { useNavigate, useSearchParams } from "react-router-dom";
+import { useSearchParams } from "react-router-dom";
 import ProductCard from "../../components/customer/ProductCard";
+import { productStockBadge } from "../../utils/productStock";
 import { CustomerEmpty, CustomerLoading, CustomerPage, CustomerPageHeader, CustomerPanel } from "../../components/customer/CustomerUI";
-import { useAuth } from "../../context/AuthContext";
 import { usePreferences } from "../../context/PreferencesContext";
-import { cartService } from "../../services/commerceService";
-import { getProductDisplayPrice, getProductTotalStock, productService } from "../../services/productService";
+import { getProductDisplayPrice, productService } from "../../services/productService";
 
 const controlClass = "min-h-11 w-full rounded-xl border border-[var(--kucur-border-strong)] bg-[var(--kucur-surface)] px-3 text-sm text-[var(--kucur-text)] outline-none transition focus:border-kucur-forest focus:ring-2 focus:ring-kucur-forest/15";
 
 function Products() {
-  const navigate = useNavigate();
   const [searchParams] = useSearchParams();
-  const { activeRole, isAuthenticated } = useAuth();
   const { formatCurrency, t } = usePreferences();
   const [products, setProducts] = useState([]);
   const [loading, setLoading] = useState(true);
@@ -23,7 +20,6 @@ function Products() {
   const [minimumPrice, setMinimumPrice] = useState("");
   const [maximumPrice, setMaximumPrice] = useState("");
   const [sort, setSort] = useState("Featured");
-  const [notice, setNotice] = useState("");
 
   useEffect(() => {
     let active = true;
@@ -61,18 +57,9 @@ function Products() {
     maximumPrice !== "" && { key: "maximum", label: `${t("catalogFilters.maximumPrice")}: ${formatCurrency(Number(maximumPrice))}`, clear: () => setMaximumPrice("") },
   ].filter(Boolean);
   const reset = () => { setSearch(""); setCategory("All"); setStoreId("All"); setMinimumPrice(""); setMaximumPrice(""); setSort("Featured"); };
-  const addToCart = async (product) => {
-    if (getProductTotalStock(product) <= 0) return setNotice(t("commerce.productOutOfStock", { name: product.name }));
-    if (product.hasVariants) return navigate(`/products/${product.id}`);
-    if (!isAuthenticated) return navigate("/login");
-    if (activeRole !== "customer") return navigate("/unauthorized");
-    try { await cartService.add({ productId: product.id, quantity: 1 }); setNotice(t("commerce.addedToCart", { name: product.name })); }
-    catch (cause) { setNotice(cause.message); }
-  };
 
   return <CustomerPage className="space-y-6 sm:space-y-8">
     <CustomerPageHeader eyebrow={t("customer.home.localProducts")} title={t("commerce.catalogTitle")} description={t("commerce.catalogDescription")} />
-    {notice && <p className="rounded-xl border border-emerald-300 bg-emerald-50 px-4 py-3 text-sm font-semibold text-emerald-900 dark:border-emerald-800 dark:bg-emerald-950 dark:text-emerald-100" role="status">{notice}</p>}
     {!loading && error && <p className="rounded-xl border border-rose-300 bg-rose-50 px-4 py-3 text-sm font-semibold text-rose-900 dark:border-rose-800 dark:bg-rose-950 dark:text-rose-100" role="alert">{t("commerce.loadError", { message: error })}</p>}
 
     <CustomerPanel className="p-3 sm:p-4">
@@ -88,7 +75,7 @@ function Products() {
       <div className="mt-4 flex min-w-0 flex-wrap items-center justify-between gap-3 border-t border-[var(--kucur-border)] pt-4"><p className="text-sm font-semibold text-[var(--kucur-text-muted)]" aria-live="polite">{t("catalogFilters.results", { count: rows.length })}</p>{chips.length > 0 && <div className="flex min-w-0 flex-wrap gap-2">{chips.map((chip) => <button className="inline-flex max-w-full items-center gap-2 rounded-full bg-kucur-sand px-3 py-1.5 text-xs font-bold text-kucur-forest" type="button" onClick={chip.clear} key={chip.key}><span className="truncate">{chip.label}</span><b aria-hidden="true">{"\u00d7"}</b></button>)}</div>}</div>
     </CustomerPanel>
 
-    {loading ? <CustomerLoading label={t("commerce.loadingProducts")} count={8}/> : !error && rows.length ? <div className="grid grid-cols-2 gap-3 sm:gap-4 md:grid-cols-3 xl:grid-cols-4">{rows.map((product) => <ProductCard key={product.id} product={product} storeName={storeMap.get(String(product.storeId))?.name ?? t("commerce.store")} price={product.hasVariants ? t("commerce.startsFrom", { price: formatCurrency(getProductDisplayPrice(product)) }) : formatCurrency(product.price)} stockLabel={getProductTotalStock(product) > 0 ? t("commerce.stock", { count: getProductTotalStock(product) }) : t("commerce.outOfStock")} detailLabel={t("commerce.detail")} actionLabel={getProductTotalStock(product) > 0 ? (product.hasVariants ? t("commerce.selectVariant") : t("commerce.addCartShort")) : t("commerce.outOfStock")} onAction={addToCart} disabled={getProductTotalStock(product) <= 0}/>)}</div> : !error && <CustomerEmpty title={t("commerce.emptyProducts")} description={t("commerce.emptyProductsHint")}/>} 
+    {loading ? <CustomerLoading label={t("commerce.loadingProducts")} count={8}/> : !error && rows.length ? <div className="grid grid-cols-2 gap-3 sm:gap-4 md:grid-cols-3 xl:grid-cols-4">{rows.map((product) => <ProductCard key={product.id} product={product} storeName={storeMap.get(String(product.storeId))?.name ?? t("commerce.store")} price={product.hasVariants ? t("commerce.startsFrom", { price: formatCurrency(getProductDisplayPrice(product)) }) : formatCurrency(product.price)} {...productStockBadge(product, t)}/>)}</div> : !error && <CustomerEmpty title={t("commerce.emptyProducts")} description={t("commerce.emptyProductsHint")}/>} 
   </CustomerPage>;
 }
 

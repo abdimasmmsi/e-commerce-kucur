@@ -66,3 +66,27 @@ export const test = base.extend({
 });
 
 export { expect };
+
+// Bahasa & tema untuk pengguna login diubah di halaman Pengaturan akun (bukan di header).
+export async function setPreferences(page, { language, theme } = {}) {
+  const returnTo = page.url();
+  const html = page.locator("html");
+  if (!new URL(returnTo).pathname.startsWith("/settings")) await page.goto("/settings");
+  const rows = page.locator(".account-preference-row");
+  const change = async (trigger) => {
+    await Promise.all([
+      page.waitForResponse((response) => response.url().includes("/api/users/me/preferences") && response.request().method() === "PATCH"),
+      trigger.click(),
+    ]);
+    await expect(page.locator(".preference-transition-overlay")).toHaveCount(0);
+  };
+  if (language && await html.getAttribute("lang") !== language) {
+    await change(rows.getByRole("button", { name: language.toUpperCase(), exact: true }));
+    await expect(html).toHaveAttribute("lang", language);
+  }
+  if (theme && await html.getAttribute("data-theme") !== theme) {
+    await change(rows.locator(".theme-toggle"));
+    await expect(html).toHaveAttribute("data-theme", theme);
+  }
+  if (!new URL(returnTo).pathname.startsWith("/settings")) await page.goto(returnTo);
+}

@@ -37,13 +37,17 @@
   --ui-color-surface: var(--kucur-surface);
   --ui-color-soft: var(--kucur-bg);
   --ui-color-primary: var(--kucur-green);
+  /* Teks/ikon hijau di atas permukaan terang; --kucur-green dipakai untuk isi tombol. */
+  --kucur-green-ink: #1d7a12;
+  --kucur-font: "Plus Jakarta Sans", "Segoe UI Variable", "Segoe UI", system-ui, Arial, sans-serif;
 }
 
 html { color-scheme: light; background: var(--kucur-bg); }
 body, #root { background: var(--kucur-bg); color: var(--kucur-text); }
-body { font-family: "Segoe UI Variable", "Inter", "Segoe UI", Arial, sans-serif; }
+body { font-family: var(--kucur-font); font-size: 16px; line-height: 1.5; -webkit-text-size-adjust: 100%; }
+button, input, select, textarea { font-family: inherit; }
 h1, h2, h3, h4, strong { color: var(--kucur-text); }
-a:focus-visible, button:focus-visible, input:focus-visible, select:focus-visible, textarea:focus-visible { outline-color: rgb(63 211 36 / 32%); }
+a:focus-visible, button:focus-visible, input:focus-visible, select:focus-visible, textarea:focus-visible, summary:focus-visible { outline: 3px solid var(--kucur-green); outline-offset: 2px; }
 
 .card { border-color: var(--kucur-border); border-radius: var(--radius-card); background: var(--kucur-surface); box-shadow: var(--shadow-soft); }
 .card:hover { box-shadow: 0 5px 18px rgb(17 32 15 / 9%); }
@@ -119,7 +123,8 @@ label>span:first-child, .field-group label { color: #39483c; }
   --kucur-surface: #121810;
   --kucur-text: #f8fafc;
   --kucur-text-secondary: #d4ddd3;
-  --kucur-text-muted: #94a3b8;
+  --kucur-text-muted: #a9b6a7;
+  --kucur-green-ink: #6fe25a;
   --kucur-border: rgba(75,238,43,.18);
   --kucur-border-strong: rgba(75,238,43,.32);
   --kucur-green-soft: #1d3519;

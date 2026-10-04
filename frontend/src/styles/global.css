@@ -6,6 +6,7 @@
 @theme inline {
   --color-kucur-green: var(--kucur-green);
   --color-kucur-green-hover: var(--kucur-green-hover);
+  --color-kucur-green-ink: var(--kucur-green-ink);
   --color-kucur-navy: var(--kucur-navy);
   --color-kucur-bg: var(--kucur-bg);
   --color-kucur-surface: var(--kucur-surface);

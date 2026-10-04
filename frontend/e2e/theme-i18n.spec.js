@@ -1,4 +1,4 @@
-import { assertNoHorizontalOverflow, expect, loginThroughUi, qaScreenshot, test } from "./fixtures.js";
+import { assertNoHorizontalOverflow, expect, loginThroughUi, qaScreenshot, setPreferences, test } from "./fixtures.js";
 
 const roles = {
   customer: "/notifications",
@@ -12,14 +12,8 @@ for (const [role, route] of Object.entries(roles)) {
     await page.setViewportSize({ width: role === "courier" ? 360 : role === "merchant" ? 430 : 390, height: role === "courier" ? 800 : role === "merchant" ? 932 : 844 });
     await loginThroughUi(page, role);
     for (const [language, theme] of [["id", "light"], ["id", "dark"], ["en", "light"], ["en", "dark"]]) {
-      await page.goto("/profile");
-      if (await page.locator("html").getAttribute("lang") !== language) {
-        await page.getByRole("button", { name: language.toUpperCase(), exact: true }).click();
-        await expect(page.locator("html")).toHaveAttribute("lang", language);
-      }
-      if (await page.locator("html").getAttribute("data-theme") !== theme) {
-        await page.locator(".theme-toggle").click();
-      }
+      await page.goto("/settings");
+      await setPreferences(page, { language, theme });
       await expect(page.locator("html")).toHaveAttribute("lang", language);
       await expect(page.locator("html")).toHaveAttribute("data-theme", theme);
       await page.goto(route);
@@ -32,13 +26,8 @@ for (const [role, route] of Object.entries(roles)) {
 
     // Do not leave the shared QA account in the last matrix combination.
     // EN + light is the product default for a new/clean Kucur session.
-    await page.goto("/profile");
-    if (await page.locator("html").getAttribute("lang") !== "en") {
-      await page.getByRole("button", { name: "EN", exact: true }).click();
-    }
-    if (await page.locator("html").getAttribute("data-theme") !== "light") {
-      await page.locator(".theme-toggle").click();
-    }
+    await page.goto("/settings");
+    await setPreferences(page, { language: "en", theme: "light" });
     await expect(page.locator("html")).toHaveAttribute("lang", "en");
     await expect(page.locator("html")).toHaveAttribute("data-theme", "light");
     await page.reload();

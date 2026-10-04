@@ -1,4 +1,4 @@
-import { assertNoHorizontalOverflow, expect, loginThroughUi, qaScreenshot, test } from "./fixtures.js";
+import { assertNoHorizontalOverflow, expect, loginThroughUi, qaScreenshot, test, setPreferences } from "./fixtures.js";
 
 const viewports = [
   ["360", 360, 800],
@@ -11,22 +11,11 @@ const viewports = [
 ];
 
 async function setLanguage(page, language) {
-  if (await page.locator("html").getAttribute("lang") === language) return;
-  await Promise.all([
-    page.waitForResponse((response) => response.url().includes("/api/users/me/preferences") && response.request().method() === "PATCH"),
-    page.getByRole("button", { name: language.toUpperCase(), exact: true }).click(),
-  ]);
-  await expect(page.locator("html")).toHaveAttribute("lang", language);
+  await setPreferences(page, { language });
 }
 
 async function setTheme(page, theme) {
-  if (await page.locator("html").getAttribute("data-theme") === theme) return;
-  const buttonName = theme === "dark" ? /Dark mode|Mode gelap/i : /Light mode|Mode terang/i;
-  await Promise.all([
-    page.waitForResponse((response) => response.url().includes("/api/users/me/preferences") && response.request().method() === "PATCH"),
-    page.getByRole("button", { name: buttonName }).click(),
-  ]);
-  await expect(page.locator("html")).toHaveAttribute("data-theme", theme);
+  await setPreferences(page, { theme });
 }
 
 test("customer order history remains responsive and functional", async ({ qaPage: page }) => {

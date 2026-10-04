@@ -98,7 +98,7 @@ function AppHeader({ accountMode = false, workspaceRole = "" }) {
         : <nav className="app-nav-links" aria-label={t("header.primaryNavigation")}>{headerNavItems.map((item) => <NavLink key={item.key} to={item.to} end={item.end} onClick={enterCustomerContext}>{t(item.key)}</NavLink>)}</nav>}
       {!accountMode && <SearchForm className="customer-desktop-search" onSearch={submitSearch} query={search} setQuery={setSearch} t={t} />}
       <div className="customer-nav-utilities">
-        <PreferenceControls compact onLanguageChange={changeLanguage} onThemeChange={changeTheme} />
+        {!isAuthenticated && <PreferenceControls compact onLanguageChange={changeLanguage} onThemeChange={changeTheme} />}
         {notificationButton}
         {!accountMode && <CartShortcut label={t("header.cart")} />}
         {initialized && !isAuthenticated && <div className="guest-auth-actions"><Link to="/login">{t("header.login")}</Link><Link className="register-link" to="/register">{t("header.register")}</Link></div>}

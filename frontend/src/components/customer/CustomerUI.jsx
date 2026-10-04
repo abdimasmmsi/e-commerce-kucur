@@ -42,5 +42,5 @@ export function CustomerEmpty({ title, description, action }) {
 }
 
 export function CustomerLinkButton({ to, children, secondary = false, className = "" }) {
-  return <Link className={`inline-flex min-h-11 items-center justify-center rounded-xl px-4 py-2.5 text-sm font-bold transition focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 ${secondary ? "border border-[var(--kucur-border-strong)] bg-[var(--kucur-surface)] text-[var(--kucur-text)] hover:border-kucur-forest hover:text-kucur-forest" : "bg-kucur-forest !text-white hover:bg-kucur-forest-dark"} ${className}`} to={to}>{children}</Link>;
+  return <Link className={`inline-flex min-h-12 items-center justify-center rounded-xl border px-5 py-2.5 text-[15px] font-bold transition sm:min-h-11 ${secondary ? "border-[var(--kucur-border-strong)] bg-[var(--kucur-surface)] text-[var(--kucur-text)] hover:border-[var(--kucur-green)] hover:bg-[var(--kucur-green-soft)]" : "border-[var(--kucur-green)] bg-[var(--kucur-green)] !text-[var(--kucur-forest-dark)] hover:bg-[var(--kucur-green-hover)]"} ${className}`} to={to}>{children}</Link>;
 }

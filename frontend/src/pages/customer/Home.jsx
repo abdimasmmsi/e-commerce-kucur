@@ -1,6 +1,7 @@
 import { useEffect, useState } from "react";
 import { Link } from "react-router-dom";
 import ProductCard from "../../components/customer/ProductCard";
+import { productStockBadge } from "../../utils/productStock";
 import { CustomerEmpty, CustomerLinkButton, CustomerLoading, CustomerPage, CustomerPanel, CustomerSection } from "../../components/customer/CustomerUI";
 import { useAuth } from "../../context/AuthContext";
 import { usePreferences } from "../../context/PreferencesContext";
@@ -49,7 +50,7 @@ function Home() {
     </CustomerPanel>
 
     <CustomerSection title={text("selectedProducts")} description={t("commerce.catalogDescription")} action={<Link className="shrink-0 text-sm font-bold text-kucur-forest hover:underline dark:text-emerald-300" to="/products">{text("seeAll")} <span aria-hidden="true">→</span></Link>}>
-      {loading ? <CustomerLoading label={t("commerce.loadingProducts")} count={4} /> : error ? <CustomerEmpty title={t("commerce.loadError", { message: t("error.NETWORK_ERROR") })} description={t("commerce.emptyProductsHint")} /> : featured.length ? <div className="grid grid-cols-2 gap-3 sm:gap-4 md:grid-cols-3 xl:grid-cols-4">{featured.map((product) => <ProductCard key={product.id} product={product} storeName={product.store?.name ?? text("localStore")} price={formatCurrency(getProductDisplayPrice(product))} stockLabel={t("commerce.stock", { count: getProductTotalStock(product) })} detailLabel={text("details")}/>)}</div> : <CustomerEmpty title={text("noServices")} description={t("commerce.emptyProductsHint")} />}
+      {loading ? <CustomerLoading label={t("commerce.loadingProducts")} count={4} /> : error ? <CustomerEmpty title={t("commerce.loadError", { message: t("error.NETWORK_ERROR") })} description={t("commerce.emptyProductsHint")} /> : featured.length ? <div className="grid grid-cols-2 gap-3 sm:gap-4 md:grid-cols-3 xl:grid-cols-4">{featured.map((product) => <ProductCard key={product.id} product={product} storeName={product.store?.name ?? text("localStore")} price={formatCurrency(getProductDisplayPrice(product))} {...productStockBadge(product, t)}/>)}</div> : <CustomerEmpty title={text("noServices")} description={t("commerce.emptyProductsHint")} />}
     </CustomerSection>
 
     <CustomerPanel className="p-5 sm:p-6">

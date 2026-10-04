@@ -1,4 +1,4 @@
-import { expect, loginThroughUi, qaScreenshot, test } from "./fixtures.js";
+import { expect, loginThroughUi, qaScreenshot, test, setPreferences } from "./fixtures.js";
 
 test.describe.serial("canonical cross-role commerce", () => {
   test("Customer to Merchant to Admin to Courier to Customer, then Review", async ({ browser }) => {
@@ -14,11 +14,7 @@ test.describe.serial("canonical cross-role commerce", () => {
     const courier = await courierContext.newPage();
 
     await loginThroughUi(customer, "customer");
-    const idLanguage = customer.getByRole("button", { name: "ID", exact: true });
-    if (await idLanguage.isVisible()) {
-      await idLanguage.click();
-      await expect(customer.locator("html")).toHaveAttribute("lang", "id");
-    }
+    await setPreferences(customer, { language: "id" });
     await customer.goto("/cart");
     while (await customer.getByRole("button", { name: /Hapus|Remove/i }).count()) {
       await customer.getByRole("button", { name: /Hapus|Remove/i }).first().click();
@@ -26,7 +22,7 @@ test.describe.serial("canonical cross-role commerce", () => {
     await customer.goto("/products");
     const productName = "Madu Kucur QA B";
     const productCard = customer.locator("article").filter({ hasText: productName });
-    await productCard.getByRole("link", { name: /Detail/i }).click();
+    await productCard.getByRole("link", { name: productName }).click();
     await expect(customer.getByRole("heading", { name: productName })).toBeVisible();
     await customer.getByRole("button", { name: /Tambah.*Keranjang|Add.*Cart|\+\s*Cart|Keranjang/i }).first().click();
     await expect(customer.getByRole("status")).toContainText(/ditambahkan|added/i);

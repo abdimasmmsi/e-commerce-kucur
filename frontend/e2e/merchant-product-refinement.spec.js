@@ -1,4 +1,4 @@
-import { assertNoHorizontalOverflow, expect, loginThroughUi, qaScreenshot, test } from "./fixtures.js";
+import { assertNoHorizontalOverflow, expect, loginThroughUi, qaScreenshot, test, setPreferences } from "./fixtures.js";
 
 const storeId = "10000000-0000-4000-8000-000000000001";
 const productId = "20000000-0000-4000-8000-000000000001";
@@ -89,13 +89,8 @@ test("merchant edit product remains readable in ID/EN and light/dark", async ({ 
   await openEditProduct(page);
 
   for (const language of ["id", "en"]) {
-    if (await page.locator("html").getAttribute("lang") !== language) {
-      await page.getByRole("button", { name: language.toUpperCase(), exact: true }).click();
-    }
     for (const theme of ["light", "dark"]) {
-      if (await page.locator("html").getAttribute("data-theme") !== theme) {
-        await page.locator(".theme-toggle").click();
-      }
+      await setPreferences(page, { language, theme });
       await expect(page.locator("html")).toHaveAttribute("lang", language);
       await expect(page.locator("html")).toHaveAttribute("data-theme", theme);
       await expect(page.locator(".merchant-edit-product__section").first()).toBeVisible();
@@ -103,12 +98,7 @@ test("merchant edit product remains readable in ID/EN and light/dark", async ({ 
     }
   }
 
-  if (await page.locator("html").getAttribute("lang") !== "en") {
-    await page.getByRole("button", { name: "EN", exact: true }).click();
-  }
-  if (await page.locator("html").getAttribute("data-theme") !== "light") {
-    await page.locator(".theme-toggle").click();
-  }
+  await setPreferences(page, { language: "en", theme: "light" });
   await expect(page.locator("html")).toHaveAttribute("lang", "en");
   await expect(page.locator("html")).toHaveAttribute("data-theme", "light");
 });
