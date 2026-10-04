@@ -27,18 +27,17 @@ test("customer order history remains responsive and functional", async ({ qaPage
     await page.setViewportSize({ width, height });
     await page.goto("/orders");
     await expect(page.getByRole("heading", { level: 1, name: "Pesanan Saya" })).toBeVisible();
-    await expect(page.getByLabel("Status")).toBeVisible();
+    await expect(page.getByRole("tablist")).toBeVisible();
     await expect(page.locator('section[aria-live="polite"] article').first()).toBeVisible();
     await assertNoHorizontalOverflow(page);
     await qaScreenshot(page, "customer/orders", `orders-${label}-id-light`);
   }
 
-  await page.getByLabel("Status").selectOption("completed");
+  await page.getByRole("tab", { name: /^Selesai/ }).click();
   const completedCards = page.locator('section[aria-live="polite"] article');
   await expect(completedCards.first()).toContainText("Selesai");
   for (let index = 0; index < await completedCards.count(); index += 1) await expect(completedCards.nth(index)).toContainText("Selesai");
 
-  await page.getByLabel("Status").selectOption("all");
   const detailLink = page.locator('a[href^="/orders/"]').first();
   const href = await detailLink.getAttribute("href");
   await detailLink.click();
