@@ -102,7 +102,7 @@ Catatan desain: gambar/opsi produk disimpan JSON; reservasi stok di `CommerceOrd
 - **Feature freeze diberlakukan**: hanya boleh perbaikan blocking bug; tidak ada fitur baru, perubahan schema, atau refactor besar.
 - Polish halaman detail dan modal **selesai** (dicek 2026-10-04): komponen bersama `DetailSection`, `StatusTimeline`, `ActionDialog` di `frontend/src/components/ui/`, dicover `e2e/detail-polish.spec.js`.
 - `prisma/seed.js` mayoritas menulis ke tabel **legacy**; runtime membaca tabel final (`Target*`). Fixture e2e yang perlu di-reset harus di-update juga di tabel final.
-- Order COD yang selesai lewat kurir tetap `paymentStatus=PENDING` (belum ada kode yang menandai PAID) **[VERIFIKASI keputusan Steven]**.
+- COD otomatis lunas saat kurir upload bukti antar: order `paymentStatus=PAID`, `PaymentAttempt` COD `PAID` + `paidAt`, `completedAt` diisi (disetujui Steven 2026-10-04).
 - Sisa tugas berurutan:
   1. Selesaikan polish detail page dan modal.
   2. Bersihkan demo data.

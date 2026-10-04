@@ -57,12 +57,13 @@ async function fixture(tx, suffix = randomUUID()) {
   return { customerId, merchantId, otherMerchantId, courierId, otherCourierId, adminId, storeId };
 }
 
-async function createOrder(tx, f, status = "PROCESSING") {
+async function createOrder(tx, f, status = "PROCESSING", { cod = false } = {}) {
   return tx.targetCommerceOrder.create({ data: {
     id: randomUUID(), checkoutGroupId: randomUUID(), checkoutIdempotencyKey: randomUUID(),
     storeId: f.storeId, customerUserId: f.customerId, orderCode: `DEL-${randomUUID()}`,
-    fulfillmentStatus: status, paymentStatus: "PAID", subtotal: 1000, deliveryFee: 1000,
+    fulfillmentStatus: status, paymentStatus: cod ? "PENDING" : "PAID", subtotal: 1000, deliveryFee: 1000,
     grandTotal: 2000, recipientName: "QA", recipientPhone: "0800", deliveryAddress: "QA",
+    ...(cod ? { paymentAttempts: { create: { id: randomUUID(), provider: "COD", method: "COD", amount: 2000 } } } : {}),
   } });
 }
 
@@ -80,7 +81,7 @@ test("final Delivery profile role and availability history use CourierProfile on
 
 test("final Delivery service completes readiness, pickup, proof, history, and batch", async () => rollback(async (service, repository, tx) => {
   const f = await fixture(tx);
-  const order = await createOrder(tx, f);
+  const order = await createOrder(tx, f, "PROCESSING", { cod: true });
   const deliveryDate = service.resolveDeliveryDate(order.createdAt, "23:59");
   const batch = await service.createBatch({ courierUserId: f.courierId, deliveryDate, commerceOrderIds: [order.id] }, { id: f.adminId, roles: ["admin"] });
   assert.equal(batch.orders.length, 1);
@@ -101,7 +102,12 @@ test("final Delivery service completes readiness, pickup, proof, history, and ba
   assert.equal((await service.proof(order.id, { photoUrl: "https://qa.invalid/other.jpg" }, { id: f.courierId })).id, proof.id);
   const assignment = await repository.delivery.latestAssignment(order.id);
   assert.equal(assignment.status, "DELIVERED");
-  assert.ok((await repository.commerce.findOrder(order.id)).completedAt, "order selesai wajib punya completedAt");
+  const finished = await repository.commerce.findOrder(order.id);
+  assert.ok(finished.completedAt, "order selesai wajib punya completedAt");
+  assert.equal(finished.paymentStatus, "paid", "COD lunas saat kurir menyerahkan barang");
+  const attempt = await tx.targetPaymentAttempt.findFirst({ where: { commerceOrderId: order.id } });
+  assert.equal(attempt.status, "PAID");
+  assert.ok(attempt.paidAt);
   assert.deepEqual((await repository.delivery.activities(order.id)).map((entry) => entry.status), ["BATCHED", "READY", "PICKED_UP", "OUT_FOR_DELIVERY", "DELIVERED"]);
   const completed = await service.completeBatch(batch.id, { id: f.courierId, roles: ["courier"] });
   assert.equal(completed.status, "COMPLETED");
