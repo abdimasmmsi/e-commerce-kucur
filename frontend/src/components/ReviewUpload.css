@@ -10,7 +10,7 @@
 }
 
 .review-upload > div { display: flex; flex-wrap: wrap; gap: 0.45rem; align-items: center; }
-.review-upload > div span { padding: 0.15rem 0.45rem; border-radius: 999px; background: var(--kucur-green-soft); color: var(--kucur-forest); font-size: 0.72rem; font-weight: 700; }
+.review-upload > div span { padding: 0.15rem 0.45rem; border-radius: 999px; background: var(--kucur-green-soft); color: var(--kucur-green-ink); font-size: 0.72rem; font-weight: 700; }
 .review-upload-button { display: inline-flex !important; min-height: 2.6rem; align-items: center; justify-content: center !important; padding: 0.55rem 0.9rem; border: 1px solid var(--kucur-border-strong); border-radius: var(--radius-control); background: var(--kucur-surface); color: var(--kucur-text) !important; cursor: pointer; }
 .review-upload > small { grid-column: 1 / -1; color: var(--kucur-text-muted); }
 
