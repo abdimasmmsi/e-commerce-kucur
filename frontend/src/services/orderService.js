@@ -17,6 +17,8 @@ export const normalizeOrder = (order) => ({
   storeName: order.storeName ?? order.store?.name,
   customerName: order.customerName ?? order.customer?.fullName ?? order.recipientName ?? "-",
   productTotal: Number(order.productTotal ?? order.subtotal ?? 0),
+  taxPercent: Number(order.taxPercentSnapshot ?? order.taxPercent ?? 0),
+  taxAmount: Number(order.taxAmount ?? 0),
   deliveryFee: Number(order.deliveryFee ?? 0),
   courierTip: Number(order.courierTip ?? 0),
   totalAmount: Number(order.totalAmount ?? order.total ?? 0),

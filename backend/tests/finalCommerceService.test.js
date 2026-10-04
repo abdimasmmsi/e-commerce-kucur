@@ -43,6 +43,17 @@ test("final commerce service creates multi-Store checkout and preserves idempote
   assert.equal(await tx.targetCommerceOrder.count({ where: { customerUserId: fixture.actor.id, checkoutIdempotencyKey: key } }), 2);
 }));
 
+test("final checkout snapshots global PPN per order and includes it in the COD total", async () => withRollback(async (repo, tx) => {
+  const fixture = await commerceFixture(tx); const service = createCommerceService(repo);
+  await tx.targetPlatformSettings.updateMany({ data: { taxPercent: 11 } });
+  const { orders: [order] } = await service.create(inputFor([fixture.products[0]]), fixture.actor, `qa-${randomUUID()}`);
+  assert.equal(order.taxPercentSnapshot, 11);
+  assert.equal(order.taxAmount, 1100);
+  assert.equal(order.grandTotal, order.productTotal + order.taxAmount + order.deliveryFee + order.courierTip);
+  const attempt = await tx.targetPaymentAttempt.findFirst({ where: { commerceOrderId: order.id } });
+  assert.equal(Number(attempt.amount), order.grandTotal);
+}));
+
 test("final commerce cancellation releases stock and appends deterministic history", async () => withRollback(async (repo, tx) => {
   const fixture = await commerceFixture(tx); const service = createCommerceService(repo);
   const created = await service.create(inputFor([fixture.products[0]]), fixture.actor, `qa-${randomUUID()}`);

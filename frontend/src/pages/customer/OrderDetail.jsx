@@ -38,7 +38,7 @@ export default function OrderDetail() {
     delivery: "Pengiriman", orderStatus: "Status pesanan", deliveryStatus: "Status pengiriman", schedule: "Jadwal", courier: "Kurir", noBatch: "Pesanan belum dijadwalkan ke batch pengiriman.",
     proof: "Bukti pengiriman", proofAlt: "Bukti pesanan telah diterima", received: "Diterima", by: "oleh",
     activity: "Riwayat aktivitas", noActivity: "Belum ada aktivitas pengiriman.",
-    reviews: "Ulasan produk", summary: "Ringkasan pembayaran", productTotal: "Total produk", shipping: "Ongkir", tip: "Tip kurir", total: "Total",
+    reviews: "Ulasan produk", summary: "Ringkasan pembayaran", productTotal: "Total produk", tax: "PPN", shipping: "Ongkir", tip: "Tip kurir", total: "Total",
     chat: "Chat penjual", cancel: "Batalkan pesanan", cancelTitle: "Batalkan pesanan?", cancelDescription: "Pesanan yang dibatalkan tidak dapat dilanjutkan kembali.", reason: "Alasan pembatalan", reasonPlaceholder: "Jelaskan alasan pembatalan", keep: "Kembali", cancelling: "Membatalkan...",
   } : {
     eyebrow: "Order details",
@@ -55,7 +55,7 @@ export default function OrderDetail() {
     delivery: "Delivery", orderStatus: "Order status", deliveryStatus: "Delivery status", schedule: "Schedule", courier: "Courier", noBatch: "This order has not been scheduled into a delivery batch.",
     proof: "Delivery proof", proofAlt: "Proof that the order was received", received: "Received", by: "by",
     activity: "Activity history", noActivity: "No delivery activity yet.",
-    reviews: "Product reviews", summary: "Payment summary", productTotal: "Product total", shipping: "Delivery fee", tip: "Courier tip", total: "Total",
+    reviews: "Product reviews", summary: "Payment summary", productTotal: "Product total", tax: "VAT", shipping: "Delivery fee", tip: "Courier tip", total: "Total",
     chat: "Chat with seller", cancel: "Cancel order", cancelTitle: "Cancel this order?", cancelDescription: "A cancelled order cannot be resumed.", reason: "Cancellation reason", reasonPlaceholder: "Explain why you are cancelling", keep: "Keep order", cancelling: "Cancelling...",
   };
 
@@ -144,7 +144,7 @@ export default function OrderDetail() {
       </main>
 
       <DetailSection title={copy.summary} className="lg:sticky lg:top-24">
-        <dl className="grid gap-3 text-sm">{[[copy.productTotal, order.productTotal], [copy.shipping, order.deliveryFee], [copy.tip, order.courierTip]].map(([label, value]) => <div className="flex justify-between gap-3" key={label}><dt className="text-[var(--kucur-muted)]">{label}</dt><dd className="font-medium text-kucur-ink">{formatCurrency(Number(value || 0))}</dd></div>)}<div className="mt-1 flex justify-between gap-3 border-t border-[var(--kucur-border)] pt-4 text-base"><dt className="font-semibold text-kucur-ink">{copy.total}</dt><dd className="font-bold text-kucur-ink">{formatCurrency(Number(order.totalAmount || 0))}</dd></div></dl>
+        <dl className="grid gap-3 text-sm">{[[copy.productTotal, order.productTotal], ...(order.taxAmount > 0 ? [[`${copy.tax} (${order.taxPercent}%)`, order.taxAmount]] : []), [copy.shipping, order.deliveryFee], [copy.tip, order.courierTip]].map(([label, value]) => <div className="flex justify-between gap-3" key={label}><dt className="text-[var(--kucur-muted)]">{label}</dt><dd className="font-medium text-kucur-ink">{formatCurrency(Number(value || 0))}</dd></div>)}<div className="mt-1 flex justify-between gap-3 border-t border-[var(--kucur-border)] pt-4 text-base"><dt className="font-semibold text-kucur-ink">{copy.total}</dt><dd className="font-bold text-kucur-ink">{formatCurrency(Number(order.totalAmount || 0))}</dd></div></dl>
         <div className="mt-5 grid gap-2"><Button onClick={chat}>{copy.chat}</Button>{cancellable.includes(order.fulfillmentStatus) && <Button variant="danger" onClick={() => setCancelOpen(true)}>{copy.cancel}</Button>}</div>
       </DetailSection>
     </div>

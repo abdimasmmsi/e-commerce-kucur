@@ -141,6 +141,7 @@ function OrderDetailWorkspace({ storeId, orderId }) {
             <h2>{t("merchantOrderDetail.paymentSummary")}</h2>
             <dl className="min-w-0 max-w-full">
               <div><dt>{t("merchantOrderDetail.productTotal")}</dt><dd>{formatCurrency(order.productTotal)}</dd></div>
+              {order.taxAmount > 0 && <div><dt>{t("merchantOrderDetail.tax", { percent: order.taxPercent })}</dt><dd>{formatCurrency(order.taxAmount)}</dd></div>}
               <div><dt>{t("merchantOrderDetail.deliveryFee")}</dt><dd>{formatCurrency(order.deliveryFee)}</dd></div>
               <div><dt>{t("merchantOrderDetail.courierTip")}</dt><dd>{formatCurrency(order.courierTip)}</dd></div>
               <div className="min-w-0 max-w-full"><dt>{t("merchantOrderDetail.codTotal")}</dt><dd>{formatCurrency(order.totalAmount)}</dd></div>

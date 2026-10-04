@@ -103,7 +103,7 @@ Catatan desain: gambar/opsi produk disimpan JSON; reservasi stok di `CommerceOrd
 - Polish halaman detail dan modal **selesai** (dicek 2026-10-04): komponen bersama `DetailSection`, `StatusTimeline`, `ActionDialog` di `frontend/src/components/ui/`, dicover `e2e/detail-polish.spec.js`.
 - `prisma/seed.js` mayoritas menulis ke tabel **legacy**; runtime membaca tabel final (`Target*`). Fixture e2e yang perlu di-reset harus di-update juga di tabel final.
 - **Database demo terpisah `kucur_demo`** (untuk screenshot jurnal & demo TA; `kucur` tetap untuk e2e). Isi via `prisma/seed-demo.js` (5 lapak aktif + 1 pengajuan pending, 17 produk tanpa foto, ~33 order 4 minggu terakhir lewat service asli, batch harian, ulasan, iuran, chat). Akun sama dengan halaman login (`KucurDev123!`). Perintah backend: `npm run dev:demo` (backend ke kucur_demo) dan `npm run db:demo:reset` (Prisma menolak reset jika dijalankan AI, jadi Steven yang menjalankan).
-- PPN di Admin Settings (11%) **tidak diterapkan** di checkout: `commerceService` tidak menghitung pajak dan UI tidak menampilkan PPN; `taxAmount` order selalu 0 **[VERIFIKASI keputusan Steven]**.
+- PPN diterapkan di checkout (2026-10-04): `taxAmount = round(productTotal × taxPercent%)` per order, snapshot `taxPercentSnapshot`, masuk ke `grandTotal`/tagihan COD; baris PPN tampil di checkout dan detail order Customer/Merchant/Admin. Halaman kurir belum menampilkan total COD yang harus ditagih (temuan, belum dikerjakan).
 - COD otomatis lunas saat kurir upload bukti antar: order `paymentStatus=PAID`, `PaymentAttempt` COD `PAID` + `paidAt`, `completedAt` diisi (disetujui Steven 2026-10-04).
 - Sisa tugas berurutan:
   1. Selesaikan polish detail page dan modal.
