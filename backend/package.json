@@ -20,7 +20,9 @@
     "db:seed": "prisma db seed",
     "db:start": "docker compose up -d mysql",
     "db:stop": "docker compose stop mysql",
-    "db:status": "docker compose ps mysql"
+    "db:status": "docker compose ps mysql",
+    "db:demo:reset": "node scripts/demo.js reset",
+    "dev:demo": "node scripts/demo.js dev"
   },
   "prisma": {
     "seed": "node prisma/seed.js"
