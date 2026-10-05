@@ -6,11 +6,12 @@ import { useChat } from "../context/ChatContext";
 import { usePreferences } from "../context/PreferencesContext";
 import { useSystemSettings } from "../context/SystemSettingsContext";
 import { STARTER_TOPICS } from "../data/faq.js";
-import { detectLanguage, faqsForRole, fillFaqText, matchFaq, OPEN_FAQ_EVENT } from "../utils/faqMatcher.js";
+import { buildFaqList, detectLanguage, faqsForRole, fillFaqText, matchFaq, OPEN_FAQ_EVENT } from "../utils/faqMatcher.js";
+import { faqEntriesService } from "../services/faqEntriesService.js";
 import "./FaqBot.css";
 
 // Halaman dengan tombol aksi di bawah layar: tombol bot disembunyikan supaya tidak menutupi (bot tetap bisa dibuka dari Akun).
-const HIDDEN_ON = [/^\/checkout/, /^\/products\/[^/]+$/, /^\/messages\/[^/]+$/, /^\/admin\/support-chats\/[^/]+$/, /^\/courier\/batches\/[^/]+$/];
+const HIDDEN_ON = [/^\/checkout/, /^\/products\/[^/]+$/, /^\/messages\/[^/]+$/, /^\/admin\/support-chats\/[^/]+$/, /^\/courier\/batches\/[^/]+$/, /^\/admin\/faq$/];
 
 const COPY = {
   id: { open: "Buka bantuan", title: "Bantuan Kucur", subtitle: "Jawaban cepat seputar aplikasi", close: "Tutup", restart: "Mulai ulang", hello: "Halo! Mau tanya apa? Pilih topik di bawah, atau tulis pertanyaanmu.", placeholder: "Tulis pertanyaan, mis. cara batal pesanan", send: "Kirim", confirm: "Maksud kamu: **{q}**?", yes: "Ya", no: "Bukan", choose: "Mungkin maksudmu salah satu ini:", unknown: "Maaf, aku belum paham pertanyaannya. Coba tulis dengan kata lain, atau pilih topik di bawah.", retry: "Oke. Coba tulis ulang pertanyaanmu dengan kata lain, atau pilih yang paling mirip:", more: "Ada lagi yang bisa dibantu?", topics: "Topik lain", stillConfused: "Masih bingung?", chatAdmin: "Chat Admin", loginForAdmin: "Masuk untuk chat Admin", popular: "Pertanyaan populer" },
@@ -55,6 +56,10 @@ export default function FaqBot() {
   const listRef = useRef(null);
   const inputRef = useRef(null);
   const lastResult = useRef(null);
+  // FAQ dari Admin (menu FAQ Chatbot) diambil setiap bantuan dibuka, digabung dengan FAQ bawaan.
+  const [entries, setEntries] = useState([]);
+  useEffect(() => { if (!open) return undefined; let active = true; faqEntriesService.list().then((rows) => { if (active) setEntries(rows); }).catch(() => {}); return () => { active = false; }; }, [open]);
+  const faqs = useMemo(() => buildFaqList(entries), [entries]);
 
   // Angka di jawaban selalu mengikuti Admin Settings terbaru.
   const valuesFor = useMemo(() => (lang) => {
@@ -114,7 +119,7 @@ export default function FaqBot() {
     setInput("");
     const lang = detectLanguage(text, chatLang);
     setChatLang(lang);
-    const result = matchFaq(text, role, pathname);
+    const result = matchFaq(text, role, pathname, faqs);
     lastResult.current = result;
     push({ from: "user", text });
     if (result.status === "confirm") push({ from: "bot", kind: "confirm", faq: result.matches[0], lang });

@@ -59,6 +59,7 @@ const BatchDetail = lazy(() => import("./pages/courier/BatchDetail"));
 
 const AdminLayout = lazy(() => import("./layouts/AdminLayout"));
 const ChatInbox = lazy(() => import("./pages/chat/ChatInbox"));
+const AdminFaqManager = lazy(() => import("./pages/admin/FaqManager"));
 const ChatRoom = lazy(() => import("./pages/chat/ChatRoom"));
 const AdminDashboard = lazy(() => import("./pages/admin/Dashboard"));
 const MerchantApproval = lazy(() => import("./pages/admin/MerchantApproval"));
@@ -160,6 +161,7 @@ function App() {
           <Route path="finance" element={<AdminFinance />} />
           <Route path="settings/*" element={<AdminSettings />} />
           <Route path="notifications" element={<CustomerNotifications />} />
+          <Route path="faq" element={<AdminFaqManager />} />
           <Route path="support-chats" element={<ChatInbox adminMode />} />
           <Route path="support-chats/:conversationId" element={<ChatRoom adminMode />} />
         </Route>

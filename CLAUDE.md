@@ -77,7 +77,7 @@ Sumber kebenaran: `D:\Unsorted Downloads\db_ecommerce.sql` (versi dengan perbaik
 
 1 User · 2 UserRole · 3 Session · 4 Store · 5 Product · 6 ProductVariant · 7 Cart · 8 CartItem · 9 CommerceOrder · 10 CommerceOrderItem · 11 PaymentAttempt · 12 MerchantFee · 13 CourierProfile · 14 DeliveryBatch · 15 DeliveryBatchOrder · 16 Review · 17 Conversation · 18 Message · 19 Notification · 20 PlatformSettings
 
-Catatan desain: gambar/opsi produk disimpan JSON; reservasi stok di `CommerceOrderItem`; histori memakai kolom JSON (`CommerceOrder.activityHistory`, `CourierProfile.availabilityHistory`, `DeliveryBatchOrder.deliveryHistory`); `Notification` punya `dedupeKey` unik; `Conversation.openKey` unik; Store punya `latitude/longitude` dengan CHECK (keduanya null atau keduanya valid). Kolom tambahan disetujui Steven 2026-10-05: `User.addresses` JSON (migrasi `20261005090000_user_addresses`), maks 5 alamat customer, tepat satu `isPrimary`, titik peta wajib; alamat utama wajib saat daftar, dikelola di `/addresses`, dipilih di checkout (draf checkout disimpan di sessionStorage saat pindah ke Alamat Saya).
+Catatan desain: gambar/opsi produk disimpan JSON; reservasi stok di `CommerceOrderItem`; histori memakai kolom JSON (`CommerceOrder.activityHistory`, `CourierProfile.availabilityHistory`, `DeliveryBatchOrder.deliveryHistory`); `Notification` punya `dedupeKey` unik; `Conversation.openKey` unik; Store punya `latitude/longitude` dengan CHECK (keduanya null atau keduanya valid). Kolom tambahan disetujui Steven 2026-10-05: `User.addresses` JSON (migrasi `20261005090000_user_addresses`), maks 5 alamat customer, tepat satu `isPrimary`, titik peta wajib; alamat utama wajib saat daftar, dikelola di `/addresses`, dipilih di checkout (draf checkout disimpan di sessionStorage saat pindah ke Alamat Saya). Kolom `PlatformSettings.faqEntries` JSON (migrasi `20261006120000_platform_settings_faq_entries`, disetujui Steven 2026-10-06) untuk FAQ chatbot yang dikelola Admin.
 
 ## 7. Arsitektur backend
 
@@ -124,7 +124,7 @@ Catatan desain: gambar/opsi produk disimpan JSON; reservasi stok di `CommerceOrd
 
 ## Status test terbaru
 
-- 2026-10-06: backend `npm test` 87/87 (termasuk rateLimit), `test:final-repository` 30/30, lint (encoding + FAQ check + ESLint) dan build lolos, Playwright e2e 68 test (termasuk `courier-leave.spec.js`) (hijau setelah perbaikan penjaga tap ganda; jalankan ulang penuh sebelum demo).
+- 2026-10-06: backend `npm test` 87/87 (termasuk rateLimit), `test:final-repository` 30/30, lint (encoding + FAQ check + ESLint) dan build lolos, Playwright e2e 69 test (termasuk `courier-leave.spec.js`, `faq-manager.spec.js`), backend `npm test` 91 (hijau setelah perbaikan penjaga tap ganda; jalankan ulang penuh sebelum demo).
 - Ide masa depan (di luar scope): SMTP/Roundcube untuk notifikasi email, payment gateway Midtrans, kembali ke Tourism/Live In, integrasi SIG.
 
 ## 10. Jurnal dan dokumen
@@ -137,7 +137,7 @@ Catatan desain: gambar/opsi produk disimpan JSON; reservasi stok di `CommerceOrd
 
 ## 11. Cara kerja yang diinginkan Steven
 
-- **Setiap mengubah alur sistem (cara batal, ongkir, cutoff, keuangan, peran, label tombol/menu), perbarui juga FAQ chatbot di `frontend/src/data/faq.js`** lalu jalankan `npm run lint` (memuat `check-faq.mjs`).
+- **Setiap mengubah alur sistem (cara batal, ongkir, cutoff, keuangan, peran, label tombol/menu), perbarui juga FAQ chatbot di `frontend/src/data/faq.js`** lalu jalankan `npm run lint` (memuat `check-faq.mjs`). Selain FAQ bawaan di kode, Admin bisa mengubah/menyembunyikan FAQ bawaan dan menambah FAQ baru di **Menu → FAQ Chatbot** (`/admin/faq`, ada kotak "Coba chatbot"); disimpan di `PlatformSettings.faqEntries`, dibaca publik lewat `GET /api/settings/faq`, digabung di `buildFaqList()` (`utils/faqMatcher.js`; kata kunci admin jadi konsep `KW:<kata>`). Setiap selesai alur baru, beri Steven checklist isi FAQ + rekomendasi FAQ tambahan.
 
 - Jawaban langsung dan praktis, tanpa penjelasan berlebihan. Bahasa santai Indonesia.
 - Pecah pekerjaan per modul, bukan melebar. Setiap prompt ke agen coding harus mengingatkan: responsif, global container, ID/EN, light/dark, Admin Settings terkunci.

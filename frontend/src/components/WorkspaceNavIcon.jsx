@@ -15,6 +15,7 @@ const paths = {
   analytics: <><path d="M4 20V10M10 20V4M16 20v-7M22 20H2"/></>,
   finance: <><path d="M4 6h16v14H4z"/><path d="M4 10h16M8 15h3"/></>,
   chat: <path d="M4 5h16v11H9l-5 4V5Z"/>,
+  help: <><circle cx="12" cy="12" r="9"/><path d="M9.5 9.5a2.5 2.5 0 1 1 3.5 2.3c-.6.3-1 .9-1 1.6v.6M12 17h.01"/></>,
   notifications: <><path d="M18 8a6 6 0 0 0-12 0c0 7-3 7-3 9h18c0-2-3-2-3-9"/><path d="M10 20h4"/></>,
   bug: <><path d="M8 9h8v7a4 4 0 0 1-8 0V9Z"/><path d="M10 9V7a2 2 0 0 1 4 0v2M4 12h4m8 0h4M5 18l3-2m8 0 3 2"/></>,
 };

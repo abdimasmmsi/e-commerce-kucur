@@ -71,17 +71,26 @@ export function detectConcepts(text) {
 }
 
 // Skor 0..1: semua konsep wajib FAQ harus ada; konsep tambahan dan halaman aktif menaikkan skor.
-const scoreFaq = (faq, concepts, pathname) => {
+// Kata kunci FAQ buatan Admin: konsep "KW:<kata>" dianggap ada kalau kata itu muncul di teks user.
+const keywordHit = (normalizedText, tokens) => (concept) => {
+  const word = concept.slice(3);
+  if (word.includes(" ")) return ` ${normalizedText} `.includes(` ${word} `);
+  return tokens.some((token) => token === word || stem(token) === stem(word));
+};
+
+// Skor 0..1: semua konsep wajib FAQ harus ada; konsep tambahan dan halaman aktif menaikkan skor.
+const scoreFaq = (faq, concepts, pathname, hasKeyword = () => false) => {
   const user = new Set(concepts);
+  const has = (concept) => (concept.startsWith("KW:") ? hasKeyword(concept) : user.has(concept));
   const variants = [faq.concepts, ...(faq.alt ?? [])];
   let best = 0;
   for (const required of variants) {
-    const hit = required.filter((concept) => user.has(concept)).length;
+    const hit = required.filter(has).length;
     if (!hit) continue;
     const recall = hit / required.length;
-    const extraHit = (faq.extra ?? []).filter((concept) => user.has(concept)).length;
-    const relevant = hit + extraHit;
-    const precision = relevant / Math.max(user.size, 1);
+    const extraHit = (faq.extra ?? []).filter(has).length;
+    const relevant = required.filter((concept) => !concept.startsWith("KW:") && user.has(concept)).length + (faq.extra ?? []).filter((concept) => !concept.startsWith("KW:") && user.has(concept)).length;
+    const precision = user.size ? Math.min(relevant / user.size, 1) : 1;
     const score = recall === 1 ? 0.55 + 0.35 * precision + Math.min(extraHit, 2) * 0.05 : recall * 0.45;
     best = Math.max(best, score);
   }
@@ -89,14 +98,37 @@ const scoreFaq = (faq, concepts, pathname) => {
   return Math.min(best, 1);
 };
 
-export const faqsForRole = (role) => FAQS.filter((faq) => faq.roles.includes(role));
+export const faqsForRole = (role, faqs = FAQS) => faqs.filter((faq) => faq.roles.includes(role));
+
+// Gabungkan FAQ bawaan dengan FAQ dari Admin (menu FAQ Chatbot): bawaan bisa diubah/disembunyikan, entri baru ditambahkan.
+export const keywordConcept = (word) => `KW:${normalize(word)}`;
+export function buildFaqList(entries = []) {
+  const list = Array.isArray(entries) ? entries : [];
+  const overrides = new Map(list.filter((entry) => entry.builtin).map((entry) => [entry.id, entry]));
+  const merged = [];
+  for (const faq of FAQS) {
+    const override = overrides.get(faq.id);
+    if (!override) { merged.push(faq); continue; }
+    if (override.hidden) continue;
+    const keywords = (override.keywords ?? []).map(keywordConcept);
+    merged.push({ ...faq, roles: override.roles ?? faq.roles, q: override.q ?? faq.q, a: override.a ?? faq.a, link: override.link === undefined ? faq.link : override.link, keywords: override.keywords ?? [], pinned: override.pinned, alt: [...(faq.alt ?? []), ...keywords.map((concept) => [concept])], extra: [...(faq.extra ?? []), ...keywords], edited: true });
+  }
+  for (const entry of list.filter((item) => !item.builtin && !item.hidden && item.q && item.a)) {
+    const keywords = (entry.keywords ?? []).map(keywordConcept);
+    const variants = [detectConcepts(entry.q.id).concepts, detectConcepts(entry.q.en).concepts, ...keywords.map((concept) => [concept])].filter((variant) => variant.length);
+    merged.push({ ...entry, custom: true, concepts: variants[0] ?? [keywordConcept(entry.q.id)], alt: variants.slice(1), extra: keywords });
+  }
+  return merged;
+}
 
 // Hasil: { status: "confirm" | "choose" | "unknown", matches: [faq...] }
-export function matchFaq(text, role, pathname = "") {
-  const { concepts } = detectConcepts(text);
-  if (!concepts.length) return { status: "unknown", matches: [], concepts };
-  const ranked = faqsForRole(role)
-    .map((faq) => ({ faq, score: scoreFaq(faq, concepts, pathname) }))
+export function matchFaq(text, role, pathname = "", faqs = FAQS) {
+  const { concepts, tokens } = detectConcepts(text);
+  const hasKeyword = keywordHit(normalize(text), tokens);
+  const candidates = faqsForRole(role, faqs);
+  if (!concepts.length && !candidates.some((faq) => [faq.concepts, ...(faq.alt ?? [])].flat().some((concept) => concept.startsWith("KW:") && hasKeyword(concept)))) return { status: "unknown", matches: [], concepts };
+  const ranked = candidates
+    .map((faq) => ({ faq, score: scoreFaq(faq, concepts, pathname, hasKeyword) }))
     .filter((row) => row.score > 0)
     .sort((a, b) => b.score - a.score);
   if (!ranked.length) return { status: "unknown", matches: [], concepts };

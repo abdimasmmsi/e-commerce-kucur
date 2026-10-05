@@ -14,7 +14,7 @@ const adminNavigation = [
   { label: "workspaceNav.people", items: [["users", "/admin/users", "users"], ["couriers", "/admin/couriers", "delivery"]] },
   { label: "workspaceNav.finance", items: [["financeMonitoring", "/admin/finance", "finance"]] },
   { label: "workspaceNav.system", items: [["settings", "/admin/settings", "settings"]] },
-  { label: "workspaceNav.communication", items: [["supportChat", "/admin/support-chats", "chat"], ["notifications", "/admin/notifications", "notifications"]] },
+  { label: "workspaceNav.communication", items: [["supportChat", "/admin/support-chats", "chat"], ["faqManager", "/admin/faq", "help"], ["notifications", "/admin/notifications", "notifications"]] },
 ];
 
 function AdminLayout() {

@@ -1510,6 +1510,7 @@ model TargetPlatformSettings {
   maxDeliveryDistanceKm Decimal? @db.Decimal(6, 2)
   adminContactName String? @db.VarChar(120)
   adminContactPhone String? @db.VarChar(30)
+  faqEntries Json?
   updatedByUserId String? @db.Char(36)
   createdAt DateTime @default(now()) @db.DateTime(3)
   updatedAt DateTime @default(now()) @updatedAt @db.DateTime(3)
