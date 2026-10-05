@@ -129,7 +129,7 @@ export default function MerchantDashboard() {
           </div>
           <div className="mt-1 grid grid-cols-7 gap-2 text-center text-[12px] text-[var(--kucur-text-muted)]">{week.map((day, index) => <span className={index === 6 ? "font-bold text-[var(--kucur-text)]" : ""} key={day.date.toISOString()}>{formatDate(day.date, { weekday: "short" })}</span>)}</div>
         </div>
-        <dl className="grid grid-cols-2 gap-3 border-t border-[var(--kucur-border)] pt-3 text-[15px]"><div><dt className="text-sm text-[var(--kucur-text-muted)]">{copy.activeProducts}</dt><dd className="font-bold">{activeProducts}</dd></div><div><dt className="text-sm text-[var(--kucur-text-muted)]">{copy.rating}</dt><dd className="font-bold">{rating ? `★ ${rating}` : copy.noRating}</dd></div></dl>
+        <dl className="grid grid-cols-2 gap-3 border-t border-[var(--kucur-border)] pt-3 text-[15px]"><div><dt className="text-sm text-[var(--kucur-text-muted)]">{copy.activeProducts}</dt><dd className="font-bold">{activeProducts}</dd></div><div><dt className="text-sm text-[var(--kucur-text-muted)]">{copy.rating}</dt><dd className="font-bold">{rating ? `★ ${Number(rating).toLocaleString(language === "id" ? "id-ID" : "en-US", { minimumFractionDigits: 1, maximumFractionDigits: 1 })}` : copy.noRating}</dd></div></dl>
       </section>
 
       <div className="grid gap-4">

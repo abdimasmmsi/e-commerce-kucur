@@ -16,7 +16,7 @@ const PAGE_SIZE = 9;
 
 function Reviews() {
   const { activeStoreId } = useStore();
-  const { errorMessage, formatDate, t } = usePreferences();
+  const { errorMessage, formatDate, language, t } = usePreferences();
   const [searchParams, setSearchParams] = useSearchParams();
   const requestedFilter = searchParams.get("filter") ?? "all";
   const filter = FILTERS.includes(requestedFilter) ? requestedFilter : "all";
@@ -122,7 +122,7 @@ function Reviews() {
 
     <section className="merchant-review-summary" aria-label={t("merchantReviews.summaryLabel")}>
       <article><span>{t("merchantReviews.total")}</span><strong>{sourceRows.length}</strong></article>
-      <article><span>{t("merchantReviews.average")}</span><strong>{average ?? "\u2014"}{average !== null && <small>/5</small>}</strong></article>
+      <article><span>{t("merchantReviews.average")}</span><strong>{average == null ? "\u2014" : Number(average).toLocaleString(language === "id" ? "id-ID" : "en-US", { minimumFractionDigits: 1, maximumFractionDigits: 1 })}{average !== null && <small>/5</small>}</strong></article>
       <article><span>{t("merchantReviews.needsReply")}</span><strong>{unanswered}</strong></article>
     </section>
 

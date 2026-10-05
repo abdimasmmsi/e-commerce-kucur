@@ -18,7 +18,7 @@ export const checkoutApi = {
   preview: (input) => apiData("/api/checkout/preview", { method: "POST", body: input }),
   create: (input, idempotencyKey) => apiData("/api/checkout/orders", { method: "POST", headers: { "Idempotency-Key": idempotencyKey }, body: { ...input, idempotencyKey } }),
 };
-export const normalizeOrder = (order) => ({ ...order, id: String(order.id), status: order.fulfillmentStatus ?? order.status, selectedOptions: order.variantOptions, statusHistory: order.activities ?? order.statusHistory ?? [], items: (order.items ?? []).map((item) => ({ ...item, variantId: item.productVariantId, selectedOptions: item.variantOptions ?? {}, unitPrice: Number(item.unitPrice), subtotal: Number(item.subtotal) })) });
+export const normalizeOrder = (order) => ({ ...order, id: String(order.id), status: order.fulfillmentStatus ?? order.status, taxPercent: Number(order.taxPercentSnapshot ?? order.taxPercent ?? 0), selectedOptions: order.variantOptions, statusHistory: order.activities ?? order.statusHistory ?? [], items: (order.items ?? []).map((item) => ({ ...item, variantId: item.productVariantId, selectedOptions: item.variantOptions ?? {}, unitPrice: Number(item.unitPrice), subtotal: Number(item.subtotal) })) });
 export const orderService = {
   list: async () => rows(await apiData("/api/orders"), "items").map(normalizeOrder),
   get: async (id) => normalizeOrder(await apiData(`/api/orders/${encodeURIComponent(id)}`)),

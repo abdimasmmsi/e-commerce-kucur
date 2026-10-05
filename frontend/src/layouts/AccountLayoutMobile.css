@@ -3,3 +3,13 @@
 @media(max-width:767px){.account-profile-heading{margin-bottom:14px}.account-profile-heading h1{font-size:1.4rem;font-weight:650;line-height:1.2}.account-profile-heading span{font-size:.62rem;font-weight:700}.account-profile-heading p{font-size:.76rem;line-height:1.5}.account-panel-heading h2{font-size:1rem;font-weight:620}.account-panel-heading p{font-size:.74rem}.account-identity-copy h2{font-size:.95rem;font-weight:620}.account-form label,.bug-form label>span,.my-bug-filter label>span{font-weight:600}.account-role-list strong,.bug-status{font-weight:650}.account-avatar-actions small{font-size:.64rem}.account-settings-panel{padding:16px}.account-panel-heading{padding-bottom:14px}.account-form{gap:14px;margin-top:17px}.account-preference-row strong,.account-store-settings strong{font-weight:620}.account-preference-row{padding:16px 0}.chat-support-button,.primary-button,.secondary-button{font-weight:650}}
 
 @media(max-width:767px){.account-profile-heading h1{font-size:1.5rem;font-weight:800}.account-profile-heading span{font-size:.75rem}.account-profile-heading p{font-size:.94rem}.account-panel-heading h2{font-size:1.1rem;font-weight:800}.account-panel-heading p{font-size:.9rem}.account-identity-copy h2{font-size:1.05rem;font-weight:800}.account-avatar-actions small{font-size:.8rem}.account-preference-row small{font-size:.875rem}}
+/* HP, halaman Akun (hub): identitas dulu, lalu menu, lalu form profil. main dibuat display:contents supaya urutan bisa diatur. */
+@media(max-width:900px){
+  .account-layout-shell.is-hub{display:flex;flex-direction:column;gap:16px;padding:20px 16px calc(84px + env(safe-area-inset-bottom))}
+  .account-layout-shell.is-hub>.account-layout-main,.account-layout-shell.is-hub .account-profile-page{display:contents}
+  .account-layout-shell.is-hub .account-profile-heading{order:1;margin:0}
+  .account-layout-shell.is-hub .account-profile-heading p{display:none}
+  .account-layout-shell.is-hub .account-identity-section{order:2;margin:0}
+  .account-layout-shell.is-hub>.account-layout-sidebar{order:3;padding:0;border:0}
+  .account-layout-shell.is-hub .account-settings-panel{order:4;margin:0}
+}

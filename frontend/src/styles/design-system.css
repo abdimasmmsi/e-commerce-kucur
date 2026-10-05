@@ -426,3 +426,9 @@ label>span:first-child, .field-group label { color: #39483c; }
 #customer-content > .page-container:not(.mx-auto) { margin-inline: auto; padding: 24px 16px; }
 @media (min-width: 640px) { #customer-content > .page-container:not(.mx-auto) { padding: 32px 24px; } }
 @media (min-width: 1024px) { #customer-content > .page-container:not(.mx-auto) { padding: 40px 32px; } }
+/* Audit dark mode (Okt 2026): kontras inisial avatar, menu bawah tidak aktif, badge peran, track bar ulasan. */
+.dark .user-avatar{color:var(--kucur-green)}
+.dark .customer-bottom-nav>a:not(.active),.dark .customer-bottom-nav>button:not([aria-expanded="true"]){color:#c5d0c5!important}
+.dark .account-role-list strong{border-color:var(--kucur-border-strong);background:transparent;color:var(--kucur-text)}
+.dark .account-role-list strong.active{border-color:var(--kucur-green);background:color-mix(in srgb,var(--kucur-green) 18%,transparent);color:var(--kucur-green)}
+.dark .review-summary i{background:var(--kucur-surface-muted)}

@@ -132,6 +132,14 @@ export default function Checkout() {
     </section></PageContainer>;
   }
 
+  if (!loading && !error && !items.length) {
+    return <PageContainer><section className="mx-auto grid max-w-lg justify-items-center gap-3 rounded-2xl border border-[var(--kucur-border)] bg-[var(--kucur-surface)] p-6 text-center sm:p-8">
+      <h1 className="text-xl font-extrabold">{t("checkout.emptyTitle")}</h1>
+      <p className="text-[15px] text-[var(--kucur-text-muted)]">{t("checkout.emptyHint")}</p>
+      <Link className="inline-flex min-h-12 w-full items-center justify-center rounded-xl bg-[var(--kucur-green)] px-4 font-bold text-[var(--kucur-forest-dark)] sm:w-auto" to="/products">{t("checkout.emptyAction")}</Link>
+    </section></PageContainer>;
+  }
+
   const actionLabel = submitting ? t("checkout.processing") : calculating ? t("checkout.calculating") : preview ? t("checkout.createOrder") : t("checkout.completeData");
   const actionDisabled = !preview || submitting || calculating;
   const totalLine = <div className="grid"><span className="text-[13px] text-[var(--kucur-text-muted)]">{t("checkout.payTotal")}</span><strong className="text-xl font-extrabold">{preview ? formatCurrency(preview.grandTotal) : "–"}</strong></div>;
@@ -144,7 +152,7 @@ export default function Checkout() {
       <main className="grid min-w-0 gap-4">
         <section className={cardClass} aria-labelledby="checkout-recipient">
           <h2 className="text-lg font-extrabold" id="checkout-recipient">{t("checkout.recipient")}</h2>
-          {savedAddresses.length > 0 && <fieldset className="grid min-w-0 gap-2"><legend className="sr-only">{t("checkout.savedAddress")}</legend>
+          {savedAddresses.length > 0 && <fieldset className="m-0 grid min-w-0 gap-2 border-0 p-0"><legend className="sr-only">{t("checkout.savedAddress")}</legend>
             {[...savedAddresses.map((row) => ({ id: row.id, title: row.label, badge: row.isPrimary, lines: [`${row.recipientName} · ${row.phone}`, row.address] })), { id: "current", title: t("checkout.currentLocation"), lines: [t("checkout.currentLocationHint")] }].map((option) => <label className={`flex min-w-0 cursor-pointer items-start gap-3 rounded-xl border p-3 ${addressChoice === option.id ? "border-[var(--kucur-green)] bg-[var(--kucur-green-soft)]" : "border-[var(--kucur-border)]"}`} key={option.id}>
               <input className="mt-1 size-5 shrink-0 accent-[var(--kucur-green)]" type="radio" name="checkout-address" checked={addressChoice === option.id} onChange={() => { setAddressChoice(option.id); resetPreview(); }}/>
               <span className="grid min-w-0 gap-0.5"><span className="flex flex-wrap items-center gap-2"><strong className="text-[15px]">{option.title}</strong>{option.badge && <span className="rounded-full bg-[var(--kucur-surface)] px-2 py-0.5 text-xs font-bold text-[var(--kucur-green-ink)]">{t("checkout.primaryAddress")}</span>}</span>{option.lines.map((line) => <span className="break-words text-sm text-[var(--kucur-text-muted)]" key={line}>{line}</span>)}</span>

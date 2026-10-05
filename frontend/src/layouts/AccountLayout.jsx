@@ -53,7 +53,7 @@ function AccountLayout() {
 
   return <div className="account-layout">
     <AppHeader accountMode workspaceRole={activeRole === "customer" ? "" : activeRole} />
-    <div className="account-layout-shell">
+    <div className={`account-layout-shell ${isHub ? "is-hub" : ""}`}>
       <aside className={`account-layout-sidebar ${isHub ? "is-hub" : "is-sub"}`}><Link className="account-back-link" to="/profile">← {t("nav.account")}</Link>
         {workspaceRoles.length > 0 && <div className="account-workspace-switch" aria-label={workspaceCopy.hint}>{workspaceRoles.map((role) => <button type="button" key={role} onClick={() => void openWorkspace(role)}><Icon name={role === "merchant" ? "store" : "profile"}/><span>{workspaceCopy[role] ?? role}</span><b aria-hidden="true">→</b></button>)}</div>}<nav aria-label={t("workspace.navigation")}>{groups.map((group) => <section className="account-nav-group" key={group.label}><h2>{group.label}</h2>{group.items.map((item) => <NavLink to={item.to} state={item.state} key={item.to}><Icon name={item.icon}/><span>{item.label}</span></NavLink>)}</section>)}{contactPhone && <section className="account-help-contact"><strong>{contactCopy.title}</strong><span>{contactCopy.body}{settings?.adminContactName ? `: ${settings.adminContactName}` : ""}</span><span className="account-help-number">{contactPhone}</span><div><a href={`https://wa.me/${whatsappNumber}`} target="_blank" rel="noreferrer">{contactCopy.whatsapp}</a><a href={`tel:${contactPhone.replace(/\s/g, "")}`}>{contactCopy.call}</a></div></section>}<button className="account-nav-logout" type="button" onClick={handleLogout}><Icon name="logout"/><span>{t("header.logout")}</span></button></nav>
       </aside>

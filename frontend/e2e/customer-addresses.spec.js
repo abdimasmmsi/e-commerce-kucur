@@ -48,7 +48,7 @@ test("customer manages saved addresses and checkout uses the main one", async ({
   await expect(home.getByText("Utama", { exact: true })).toHaveCount(0);
   await assertNoHorizontalOverflow(page);
 
-  await page.goto("/checkout");
+  await page.goto("/checkout?productId=20000000-0000-4000-8000-000000000003&quantity=1");
   await expect(page.getByRole("radio", { name: /Kantor QA/ })).toBeChecked();
   await expect(page.getByRole("radio", { name: /Lokasi saya sekarang/ })).toBeVisible();
   await page.getByRole("radio", { name: /Lokasi saya sekarang/ }).check();
@@ -64,7 +64,7 @@ test("customer manages saved addresses and checkout uses the main one", async ({
   await page.getByRole("button", { name: "Gunakan lokasi saya" }).click();
   await expect(page.getByText(/Koordinat:/)).toBeVisible();
   await page.getByRole("button", { name: "Simpan alamat" }).click();
-  await expect(page).toHaveURL(/\/checkout$/);
+  await expect(page).toHaveURL(/\/checkout\?productId=/);
   await expect(page.getByRole("radio", { name: /Kebun QA/ })).toBeChecked();
 
   await page.goto("/addresses");

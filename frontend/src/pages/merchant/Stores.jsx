@@ -3,22 +3,8 @@ import { useStore } from "../../context/StoreContext";
 import StatusBadge from "../../components/ui/StatusBadge";
 import LoadingPanel from "../../components/ui/LoadingPanel";
 import { usePreferences } from "../../context/PreferencesContext";
-import {
-  getStoreManagementPath,
-  storeTypeLabels,
-} from "../../utils/storeScope";
+import { getStoreManagementPath } from "../../utils/storeScope";
 import "./Stores.css";
-
-function StoreFallback() {
-  return (
-    <span className="store-card-fallback" aria-hidden="true">
-      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.7">
-        <path d="M4 10v9h16v-9M3 10l2-5h14l2 5" />
-        <path d="M3 10a3 3 0 0 0 5 0 3 3 0 0 0 4 0 3 3 0 0 0 4 0 3 3 0 0 0 5 0M9 19v-5h6v5" />
-      </svg>
-    </span>
-  );
-}
 
 function Stores() {
   const { stores, loading, error } = useStore();
@@ -42,14 +28,12 @@ function Stores() {
         <div className="stores-grid">
           {stores.map((store) => (
             <article className="store-card" key={store.id}>
-              <div className={`store-card-image store-type-${store.type}`}>
-                {store.image ? <img src={store.image} alt={store.name} /> : <StoreFallback />}
-              </div>
+              {store.image && <div className={`store-card-image store-type-${store.type}`}><img src={store.image} alt={store.name} /></div>}
 
               <div className="store-card-body">
                 <div className="store-card-header">
-                  <div>
-                    <span className="store-type-label">{store.type === "product" ? t("createStore.ecommerce") : (storeTypeLabels[store.type] ?? store.type)}</span>
+                  <div className="flex min-w-0 items-center gap-3">
+                    {!store.image && <span className="grid size-12 shrink-0 place-items-center rounded-xl bg-[var(--kucur-green-soft)] text-lg font-extrabold text-[var(--kucur-green-ink)]" aria-hidden="true">{store.name.trim().charAt(0).toUpperCase()}</span>}
                     <h2>{store.name}</h2>
                   </div>
                   <StatusBadge status={store.status} className={`store-status ${store.status}`} />

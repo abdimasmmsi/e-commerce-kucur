@@ -18,7 +18,7 @@ function MyReviews() {
     <div className="review-management-grid">{rows.map((row) => <article className="card" key={row.id}>
       <h2 className="text-base font-bold">{row.transactionContext?.targetName}</h2>
       {row.isHidden && <p className="customer-warning">{t("myReviews.hidden", { reason: row.moderationReason })}</p>}
-      <ReviewList reviews={[row]} includeHidden showSummary={false} />
+      <ReviewList reviews={[row]} includeHidden showSummary={false} hideAuthor />
     </article>)}</div>
     {!rows.length && !error && <section className="card customer-empty-state"><h2>{t("myReviews.empty")}</h2><p>{t("myReviews.emptyHint")}</p></section>}
   </div>;

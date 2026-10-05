@@ -11,7 +11,10 @@ import { deliveryApi } from "../../services/deliveryApiService";
 
 export default function Settings() {
   const { user } = useAuth();
-  const { t } = usePreferences();
+  const { language, t } = usePreferences();
+  const copy = language === "id"
+    ? { description: "Data akun dan batas pengiriman kamu.", limitTitle: "Batas pengiriman", activeLimit: "Maks. pengiriman aktif sekaligus", dailyLimit: "Maks. pengiriman desa per hari", limitHint: "Batas ini diatur oleh admin desa." }
+    : { description: "Your account details and delivery limits.", limitTitle: "Delivery limits", activeLimit: "Max. active deliveries at once", dailyLimit: "Max. village deliveries per day", limitHint: "These limits are set by the village admin." };
   const { settings } = useSystemSettings();
   const [state, setState] = useState({ loading: true, profile: null, error: "" });
   useEffect(() => {
@@ -21,7 +24,7 @@ export default function Settings() {
   }, []);
 
   return <div className="page-container min-w-0 text-[var(--kucur-text)]">
-    <PageHeader eyebrow={t("workspace.courier")} title={t("workspace.settings")} description={t("courierDelivery.availabilityHint")}/>
+    <PageHeader eyebrow={t("workspace.courierEyebrow")} title={t("workspace.settings")} description={copy.description}/>
     {state.error && <section className="mb-4 rounded-kucur-card border border-rose-300 bg-rose-50 p-4 text-sm text-rose-800 dark:border-rose-800 dark:bg-rose-950 dark:text-rose-200" role="alert">{state.error}</section>}
     {state.loading ? <LoadingPanel label={t("courierDelivery.loading")} rows={3}/> : <div className="grid gap-4 lg:grid-cols-2">
       <section className="rounded-kucur-card border border-[var(--kucur-border)] bg-[var(--kucur-surface)] p-4 sm:p-5">
@@ -30,8 +33,9 @@ export default function Settings() {
         <Button as={Link} to="/profile" variant="secondary">{t("header.profile")}</Button>
       </section>
       <section className="rounded-kucur-card border border-[var(--kucur-border)] bg-[var(--kucur-surface)] p-4 sm:p-5">
-        <span className="text-xs font-bold uppercase tracking-wider text-[var(--kucur-text-muted)]">{t("workspace.courier")}</span><h2 className="mt-1 text-lg font-semibold text-kucur-ink">{t("workspace.activeDeliveries")}</h2>
-        <div className="my-4 rounded-xl bg-kucur-sand p-4"><strong className="block text-2xl text-kucur-ink">{state.profile?.maxActiveDeliveries ?? "—"} / {settings.maxDailyDeliveries}</strong><span className="mt-1 block text-sm text-[var(--kucur-text-muted)]">{t("courierDelivery.availabilityHint")}</span></div>
+        <h2 className="text-lg font-semibold text-kucur-ink">{copy.limitTitle}</h2>
+        <dl className="my-4 grid grid-cols-2 gap-3">{[[copy.activeLimit, state.profile?.maxActiveDeliveries], [copy.dailyLimit, settings.maxDailyDeliveries]].map(([label, value]) => <div className="grid content-start gap-1 rounded-xl bg-kucur-sand p-3" key={label}><dt className="text-sm text-[var(--kucur-text-muted)]">{label}</dt><dd className="m-0 text-2xl font-extrabold text-kucur-ink">{value ?? "—"}</dd></div>)}</dl>
+        <p className="mb-4 text-sm text-[var(--kucur-text-muted)]">{copy.limitHint}</p>
         <Button as={Link} to="/courier/availability">{t("courierDelivery.availability")}</Button>
       </section>
     </div>}

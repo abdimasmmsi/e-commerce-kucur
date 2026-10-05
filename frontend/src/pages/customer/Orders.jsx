@@ -94,9 +94,9 @@ function Orders() {
           </div>}
           {stepIndex >= 0 && <div className="grid grid-cols-5 gap-1" aria-hidden="true">{[0, 1, 2, 3, 4].map((index) => <i className={`h-1.5 rounded-full ${index <= stepIndex ? "bg-[var(--kucur-green)]" : "bg-[var(--kucur-border)]"}`} key={index}/>)}</div>}
           <p className="text-sm text-[var(--kucur-text-muted)]">{t(`customerOrders.${stepKey}`)}</p>
-          <div className="flex min-w-0 items-center justify-between gap-3 border-t border-[var(--kucur-border)] pt-3">
-            <div className="min-w-0"><span className="block text-[13px] text-[var(--kucur-text-muted)]">{order.status === "cancelled" ? t("customerOrders.total") : isPaid ? t("customerOrders.paid") : t("customerOrders.payOnArrival")}</span><strong className="block text-lg font-extrabold text-[var(--kucur-text)]">{formatCurrency(order.totalAmount)}</strong></div>
-            <div className="flex shrink-0 gap-2">
+          <div className="flex min-w-0 flex-wrap items-center justify-between gap-3 border-t border-[var(--kucur-border)] pt-3">
+            <div className="min-w-0 flex-1"><span className="block text-[13px] text-[var(--kucur-text-muted)]">{order.status === "cancelled" ? t("customerOrders.total") : isPaid ? t("customerOrders.paid") : t("customerOrders.payOnArrival")}</span><strong className="block text-lg font-extrabold text-[var(--kucur-text)]">{formatCurrency(order.totalAmount)}</strong></div>
+            <div className={`${canCancel ? "grid w-full grid-cols-2" : "flex shrink-0"} gap-2`}>
               {canCancel && <button className="min-h-11 rounded-xl border border-rose-300 px-3 text-sm font-bold text-rose-700 hover:bg-rose-50 dark:border-rose-800 dark:text-rose-300 dark:hover:bg-rose-950" type="button" onClick={() => { setCancelling(order.id); setReason(""); setError(""); }}>{t("customerOrders.cancel")}</button>}
               <Link className={`inline-flex min-h-11 items-center justify-center rounded-xl px-4 text-sm font-bold ${isMoving ? "bg-[var(--kucur-green)] text-[var(--kucur-forest-dark)]" : "border border-[var(--kucur-border-strong)] text-[var(--kucur-text)] hover:border-[var(--kucur-green)]"}`} to={`/orders/${order.id}`} aria-label={`${t("customerOrders.details")} ${shortOrderCode(order.orderCode ?? order.orderNumber)}`}>{isMoving ? t("customerOrders.track") : t("customerOrders.details")}</Link>
             </div>

@@ -53,6 +53,6 @@
   .merchant-review-summary strong { font-size: 1.35rem; }
   .merchant-review-toolbar { padding: 0 !important; border: 0 !important; background: transparent !important; }
   .merchant-review-toolbar > strong { display: none; }
-  .merchant-review-toolbar > div { display: flex !important; gap: 8px; margin-inline: -16px; padding: 0 16px 4px; overflow-x: auto; scrollbar-width: none; }
+  .merchant-review-toolbar > div { display: flex !important; gap: 8px; margin-inline: 0; padding: 0 0 4px; overflow-x: auto; scrollbar-width: none; }
   .merchant-review-toolbar > div button { flex: 0 0 auto; min-height: 44px; padding: 0 16px; border-radius: 999px; white-space: nowrap; }
 }

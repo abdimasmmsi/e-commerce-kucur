@@ -48,7 +48,6 @@ export default function StorePage() {
   const locale = language === "id" ? "id-ID" : "en-US";
   const since = store.createdAt ? new Date(store.createdAt).toLocaleDateString(locale, { month: "long", year: "numeric" }) : "";
   const hasRating = store.ratingCount > 0;
-  const shownReviews = allReviews ? reviews : reviews.slice(0, REVIEW_PREVIEW);
   const stat = (label, value, hint) => <div className="grid min-w-0 justify-items-center gap-0.5 px-1 text-center"><strong className="text-lg font-extrabold leading-tight">{value}</strong><span className="text-[13px] text-[var(--kucur-text-muted)]">{hint ?? label}</span></div>;
   const card = "min-w-0 rounded-2xl border border-[var(--kucur-border)] bg-[var(--kucur-surface)] p-4 sm:p-5";
 
@@ -76,7 +75,7 @@ export default function StorePage() {
       <LocationMap location={store.location} title={copy.location}/>
       <section className={card} aria-labelledby="store-reviews">
         <h2 className="mb-2 text-lg font-extrabold" id="store-reviews">{copy.reviewsTitle}</h2>
-        {reviews.length ? <><ReviewList reviews={shownReviews}/>{reviews.length > REVIEW_PREVIEW && <button className="mt-3 min-h-11 rounded-xl border border-[var(--kucur-border-strong)] px-4 text-sm font-bold" type="button" onClick={() => setAllReviews((value) => !value)}>{allReviews ? copy.showLess : copy.showAll.replace("{count}", reviews.length)}</button>}</> : <p className="text-[15px] text-[var(--kucur-text-muted)]">{copy.noReviews}</p>}
+        {reviews.length ? <><ReviewList reviews={reviews} limit={allReviews ? null : REVIEW_PREVIEW}/>{reviews.length > REVIEW_PREVIEW && <button className="mt-3 min-h-11 rounded-xl border border-[var(--kucur-border-strong)] px-4 text-sm font-bold" type="button" onClick={() => setAllReviews((value) => !value)}>{allReviews ? copy.showLess : copy.showAll.replace("{count}", reviews.length)}</button>}</> : <p className="text-[15px] text-[var(--kucur-text-muted)]">{copy.noReviews}</p>}
       </section>
     </div>
   </CustomerPage>;

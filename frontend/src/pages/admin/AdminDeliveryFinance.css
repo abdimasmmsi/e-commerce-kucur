@@ -5,3 +5,5 @@
 
 /* HP: ringkasan keuangan 2 kolom agar tidak memakan satu layar. */
 @media (max-width: 767px) { .finance-summary-grid { grid-template-columns: repeat(2, minmax(0, 1fr)) !important; gap: 8px !important; } .finance-summary-card { padding: 12px !important; } .finance-summary-card strong { font-size: 1.1rem !important; } }
+/* HP: nama lapak jadi judul kartu, bukan baris "Lapak: ..." */
+@media(max-width:700px){.finance-table td:first-child{display:block;padding:0 0 8px;margin-bottom:4px;border-bottom:1px solid var(--kucur-border);text-align:left;font-size:1rem;font-weight:800}.finance-table td:first-child::before{content:none}.finance-table td{font-size:.94rem}.finance-table td::before{font-size:.85rem;font-weight:600}}

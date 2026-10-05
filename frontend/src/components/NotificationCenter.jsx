@@ -16,12 +16,7 @@ function NotificationCenter() {
   const { activeRole } = useAuth();
   const { notifications, unreadCount, isRead, markAllRead, markRead, loadMore, hasMore, loading, error } = useNotifications();
   const [status, setStatus] = useState("all");
-  const { formatDate, notificationTypeLabel, t } = usePreferences();
-  const typeLabel = (value) => {
-    const legacyKey = `notificationCenter.types.${value}`;
-    const legacyLabel = t(legacyKey);
-    return legacyLabel === legacyKey ? notificationTypeLabel(value) : legacyLabel;
-  };
+  const { formatDate, t } = usePreferences();
   const localizedContent = useCallback((item) => { const content = localizeNotificationContent(item, t); return { title: shortenOrderCodes(content.title), message: shortenOrderCodes(content.message) }; }, [t]);
   const rows = useMemo(() => notifications
     .filter((item) => status === "all" || !isRead(item))
@@ -40,9 +35,9 @@ function NotificationCenter() {
       return <article className={`unified-notification-card relative grid grid-cols-[12px_minmax(0,1fr)] gap-3 rounded-2xl border p-4 transition ${read ? "read border-[var(--kucur-border)] bg-[var(--kucur-surface)]" : "unread border-[color-mix(in_srgb,var(--kucur-green)_45%,var(--kucur-border))] bg-[color-mix(in_srgb,var(--kucur-green-soft)_55%,var(--kucur-surface))]"} has-[a:focus-visible]:outline has-[a:focus-visible]:outline-3 has-[a:focus-visible]:outline-[var(--kucur-green)]`} key={item.id}>
         <span className={`mt-1.5 size-2.5 rounded-full ${read ? "bg-transparent" : "bg-[var(--kucur-green)]"}`} aria-hidden="true" />
         <div className="grid min-w-0 gap-1">
-          <div className="flex flex-wrap items-center gap-x-2 text-[13px] text-[var(--kucur-text-muted)]"><span className="font-bold text-[var(--kucur-green-ink)]">{typeLabel(item.type)}</span><time dateTime={item.createdAt}>{formatDate(item.createdAt, { dateStyle: "medium", timeStyle: "short" })}</time></div>
           <h2 className="text-base font-bold text-[var(--kucur-text)]">{item.link ? <Link className="outline-none after:absolute after:inset-0" to={item.link} onClick={() => markRead(item.id)}>{content.title}</Link> : content.title}</h2>
           <p className="break-words text-[15px] leading-6 text-[var(--kucur-text-muted)]">{content.message}</p>
+          <time className="text-[13px] text-[var(--kucur-text-muted)]" dateTime={item.createdAt}>{formatDate(item.createdAt, { dateStyle: "medium", timeStyle: "short" })}</time>
           {!item.link && !read && <button className="relative mt-1 w-fit min-h-10 rounded-lg border border-[var(--kucur-border-strong)] px-3 text-sm font-bold" type="button" onClick={() => markRead(item.id)}>{t("notificationCenter.markRead")}</button>}
         </div>
       </article>;
