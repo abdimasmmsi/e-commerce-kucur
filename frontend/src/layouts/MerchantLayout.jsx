@@ -32,6 +32,7 @@ const NavigationIcon = ({ type }) => {
     stock: <><path d="M4 7h16v13H4z"/><path d="M8 7V4h8v3M8 11h8M8 15h5"/></>,
     reviews: <path d="m12 3 2.7 5.5 6.1.9-4.4 4.3 1 6.1-5.4-2.9-5.4 2.9 1-6.1-4.4-4.3 6.1-.9L12 3Z"/>,
     finance: <><path d="M4 6h16v14H4z"/><path d="M4 10h16M8 15h3"/></>,
+    account: <><circle cx="12" cy="8" r="4"/><path d="M5 20a7 7 0 0 1 14 0"/></>,
   };
 
   return <svg className="merchant-nav-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">{paths[type]}</svg>;
@@ -176,6 +177,10 @@ function MerchantLayout() {
             <h3 id="merchant-nav-finance">{t("merchantSidebar.finance")}</h3>
             {storeFinancePath && <MerchantNavLink to={storeFinancePath} onClick={closeSidebar} icon="finance">{t("workspace.storeFinance")}</MerchantNavLink>}
             <MerchantNavLink to="/merchant/finance" onClick={closeSidebar} icon="finance">{t("workspace.merchantFinance")}</MerchantNavLink>
+          </section>
+          <section className="merchant-nav-group" aria-labelledby="merchant-nav-account">
+            <h3 id="merchant-nav-account">{t("accountNav.account")}</h3>
+            <MerchantNavLink to="/profile" onClick={closeSidebar} icon="account">{t("workspace.myAccount")}</MerchantNavLink>
           </section>
         </nav>
       </aside>

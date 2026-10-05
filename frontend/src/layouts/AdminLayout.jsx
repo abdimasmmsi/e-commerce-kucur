@@ -43,6 +43,10 @@ function AdminLayout() {
             <h3 id={`admin-nav-${group.label}`}>{t(group.label)}</h3>
             {group.items.map(([key, path, icon]) => <NavLink to={path} end={path === "/admin"} onClick={closeSidebar} key={path}><WorkspaceNavIcon type={icon}/><span>{t(`workspace.${key}`)}</span>{path === "/admin/support-chats" && <ChatUnreadBadge adminMode />}</NavLink>)}
           </section>)}
+          <section className="workspace-nav-group" aria-labelledby="admin-nav-account">
+            <h3 id="admin-nav-account">{t("accountNav.account")}</h3>
+            <NavLink to="/profile" onClick={closeSidebar}><WorkspaceNavIcon type="users"/><span>{t("workspace.myAccount")}</span></NavLink>
+          </section>
         </nav>
       </aside>
       <main className="admin-main">

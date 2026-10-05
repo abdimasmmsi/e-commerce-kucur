@@ -74,6 +74,10 @@ function CourierLayout() {
             <h3 id="courier-nav-availability">{t("workspaceNav.availability")}</h3>
             <NavLink to="/courier/availability" onClick={closeSidebar}><WorkspaceNavIcon type="availability"/><span>{t("workspace.availability")}</span></NavLink>
           </section>
+          <section className="workspace-nav-group" aria-labelledby="courier-nav-account">
+            <h3 id="courier-nav-account">{t("accountNav.account")}</h3>
+            <NavLink to="/profile" onClick={closeSidebar}><WorkspaceNavIcon type="users"/><span>{t("workspace.myAccount")}</span></NavLink>
+          </section>
         </nav>
       </aside>
 
