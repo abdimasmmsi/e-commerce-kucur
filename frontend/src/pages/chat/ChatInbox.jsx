@@ -47,12 +47,15 @@ function ChatInbox({ adminMode = false }) {
 
   if (!adminMode && activeRole === "admin") return <Navigate to="/admin/support-chats" replace />;
 
+  // Pembeli/merchant biasanya cuma punya sedikit percakapan: cari & filter baru muncul kalau sudah banyak.
+  const showTools = adminMode || conversations.length > 5;
+
   return <div className="page-container chat-page">
-    <PageHeader eyebrow={t(adminMode ? "workspace.admin" : "account.eyebrow")} title={t(adminMode ? "chat.supportTitle" : "chat.inboxTitle")} description={t(adminMode ? "chat.adminSubtitle" : "chat.inboxSubtitle")} actions={!adminMode && activeRole !== "admin" ? <button className="primary-button chat-support-button" type="button" onClick={openSupport}>{t("chat.chatAdmin")}</button> : null} />
+    <PageHeader eyebrow={t(adminMode ? "workspace.adminEyebrow" : "account.eyebrow")} title={t(adminMode ? "chat.supportTitle" : "chat.inboxTitle")} description={t(adminMode ? "chat.adminSubtitle" : "chat.inboxSubtitle")} actions={!adminMode && activeRole !== "admin" ? <button className="primary-button chat-support-button" type="button" onClick={openSupport}>{t("chat.chatAdmin")}</button> : null} />
     {error && <p className="form-error" role="alert">{error}</p>}
-    <div className="chat-inbox-toolbar"><label><span>{t("chat.search")}</span><input id="chat-inbox-search" type="search" value={search} onChange={(event) => setSearch(event.target.value)} placeholder={t("chat.searchPlaceholder")} /></label><label><span>{t("chat.type")}</span><select id="chat-inbox-filter" value={filter} onChange={(event) => setFilter(event.target.value)}>{filterOptions.map((item) => <option value={item.key} key={item.key}>{item.title}</option>)}</select></label></div>
+    {showTools && <div className="chat-inbox-toolbar"><label><span>{t("chat.search")}</span><input id="chat-inbox-search" type="search" value={search} onChange={(event) => setSearch(event.target.value)} placeholder={t("chat.searchPlaceholder")} /></label><label><span>{t("chat.type")}</span><select id="chat-inbox-filter" value={filter} onChange={(event) => setFilter(event.target.value)}>{filterOptions.map((item) => <option value={item.key} key={item.key}>{item.title}</option>)}</select></label></div>}
     <div className="chat-inbox-workspace">
-      <section className="chat-conversation-pane"><header><div><h2>{currentFilter.title}</h2><p>{t("chatInbox.conversationCount", { count: visibleConversations.length })}</p></div></header><div className="chat-conversation-list">
+      <section className="chat-conversation-pane">{showTools && <header><div><h2>{currentFilter.title}</h2><p>{t("chatInbox.conversationCount", { count: visibleConversations.length })}</p></div></header>}<div className="chat-conversation-list">
       {visibleConversations.map((conversation) => {
         const counterpart = conversation.participants.find((participant) => participant.userId !== user.id) ?? conversation.participants[0];
         const lastMessage = conversation.messages.at(-1);
