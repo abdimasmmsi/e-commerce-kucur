@@ -65,9 +65,9 @@ function Products() {
     <header className="grid gap-1"><h1 className="text-2xl font-extrabold text-[var(--kucur-text)] sm:text-3xl">{t("commerce.catalogTitle")}</h1><p className="text-[15px] text-[var(--kucur-text-muted)]">{t("commerce.catalogDescription")}</p></header>
     {!loading && error && <p className="rounded-xl border border-rose-300 bg-rose-50 px-4 py-3 text-[15px] font-semibold text-rose-900 dark:border-rose-800 dark:bg-rose-950 dark:text-rose-100" role="alert">{t("commerce.loadError", { message: error })}</p>}
 
-    <form className="grid min-w-0 gap-3" role="search" aria-label={t("catalogFilters.title")} onSubmit={(event) => event.preventDefault()}>
+    <form className="grid min-w-0 gap-4" role="search" aria-label={t("catalogFilters.title")} onSubmit={(event) => event.preventDefault()}>
       <label className="relative block"><span className="sr-only">{t("commerce.search")}</span><svg className="pointer-events-none absolute left-3.5 top-1/2 size-5 -translate-y-1/2 text-[var(--kucur-text-muted)]" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" aria-hidden="true"><circle cx="11" cy="11" r="7"/><path d="m20 20-3.5-3.5"/></svg><input className={`${controlClass} !min-h-12 !pl-11 !text-base`} type="search" value={search} onChange={(event) => setSearch(event.target.value)} placeholder={t("catalogFilters.searchPlaceholder")}/></label>
-      <div className="-mx-4 flex gap-2 overflow-x-auto px-4 pb-1 sm:mx-0 sm:flex-wrap sm:px-0" role="group" aria-label={t("commerce.category")}>
+      <div className="-mx-4 flex gap-2 overflow-x-auto px-4 py-1 [scrollbar-width:none] sm:mx-0 sm:flex-wrap sm:px-0 [&::-webkit-scrollbar]:hidden" role="group" aria-label={t("commerce.category")}>
         <button className={chipClass(category === "All")} type="button" aria-pressed={category === "All"} onClick={() => setCategory("All")}>{t("catalogFilters.allCategories")}</button>
         {categories.map((item) => <button className={chipClass(category === item)} type="button" aria-pressed={category === item} key={item} onClick={() => setCategory(item)}>{item}</button>)}
       </div>

@@ -4,9 +4,8 @@ export const settingsCategories = [
   { key: "finance", title: "Keuangan & Pajak", description: "Biaya admin platform, PPN, dan kontribusi Merchant." },
   { key: "payment", title: "Pembayaran", description: "Metode pembayaran dan kesiapan penyedia." },
   { key: "delivery", title: "Pengiriman", description: "Tarif, cutoff, dispatch, dan kapasitas pengiriman." },
-  { key: "notifications", title: "Notifikasi", description: "Konfigurasi notifikasi global platform." },
   { key: "integrations", title: "Integrasi", description: "Status integrasi eksternal platform." },
-  { key: "system", title: "Sistem", description: "Pengaturan global sistem yang tersedia." },
+  { key: "system", title: "Sistem", description: "Kontak pengelola desa untuk bantuan pengguna." },
 ];
 
 export const settingsCatalog = [
@@ -16,9 +15,7 @@ export const settingsCatalog = [
   { key: "tax", category: "finance", title: "PPN", description: "Tarif PPN global untuk transaksi platform.", route: "/admin/settings/finance/tax", keywords: "pajak ppn" },
   { key: "contribution", category: "finance", title: "Iuran Sukarela", description: "Kontribusi opsional per Merchant User tanpa jatuh tempo.", route: "/admin/settings/finance/contribution", keywords: "iuran sukarela merchant" },
   { key: "payment-methods", category: "payment", title: "Metode Pembayaran", description: "COD operasional; Midtrans menunggu kredensial nyata.", route: "/admin/settings/payment", keywords: "cod midtrans pembayaran" },
-  { key: "delivery", category: "delivery", title: "Operasional Pengiriman", description: "Tarif per km, cutoff, dispatch, dan kapasitas harian.", route: "/admin/settings/delivery", keywords: "pengiriman kurir tarif cutoff dispatch" },
-  { key: "notifications", category: "notifications", title: "Notifikasi Global", description: "Belum ada pengaturan global yang tersedia.", route: "/admin/settings/notifications", keywords: "notifikasi" },
-  { key: "lentera", category: "integrations", title: "SIG LENTERA", description: "Menunggu kontrak API resmi dan autentikasi.", route: "/admin/settings/integrations/lentera", keywords: "lentera sig api integrasi" },
+  { key: "delivery", category: "delivery", title: "Operasional Pengiriman", description: "Tarif per km, cutoff, dispatch, kapasitas harian, dan jarak maksimum.", route: "/admin/settings/delivery", keywords: "pengiriman kurir tarif cutoff dispatch jarak maksimum" },
   { key: "integrations", category: "integrations", title: "Status Integrasi", description: "Status Midtrans dan layanan eksternal tanpa menampilkan secret.", route: "/admin/settings/integrations", keywords: "midtrans integrasi" },
-  { key: "system", category: "system", title: "Sistem", description: "Belum ada pengaturan sistem global tambahan.", route: "/admin/settings/system", keywords: "sistem" },
+  { key: "system", category: "system", title: "Kontak Pengelola", description: "Nama dan nomor WhatsApp pengelola yang tampil di halaman Akun.", route: "/admin/settings/system", keywords: "sistem kontak pengelola whatsapp telepon bantuan" },
 ];

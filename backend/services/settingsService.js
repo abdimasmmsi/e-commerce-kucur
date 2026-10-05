@@ -1,6 +1,7 @@
 const { errors } = require("../errors/AppError");
 
-const time = (value) => /^([01]\d|2[0-3]):[0-5]\d$/.test(String(value));
+// Terima "HH:MM" dari input jam dan "HH:MM:SS" yang dikirim balik oleh GET /api/settings.
+const time = (value) => /^([01]\d|2[0-3]):[0-5]\d(:[0-5]\d)?$/.test(String(value));
 const numberBetween = (min, max) => (value) => Number.isFinite(Number(value)) && Number(value) >= min && Number(value) <= max;
 const integerBetween = (min, max) => (value) => Number.isInteger(Number(value)) && Number(value) >= min && Number(value) <= max;
 const validators = {
@@ -11,11 +12,15 @@ const validators = {
   installmentLateInterestPercent: numberBetween(0, 100), adminFeeType: (value) => ["percentage", "fixed"].includes(value),
   adminFeeValue: numberBetween(0, 1000000000000), adminFeeCutoffDay: integerBetween(1, 28), adminFeeGraceTime: time,
   suspendStoreForOutstandingAdminFee: (value) => typeof value === "boolean", taxPercent: numberBetween(0, 100),
-  voluntaryContributionEnabled: (value) => typeof value === "boolean", prideTransactionValueWeight: numberBetween(0, 100),
+  voluntaryContributionEnabled: (value) => typeof value === "boolean",
+  maxDeliveryDistanceKm: (value) => value === null || (Number.isFinite(Number(value)) && Number(value) > 0 && Number(value) <= 500),
+  adminContactName: (value) => value === null || (typeof value === "string" && value.trim().length <= 120),
+  adminContactPhone: (value) => value === null || (typeof value === "string" && /^[0-9+ ()-]{0,30}$/.test(value.trim())), prideTransactionValueWeight: numberBetween(0, 100),
   prideTransactionCountWeight: numberBetween(0, 100), prideRatingWeight: numberBetween(0, 100),
   prideCompletionRateWeight: numberBetween(0, 100), prideLeaderboardSize: integerBetween(1, 20),
 };
-const numericKeys = new Set(Object.keys(validators).filter((key) => !key.endsWith("Enabled") && key !== "suspendStoreForOutstandingAdminFee" && key !== "adminFeeType" && !key.endsWith("Time")));
+const textKeys = new Set(["adminContactName", "adminContactPhone"]);
+const numericKeys = new Set(Object.keys(validators).filter((key) => !key.endsWith("Enabled") && key !== "suspendStoreForOutstandingAdminFee" && key !== "adminFeeType" && !key.endsWith("Time") && !textKeys.has(key)));
 const prideKeys = ["prideTransactionValueWeight", "prideTransactionCountWeight", "prideRatingWeight", "prideCompletionRateWeight"];
 
 function createSettingsService(repository) {
@@ -26,7 +31,7 @@ function createSettingsService(repository) {
       for (const [key, value] of Object.entries(input || {})) {
         if (!validators[key]) continue;
         if (!validators[key](value)) throw errors.validation({ [key]: "Nilai pengaturan tidak valid." });
-        changes[key] = numericKeys.has(key) ? Number(value) : value;
+        changes[key] = value === null ? null : numericKeys.has(key) ? Number(value) : textKeys.has(key) ? value.trim() || null : value;
       }
       if (!Object.keys(changes).length) throw errors.validation({ settings: "Tidak ada pengaturan yang dapat diperbarui." });
       const current = await repository.settings.get();

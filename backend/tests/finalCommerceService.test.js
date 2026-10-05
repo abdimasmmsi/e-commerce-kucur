@@ -73,4 +73,32 @@ test("final commerce insufficient stock rolls the entire checkout back", async (
   assert.equal((await tx.targetProduct.findUnique({ where: { id: fixture.products[0].id } })).stock, 2);
 }));
 
+test("final checkout rejects addresses beyond the configured maximum delivery distance", async () => withRollback(async (repo, tx) => {
+  const fixture = await commerceFixture(tx); const service = createCommerceService(repo);
+  await tx.targetPlatformSettings.updateMany({ data: { maxDeliveryDistanceKm: 2 } });
+  const far = inputFor([fixture.products[0]]); far.delivery.location = { latitude: -7.98, longitude: 112.63 };
+  await assert.rejects(service.create(far, fixture.actor, `qa-${randomUUID()}`), (error) => /jangkauan pengiriman/i.test(error?.details?.distanceKm || ""));
+  const near = await service.create(inputFor([fixture.products[0]]), fixture.actor, `qa-${randomUUID()}`);
+  assert.equal(near.orders.length, 1);
+}));
+
+test("final settings persist installment toggles and admin contact", async () => withRollback(async (repo) => {
+  await repo.settings.update({ installment6MonthsEnabled: false, adminContactName: "Pengelola QA", adminContactPhone: "0812 3456", maxDeliveryDistanceKm: 15 });
+  const settings = await repo.settings.get();
+  assert.equal(settings.installment6MonthsEnabled, false);
+  assert.equal(settings.installmentFullEnabled, true);
+  assert.equal(settings.adminContactName, "Pengelola QA");
+  assert.equal(settings.maxDeliveryDistanceKm, 15);
+}));
+
+test("settings service accepts times echoed back as HH:MM:SS and persists the admin fee grace time", async () => withRollback(async (repo) => {
+  const { createSettingsService } = require("../services/settingsService");
+  const service = createSettingsService(repo);
+  const actor = { id: null, roles: ["admin"] };
+  await service.update({ deliveryOrderCutoffTime: "15:30:00", deliveryDispatchTime: "17:00", adminFeeGraceTime: "10:30" }, actor);
+  const settings = await repo.settings.get();
+  assert.equal(settings.deliveryOrderCutoffTime, "15:30:00");
+  assert.equal(settings.adminFeeGraceTime, "10:30:00");
+}));
+
 test.after(disconnectPrisma);

@@ -200,3 +200,26 @@ test("all refined merchant and shared-account routes retain the merchant shell",
     await assertNoHorizontalOverflow(page);
   }
 });
+
+test("multi-role account can switch workspaces from the Account page on a phone", async ({ qaPage: page }) => {
+  await page.setViewportSize({ width: 390, height: 844 });
+  await loginThroughUi(page, "merchant");
+  // Login QA masuk ke workspace merchant; pindah ke pembeli lalu kembali ke lapak lewat halaman Akun.
+  await page.goto("/profile");
+  await page.getByRole("button", { name: /Belanja sebagai pembeli|Shop as a buyer/i }).click();
+  await expect(page).toHaveURL(/\/$/);
+  await expect(page.locator(".customer-bottom-nav").first()).toBeVisible();
+  await page.goto("/profile");
+  await page.getByRole("button", { name: /Buka Lapak Saya|Open My Store/i }).click();
+  await expect(page).toHaveURL(/\/merchant$/);
+  await expect(page.locator(".merchant-bottom-nav")).toBeVisible();
+});
+
+for (const role of ["merchant", "courier", "admin"]) {
+  test(`${role} bottom Menu button opens the workspace drawer on a phone`, async ({ qaPage: page }) => {
+    await page.setViewportSize({ width: 390, height: 844 });
+    await loginThroughUi(page, role);
+    await page.locator(`.${role}-bottom-nav button`).click();
+    await expect.poll(async () => (await page.locator(`.${role}-sidebar`).boundingBox())?.x).toBe(0);
+  });
+}

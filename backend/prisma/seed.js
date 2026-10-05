@@ -34,6 +34,10 @@ async function seed() {
   // Runtime membaca tabel final, jadi fixture approval E2E juga di-reset di sana agar test bisa diulang.
   await prisma.targetStore.updateMany({ where: { id: "12000000-0000-4000-8000-000000000001" }, data: { status: "PENDING", rejectionReason: null, reviewedAt: null, reviewedByUserId: null } });
   await prisma.targetProduct.updateMany({ where: { id: "20000000-0000-4000-8000-000000000003" }, data: { stock: 12 } });
+  // Tagihan biaya admin dari run e2e sebelumnya bisa lewat batas bayar seiring waktu dan menangguhkan lapak QA B
+  // (produknya lalu hilang dari katalog). Lunasi tagihan lama dan aktifkan kembali agar e2e tidak bergantung pada tanggal.
+  await prisma.targetMerchantFee.updateMany({ where: { storeId: "10000000-0000-4000-8000-000000000002", feeType: "ADMIN_FEE", status: "OUTSTANDING" }, data: { status: "PAID", paidAt: new Date() } });
+  await prisma.targetStore.updateMany({ where: { id: "10000000-0000-4000-8000-000000000002" }, data: { status: "ACTIVE" } });
   await prisma.store.upsert({ where: { id: "12000000-0000-4000-8000-000000000001" }, update: { approvalStatus: "PENDING", rejectionReason: null, reviewedAt: null, reviewedByUserId: null }, create: { id: "12000000-0000-4000-8000-000000000001", merchantUserId: users[3].id, name: "E2E Approval Store", type: "product", description: "Dedicated deterministic browser approval fixture", status: "pending_initial_payment", approvalStatus: "PENDING", ...productStoreLocation } });
 
   const products = [

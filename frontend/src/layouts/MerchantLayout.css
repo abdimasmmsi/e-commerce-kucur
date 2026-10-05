@@ -429,7 +429,9 @@
     margin-bottom: 16px;
   }
 
-  .merchant-sidebar.open {
+  /* Selector sama kuat dengan aturan penyembunyi di atas; tanpa ini laci menu tidak pernah terbuka di HP. */
+  .merchant-sidebar.open,
+  .merchant-workspace .merchant-layout > .merchant-sidebar.open {
     transform: translateX(0);
   }
 

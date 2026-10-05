@@ -77,7 +77,7 @@ function AppHeader({ accountMode = false, workspaceRole = "" }) {
   };
 
   useEffect(() => {
-    const pointerDown = (event) => { if (!profileRef.current?.contains(event.target)) setProfileOpen(false); if (!notificationRef.current?.contains(event.target)) setNotificationOpen(false); };
+    const pointerDown = (event) => { if (!profileRef.current?.contains(event.target)) setProfileOpen(false); if (!notificationRef.current?.contains(event.target) && !event.target.closest?.("[data-notification-panel]")) setNotificationOpen(false); };
     const keyDown = (event) => { if (event.key === "Escape") closeMenus(); };
     document.addEventListener("pointerdown", pointerDown); document.addEventListener("keydown", keyDown);
     return () => { document.removeEventListener("pointerdown", pointerDown); document.removeEventListener("keydown", keyDown); };

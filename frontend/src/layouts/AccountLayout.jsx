@@ -1,6 +1,8 @@
-import { NavLink, Outlet } from "react-router-dom";
+import { Link, NavLink, Outlet, useLocation, useNavigate } from "react-router-dom";
+import { roleHomePaths } from "../utils/authNavigation";
 import { useAuth } from "../context/AuthContext";
 import { usePreferences } from "../context/PreferencesContext";
+import { useSystemSettings } from "../context/SystemSettingsContext";
 import AppHeader from "../components/AppHeader";
 import CustomerBottomNav from "../components/CustomerBottomNav";
 import "./AccountLayout.css";
@@ -21,9 +23,21 @@ const Icon = ({ name }) => {
 };
 
 function AccountLayout() {
-  const { activeRole, logout, user } = useAuth();
+  const { activeRole, logout, switchRole, user } = useAuth();
+  const { language, t } = usePreferences();
+  const navigate = useNavigate();
+  // HP: /profile menjadi hub berisi daftar menu; halaman akun lain cukup menampilkan tautan kembali.
+  const isHub = useLocation().pathname === "/profile";
+  const { settings } = useSystemSettings();
+  const contactPhone = settings?.adminContactPhone?.trim();
+  // Nomor lokal 08xx diubah ke format internasional 628xx untuk tautan WhatsApp.
+  const whatsappNumber = contactPhone ? contactPhone.replace(/[^0-9]/g, "").replace(/^0/, "62") : "";
+  const contactCopy = language === "id" ? { title: "Butuh bantuan?", body: "Hubungi pengelola desa", whatsapp: "WhatsApp", call: "Telepon" } : { title: "Need help?", body: "Contact the village manager", whatsapp: "WhatsApp", call: "Call" };
+  const workspaceRoles = (user?.roles ?? []).filter((role) => role !== activeRole);
+  const openWorkspace = async (role) => { const result = await Promise.resolve(switchRole(role)); if (result?.success !== false) navigate(roleHomePaths[role] ?? "/"); };
+  const workspaceCopy = language === "id" ? { customer: "Belanja sebagai pembeli", merchant: "Buka Lapak Saya", courier: "Buka Halaman Kurir", admin: "Buka Halaman Admin", hint: "Pindah ke halaman kerja" } : { customer: "Shop as a buyer", merchant: "Open My Store", courier: "Open Courier Workspace", admin: "Open Admin Workspace", hint: "Switch to your workspace" };
   const handleLogout = async () => { await logout(); window.location.replace("/"); };
-  const { t } = usePreferences();
+
   const groups = [
     { label: t("accountNav.account"), items: [
       { to: "/profile", label: t("header.profile"), icon: "profile" },
@@ -38,8 +52,8 @@ function AccountLayout() {
   return <div className="account-layout">
     <AppHeader accountMode workspaceRole={activeRole === "customer" ? "" : activeRole} />
     <div className="account-layout-shell">
-      <aside className="account-layout-sidebar">
-        <nav aria-label={t("workspace.navigation")}>{groups.map((group) => <section className="account-nav-group" key={group.label}><h2>{group.label}</h2>{group.items.map((item) => <NavLink to={item.to} state={item.state} key={item.to}><Icon name={item.icon}/><span>{item.label}</span></NavLink>)}</section>)}<button className="account-nav-logout" type="button" onClick={handleLogout}><Icon name="logout"/><span>{t("header.logout")}</span></button></nav>
+      <aside className={`account-layout-sidebar ${isHub ? "is-hub" : "is-sub"}`}><Link className="account-back-link" to="/profile">← {t("nav.account")}</Link>
+        {workspaceRoles.length > 0 && <div className="account-workspace-switch" aria-label={workspaceCopy.hint}>{workspaceRoles.map((role) => <button type="button" key={role} onClick={() => void openWorkspace(role)}><Icon name={role === "merchant" ? "store" : "profile"}/><span>{workspaceCopy[role] ?? role}</span><b aria-hidden="true">→</b></button>)}</div>}<nav aria-label={t("workspace.navigation")}>{groups.map((group) => <section className="account-nav-group" key={group.label}><h2>{group.label}</h2>{group.items.map((item) => <NavLink to={item.to} state={item.state} key={item.to}><Icon name={item.icon}/><span>{item.label}</span></NavLink>)}</section>)}{contactPhone && <section className="account-help-contact"><strong>{contactCopy.title}</strong><span>{contactCopy.body}{settings?.adminContactName ? `: ${settings.adminContactName}` : ""}</span><span className="account-help-number">{contactPhone}</span><div><a href={`https://wa.me/${whatsappNumber}`} target="_blank" rel="noreferrer">{contactCopy.whatsapp}</a><a href={`tel:${contactPhone.replace(/\s/g, "")}`}>{contactCopy.call}</a></div></section>}<button className="account-nav-logout" type="button" onClick={handleLogout}><Icon name="logout"/><span>{t("header.logout")}</span></button></nav>
       </aside>
       <main className="account-layout-main"><Outlet /></main>
     </div>

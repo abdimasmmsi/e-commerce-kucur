@@ -11,3 +11,43 @@
 
 .account-nav-logout{display:flex;align-items:center;gap:10px;width:100%;min-height:44px;margin-top:8px;padding:10px;border:0;border-radius:10px;background:transparent;color:#b42318;font:inherit;font-weight:700;text-align:left;cursor:pointer}.account-nav-logout svg{width:18px;height:18px;flex:0 0 18px}.account-nav-logout:hover{background:color-mix(in srgb,#b42318 8%,transparent)}.dark .account-nav-logout{color:#fca5a5}
 @media(max-width:600px){.account-nav-logout{margin-top:0}}
+
+.account-workspace-switch{display:grid;gap:8px;margin-bottom:16px}
+.account-workspace-switch button{display:flex;align-items:center;gap:10px;width:100%;min-height:52px;padding:10px 14px;border:1px solid var(--kucur-green);border-radius:12px;background:var(--kucur-green);color:var(--kucur-forest-dark);font:inherit;font-size:15px;font-weight:800;text-align:left;cursor:pointer}
+.account-workspace-switch button svg{width:22px;height:22px;flex:0 0 22px}
+.account-workspace-switch button span{flex:1}
+@media(max-width:600px){.account-workspace-switch{margin-bottom:8px}}
+
+.account-help-contact{display:grid;gap:4px;margin-top:8px;padding:12px;border:1px solid var(--kucur-border);border-radius:12px;background:var(--kucur-surface)}
+.account-help-contact strong{font-size:15px}
+.account-help-contact span{color:var(--kucur-text-muted);font-size:14px}
+.account-help-contact .account-help-number{color:var(--kucur-text);font-weight:700}
+.account-help-contact div{display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-top:6px}
+.account-help-contact a{display:inline-flex;min-height:44px;align-items:center;justify-content:center;border:1px solid var(--kucur-border-strong);border-radius:10px;font-weight:700;font-size:14px}
+.account-help-contact a:first-child{border-color:var(--kucur-green);background:var(--kucur-green);color:var(--kucur-forest-dark)}
+@media(max-width:600px){.account-help-contact{grid-column:1/-1}}
+
+/* HP & tablet: hub akun berupa daftar menu berbaris; halaman lain hanya tautan kembali. */
+.account-back-link{display:none}
+@media(max-width:900px){
+  .account-layout .account-layout-sidebar{position:static;height:auto;padding:12px 16px 0;border:0;background:transparent;overflow:visible}
+  .account-layout .account-layout-sidebar.is-sub>*:not(.account-back-link){display:none}
+  .account-layout .account-layout-sidebar.is-sub .account-back-link{display:inline-flex;min-height:44px;align-items:center;color:var(--kucur-green-ink);font-size:15px;font-weight:700}
+  .account-layout .account-layout-sidebar.is-hub nav{display:block;width:auto;overflow:hidden;border:1px solid var(--kucur-border);border-radius:16px;background:var(--kucur-surface)}
+  .account-layout .account-layout-sidebar.is-hub .account-nav-group{display:block}
+  .account-layout .account-layout-sidebar.is-hub .account-nav-group h2{display:none}
+  .account-layout .account-layout-sidebar.is-hub a.active{display:none}
+  .account-layout .account-layout-sidebar.is-hub nav a,.account-layout .account-layout-sidebar.is-hub .account-nav-logout{display:flex;width:100%;min-height:56px;align-items:center;gap:12px;margin:0;padding:0 16px;border:0;border-bottom:1px solid var(--kucur-border);border-radius:0;background:transparent;color:var(--kucur-text);font-size:16px;font-weight:600}
+  .account-layout .account-layout-sidebar.is-hub nav a::after{content:"›";margin-left:auto;color:var(--kucur-text-muted);font-size:22px;line-height:1}
+  .account-layout .account-layout-sidebar.is-hub nav a svg,.account-layout .account-layout-sidebar.is-hub .account-nav-logout svg{width:22px;height:22px;flex:0 0 22px;color:var(--kucur-text-muted)}
+  .account-layout .account-layout-sidebar.is-hub .account-nav-logout{border-bottom:0;color:#b42318}
+  .account-layout .account-layout-sidebar.is-hub .account-nav-logout svg{color:currentColor}
+  .dark .account-layout .account-layout-sidebar.is-hub .account-nav-logout{color:#fca5a5}
+  .account-layout .account-layout-sidebar.is-hub .account-help-contact{margin:0;border:0;border-bottom:1px solid var(--kucur-border);border-radius:0;padding:14px 16px}
+  .account-layout .account-workspace-switch{margin-bottom:12px}
+  .account-layout .account-layout-main{padding-top:16px}
+}
+.account-layout .account-layout-sidebar .account-back-link{display:none}
+@media(max-width:900px){
+  .account-layout .account-layout-sidebar.is-sub .account-back-link{display:inline-flex;padding:0;border:0;background:transparent}
+}
