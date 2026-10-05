@@ -34,8 +34,8 @@ function createReviewService(repository) {
   };
   const publicRows = async (where) => { const rows = (await repository.reviews.list({ visibility: "VISIBLE", ...where })).map(mapReview); return { items: rows.map(publicReview), summary: summary(rows) }; };
   return {
-    createProduct: (id, input, actor) => create("product", id, input, actor), createTourism: (id, input, actor) => create("tourism", id, input, actor), createLiveIn: (id, input, actor) => create("liveIn", id, input, actor),
-    product: (id) => publicRows({ productTarget: { commerceOrderItem: { productId: id } } }), tourism: (id) => publicRows({ tourismTarget: { tourismBooking: { tourismPackageId: id } } }), liveIn: (id) => publicRows({ liveInTarget: { liveInBooking: { liveInProfileId: id } } }), store: (id) => publicRows({ storeId: id }),
+    createProduct: (id, input, actor) => create("product", id, input, actor),
+    product: (id) => publicRows({ productTarget: { commerceOrderItem: { productId: id } } }), store: (id) => publicRows({ storeId: id }),
     async customer(actor) { return (await repository.reviews.list({ customerUserId: actor.id })).map(mapReview); },
     async merchant(actor, query = {}) { return (await repository.reviews.list({ store: { merchantUserId: actor.id }, ...(query.storeId ? { storeId: String(query.storeId) } : {}) })).map(mapReview); },
     async admin(query = {}) { const where = {}; if (query.visibility && query.visibility !== "all") where.visibility = String(query.visibility).toUpperCase(); if (query.type === "product") where.productTarget = { isNot: null }; if (query.type === "educational-tourism") where.tourismTarget = { isNot: null }; if (query.type === "live-in") where.liveInTarget = { isNot: null }; return (await repository.reviews.list(where)).map(mapReview); },
