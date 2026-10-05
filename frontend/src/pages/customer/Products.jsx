@@ -72,7 +72,7 @@ function Products() {
         {categories.map((item) => <button className={chipClass(category === item)} type="button" aria-pressed={category === item} key={item} onClick={() => setCategory(item)}>{item}</button>)}
       </div>
       <div className="flex min-w-0 flex-wrap items-center justify-between gap-3">
-        <p className="text-sm font-semibold text-[var(--kucur-text-muted)]" aria-live="polite">{t("catalogFilters.results", { count: rows.length })}</p>
+        <p className="text-sm font-semibold text-[var(--kucur-text-muted)]" aria-live="polite">{loading ? " " : t("catalogFilters.results", { count: rows.length })}</p>
         <label className="flex items-center gap-2 text-sm font-semibold"><span className="text-[var(--kucur-text-muted)]">{t("commerce.sort")}</span><select className={`${controlClass} !w-auto`} value={sort} onChange={(event) => setSort(event.target.value)}><option value="Featured">{t("catalogFilters.recommended")}</option><option value="Newest">{t("catalogFilters.newest")}</option><option value="Lowest">{t("commerce.lowestPrice")}</option><option value="Highest">{t("commerce.highestPrice")}</option><option value="Name">{t("catalogFilters.nameAscending")}</option></select></label>
       </div>
       <details className="group rounded-xl border border-[var(--kucur-border)] bg-[var(--kucur-surface)] px-3" open={advancedActive || undefined}>

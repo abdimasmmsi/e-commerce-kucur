@@ -1,0 +1,6 @@
+.route-progress{position:fixed;top:0;left:0;right:0;z-index:2000;height:3px;pointer-events:none}
+.route-progress i{display:block;height:100%;width:0;background:var(--kucur-green);box-shadow:0 0 8px color-mix(in srgb,var(--kucur-green) 60%,transparent)}
+.route-progress.is-running i{animation:route-progress-run 8s cubic-bezier(.1,.7,.2,1) forwards}
+.route-progress.is-done i{width:100%;opacity:0;transition:width .2s ease,opacity .3s ease .15s}
+@keyframes route-progress-run{0%{width:0}10%{width:45%}40%{width:75%}100%{width:92%}}
+@media(prefers-reduced-motion:reduce){.route-progress.is-running i{animation:none;width:70%}}

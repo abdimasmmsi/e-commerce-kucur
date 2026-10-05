@@ -1,3 +1,4 @@
+import { requestFinished, requestStarted } from "../utils/loadingBus";
 import { getAuthToken } from "./authStorage";
 
 const API_BASE_URL = String(import.meta.env.VITE_API_BASE_URL || "http://localhost:3000").replace(/\/$/, "");
@@ -15,7 +16,13 @@ export class ApiError extends Error {
   }
 }
 
-export async function apiRequest(path, options = {}) {
+// Setiap permintaan dicatat supaya bar loading tahu kapan halaman selesai dimuat.
+export function apiRequest(path, options = {}) {
+  requestStarted();
+  return sendRequest(path, options).finally(requestFinished);
+}
+
+async function sendRequest(path, options = {}) {
   const { token, headers, body, timeoutMs = DEFAULT_TIMEOUT_MS, signal, ...requestOptions } = options;
   const authToken = token ?? getAuthToken();
   const controller = new AbortController();
