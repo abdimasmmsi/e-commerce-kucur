@@ -66,6 +66,19 @@ test("final commerce cancellation releases stock and appends deterministic histo
   assert.deepEqual(stored.activityHistory.map((event) => event.type), ["ORDER_CREATED", "ORDER_CANCELLED"]);
 }));
 
+test("customer cannot cancel once the store starts packing, but the store still can", async () => withRollback(async (repo, tx) => {
+  const fixture = await commerceFixture(tx); const service = createCommerceService(repo);
+  const { orders: [order] } = await service.create(inputFor([fixture.products[0]]), fixture.actor, `qa-${randomUUID()}`);
+  await tx.targetCommerceOrder.update({ where: { id: order.id }, data: { fulfillmentStatus: "CONFIRMED" } });
+  const second = (await service.create(inputFor([fixture.products[0]]), fixture.actor, `qa-${randomUUID()}`)).orders[0];
+  assert.equal((await service.cancel(order.id, "Berubah pikiran", fixture.actor)).fulfillmentStatus, "cancelled");
+  await tx.targetCommerceOrder.update({ where: { id: second.id }, data: { fulfillmentStatus: "PROCESSING" } });
+  await assert.rejects(service.cancel(second.id, "Berubah pikiran", fixture.actor), (error) => /sudah dikemas/i.test(error?.details?.status || ""));
+  const store = await tx.targetStore.findUnique({ where: { id: fixture.products[0].storeId } });
+  const merchant = { id: store.merchantUserId, roles: ["merchant"] };
+  assert.equal((await service.cancel(second.id, "Stok rusak", merchant)).fulfillmentStatus, "cancelled");
+}));
+
 test("final commerce insufficient stock rolls the entire checkout back", async () => withRollback(async (repo, tx) => {
   const fixture = await commerceFixture(tx); const service = createCommerceService(repo); const input = inputFor(fixture.products); input.items[1].quantity = 3;
   await assert.rejects(service.create(input, fixture.actor, `qa-${randomUUID()}`), (error) => error?.details?.quantity === "Stok produk tidak mencukupi.");

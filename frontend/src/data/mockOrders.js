@@ -35,7 +35,7 @@ export const courierTransitions = {
   "on-delivery": "delivered",
 };
 
-export const customerCancellableStatuses = ["pending", "confirmed", "processing"];
+export const customerCancellableStatuses = ["pending", "confirmed"];
 
 const createHistory = (entries) => entries.map(([status, actorType, actorName, timestamp]) => ({
   status,

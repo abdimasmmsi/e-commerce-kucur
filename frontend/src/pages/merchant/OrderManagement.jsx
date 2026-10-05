@@ -78,6 +78,9 @@ function OrderManagementWorkspace({ storeId, routeStore }) {
     try {
       const updated = await orderService.transitionFulfillment(pending.order.id, pending.next);
       setOrders((current) => current.map((order) => order.id === updated.id ? { ...order, ...updated } : order));
+      // Ikuti pesanan ke tab barunya (mis. Baru -> Dikemas setelah diterima).
+      const nextTab = tabForStatus(updated.status ?? updated.fulfillmentStatus ?? pending.next);
+      if (nextTab) { setTab(nextTab); setPage(1); setPeriod(""); }
       setNotice(copy.done);
       setPending(null);
     } catch (caught) {
@@ -125,7 +128,7 @@ function OrderManagementWorkspace({ storeId, routeStore }) {
     })}</div> : !error && <EmptyState title={copy.empty} description={copy.emptyHint} />}
     {rows.length > PAGE_SIZE && <Pagination page={page} pageSize={PAGE_SIZE} totalItems={rows.length} onPageChange={setPage} />}
 
-    <ActionDialog open={Boolean(pending)} busy={busy} title={pending ? t(`merchantOrderDetail.${confirmKeys[pending.next]}`) : ""} description={t("merchantOrderDetail.irreversible")} cancelLabel={t("merchantOrderDetail.cancel")} confirmLabel={busy ? t("merchantOrderDetail.processing") : t("merchantOrderDetail.continue")} onCancel={() => setPending(null)} onConfirm={advance} />
+    <ActionDialog open={Boolean(pending)} busy={busy} title={pending ? t(`merchantOrderDetail.${confirmKeys[pending.next]}`) : ""} description={pending?.next === "processing" ? `${t("merchantOrderDetail.noCancelAfterPacking")} ${t("merchantOrderDetail.irreversible")}` : t("merchantOrderDetail.irreversible")} cancelLabel={t("merchantOrderDetail.cancel")} confirmLabel={busy ? t("merchantOrderDetail.processing") : t("merchantOrderDetail.continue")} onCancel={() => setPending(null)} onConfirm={advance} />
   </PageContainer>;
 }
 

@@ -7,7 +7,7 @@ import { usePreferences } from "../../context/PreferencesContext";
 import { orderService } from "../../services/commerceService";
 import { shortOrderCode } from "../../utils/orderCode";
 
-const customerCancellableStatuses = ["pending", "confirmed", "processing"];
+const customerCancellableStatuses = ["pending", "confirmed"];
 const doneStatuses = ["delivered", "completed"];
 const tabs = [
   { key: "active", label: "customerOrders.tabActive", matches: (status) => !doneStatuses.includes(status) && status !== "cancelled" },

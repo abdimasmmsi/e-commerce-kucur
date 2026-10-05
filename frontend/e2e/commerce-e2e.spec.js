@@ -29,6 +29,10 @@ test.describe.serial("canonical cross-role commerce", () => {
     await customer.goto("/cart");
     await expect(customer.getByText(productName)).toBeVisible();
     await customer.getByRole("link", { name: /Checkout/i }).click();
+    // Akun QA bisa punya alamat tersimpan; test ini memakai alur alamat manual + GPS.
+    await expect(customer.getByRole("heading", { name: /Data Penerima|Recipient Details/i })).toBeVisible();
+    const currentLocation = customer.getByRole("radio", { name: /Lokasi saya sekarang|My current location/i });
+    if (await currentLocation.count()) await currentLocation.check();
     await customer.getByLabel(/Alamat Pengiriman|Delivery Address/i).fill(`Alamat QA ${runId}, Desa Kucur`);
     // Total dihitung otomatis setelah alamat terisi dan lokasi terdeteksi.
     await expect(customer.getByText(/^(Ongkir|Delivery Fee)$/i)).toBeVisible();
@@ -57,7 +61,7 @@ test.describe.serial("canonical cross-role commerce", () => {
     await merchantOrder.click();
     await expect(merchant).toHaveURL(/\/orders\/[^/]+$/);
     await expect(merchant.getByRole("heading", { level: 1, name: /^(Pesanan|Order) #/ })).toBeVisible();
-    for (const action of [/Konfirmasi Pesanan/i, /Mulai Proses/i, /Siap Diambil Kurir/i]) {
+    for (const action of [/Konfirmasi Pesanan/i, /Mulai Kemas/i, /Siap Diambil Kurir/i]) {
       await merchant.getByRole("button", { name: action }).click();
       await merchant.getByRole("dialog").getByRole("button", { name: /Ya, Lanjutkan/i }).click();
       await expect(merchant.getByRole("dialog")).toHaveCount(0);

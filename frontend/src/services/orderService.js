@@ -34,5 +34,6 @@ export const orderService = {
     return normalizeList(await apiData(`/api/orders${params.size ? `?${params}` : ""}`));
   },
   get: async (orderId) => normalizeOrder(await apiData(`/api/orders/${encodeURIComponent(orderId)}`)),
+  cancel: async (orderId, reason) => normalizeOrder(await apiData(`/api/orders/${encodeURIComponent(orderId)}/cancel`, { method: "POST", body: { reason } })),
   transitionFulfillment: async (orderId, status) => normalizeOrder(await apiData(`/api/orders/${encodeURIComponent(orderId)}/fulfillment`, { method: "PATCH", body: { status } })),
 };

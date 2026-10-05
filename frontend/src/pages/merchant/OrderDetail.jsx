@@ -26,17 +26,22 @@ function OrderDetailWorkspace({ storeId, orderId }) {
     next: { pending: "Pesanan baru. Terima supaya pembeli tahu pesanannya diproses.", confirmed: "Pesanan diterima. Mulai siapkan barangnya.", processing: "Sedang dikemas. Tandai siap kalau barang sudah lengkap.", "ready-for-pickup": "Barang siap. Kurir akan mengambil sesuai jadwal pengiriman.", "courier-assigned": "Kurir sudah ditugaskan untuk mengambil barang.", "picked-up": "Barang sudah diambil kurir.", "on-delivery": "Sedang diantar ke pembeli.", delivered: "Pesanan sudah sampai ke pembeli.", completed: "Pesanan selesai.", cancelled: "Pesanan dibatalkan.", failed: "Pengiriman gagal." },
     prepare: "Barang yang disiapkan", quantity: "{count} × {price}", receive: "Kamu menerima {amount} dari kurir saat barang diambil.", receiveDone: "Harga barang {amount} sudah dibayar kurir.", money: "Uang",
     history: "Riwayat status", buyer: "Pembeli",
+    cancel: "Batalkan pesanan", cancelTitle: "Batalkan pesanan ini?", cancelDescription: "Stok dikembalikan dan pembeli mendapat notifikasi. Pesanan yang dibatalkan tidak bisa dilanjutkan.", reason: "Alasan untuk pembeli", reasonPlaceholder: "Mis. stok ternyata habis atau barang rusak", reasonRequired: "Tulis alasan pembatalan dulu.", keep: "Jangan batalkan", cancelling: "Membatalkan...",
   } : {
     back: "Orders", title: "Order {code}", steps: ["New", "Packing", "Ready", "On the way", "Arrived"],
     next: { pending: "New order. Accept it so the buyer knows it is being prepared.", confirmed: "Order accepted. Start preparing the items.", processing: "Packing in progress. Mark it ready when everything is complete.", "ready-for-pickup": "Ready. The courier will pick it up on the delivery schedule.", "courier-assigned": "A courier has been assigned to pick it up.", "picked-up": "The courier has picked up the items.", "on-delivery": "On the way to the buyer.", delivered: "The order reached the buyer.", completed: "Order completed.", cancelled: "Order cancelled.", failed: "Delivery failed." },
     prepare: "Items to prepare", quantity: "{count} × {price}", receive: "You receive {amount} from the courier at pickup.", receiveDone: "The courier has paid {amount} for the items.", money: "Money",
     history: "Status history", buyer: "Buyer",
+    cancel: "Cancel order", cancelTitle: "Cancel this order?", cancelDescription: "Stock is returned and the buyer is notified. A cancelled order cannot be resumed.", reason: "Reason for the buyer", reasonPlaceholder: "E.g. out of stock or damaged item", reasonRequired: "Write a cancellation reason first.", keep: "Keep order", cancelling: "Cancelling...",
   };
   const [order, setOrder] = useState(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState("");
   const [transitioning, setTransitioning] = useState(false);
   const [confirmationOpen, setConfirmationOpen] = useState(false);
+  const [cancelOpen, setCancelOpen] = useState(false);
+  const [cancelReason, setCancelReason] = useState("");
+  const [cancelError, setCancelError] = useState("");
   const nextStatus = order ? merchantTransitions[order.status] : null;
 
   useEffect(() => {
@@ -50,6 +55,15 @@ function OrderDetailWorkspace({ storeId, orderId }) {
     setTransitioning(true); setError("");
     try { setOrder(await orderService.transitionFulfillment(order.id, nextStatus)); setConfirmationOpen(false); }
     catch (caught) { setError(caught.message); }
+    finally { setTransitioning(false); }
+  };
+
+  // Lapak boleh membatalkan sampai tahap Dikemas (mis. stok ternyata habis); alasan wajib untuk pembeli.
+  const cancelOrder = async () => {
+    if (!cancelReason.trim()) { setCancelError(copy.reasonRequired); return; }
+    setTransitioning(true); setCancelError("");
+    try { setOrder(await orderService.cancel(order.id, cancelReason.trim())); setCancelOpen(false); setCancelReason(""); }
+    catch (caught) { setCancelError(caught.message); }
     finally { setTransitioning(false); }
   };
 
@@ -81,6 +95,7 @@ function OrderDetailWorkspace({ storeId, orderId }) {
             <p className="text-lg font-bold leading-snug">{copy.next[order.status] ?? statusLabel(order.status)}</p>
             <StatusTimeline currentIndex={finished ? copy.steps.length : stages[order.status] ?? 0} exception={exceptional} label={t("merchantOrderDetail.currentStatus")} steps={copy.steps.map((label, index) => ({ key: index, label }))} />
             {nextStatus && !waitingPayment && <Button className="w-full sm:w-auto" type="button" onClick={() => setConfirmationOpen(true)}>{t(`merchantOrderDetail.${actionKeys[nextStatus][0]}`)}</Button>}
+            {["pending", "confirmed", "processing"].includes(order.status) && <Button variant="ghost" className="w-full !text-rose-700 sm:w-auto dark:!text-rose-300" type="button" onClick={() => { setCancelOpen(true); setCancelError(""); }}>{copy.cancel}</Button>}
             {waitingPayment && <p className="rounded-xl bg-amber-50 p-3 text-[15px] text-amber-900 dark:bg-amber-950/50 dark:text-amber-200"><strong className="block">{t("merchantOrderDetail.waitingPayment")}</strong>{t("merchantOrderDetail.waitingPaymentHint")}</p>}
           </section>
 
@@ -122,7 +137,11 @@ function OrderDetailWorkspace({ storeId, orderId }) {
         </aside>
       </div>
     </PageContainer>
-    <ActionDialog open={confirmationOpen} busy={transitioning} title={nextStatus ? t(`merchantOrderDetail.${actionKeys[nextStatus][1]}`) : ""} description={t("merchantOrderDetail.irreversible")} cancelLabel={t("merchantOrderDetail.cancel")} confirmLabel={transitioning ? t("merchantOrderDetail.processing") : t("merchantOrderDetail.continue")} onCancel={() => setConfirmationOpen(false)} onConfirm={handleTransition} />
+    <ActionDialog open={confirmationOpen} busy={transitioning} title={nextStatus ? t(`merchantOrderDetail.${actionKeys[nextStatus][1]}`) : ""} description={nextStatus === "processing" ? `${t("merchantOrderDetail.noCancelAfterPacking")} ${t("merchantOrderDetail.irreversible")}` : t("merchantOrderDetail.irreversible")} cancelLabel={t("merchantOrderDetail.cancel")} confirmLabel={transitioning ? t("merchantOrderDetail.processing") : t("merchantOrderDetail.continue")} onCancel={() => setConfirmationOpen(false)} onConfirm={handleTransition} />
+    <ActionDialog open={cancelOpen} busy={transitioning} destructive title={copy.cancelTitle} description={copy.cancelDescription} cancelLabel={copy.keep} confirmLabel={transitioning ? copy.cancelling : copy.cancel} onCancel={() => { setCancelOpen(false); setCancelReason(""); setCancelError(""); }} onConfirm={cancelOrder}>
+      <label className="grid gap-2 text-[15px] font-medium">{copy.reason}<textarea className="min-h-24 w-full rounded-xl border border-[var(--kucur-border-strong)] bg-[var(--kucur-surface)] px-3 py-2 text-base text-[var(--kucur-text)] outline-none focus:border-[var(--kucur-green)] focus:ring-2 focus:ring-[var(--kucur-green-soft)]" value={cancelReason} onChange={(event) => setCancelReason(event.target.value)} placeholder={copy.reasonPlaceholder} /></label>
+      {cancelError && <p className="text-sm font-semibold text-rose-700 dark:text-rose-300" role="alert">{cancelError}</p>}
+    </ActionDialog>
   </>;
 }
 

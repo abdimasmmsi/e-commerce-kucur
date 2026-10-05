@@ -15,7 +15,8 @@ import { usePreferences } from "../../context/PreferencesContext";
 import { orderService } from "../../services/commerceService";
 import { shortOrderCode } from "../../utils/orderCode";
 
-const cancellable = ["pending", "confirmed", "processing"];
+// Pembeli hanya bisa batal sebelum lapak mulai mengemas.
+const cancellable = ["pending", "confirmed"];
 // Tahap timeline (5) dan kalimat status, sama dengan daftar Pesanan Saya.
 const stages = {
   pending: [0, "stepPending"], confirmed: [1, "stepConfirmed"], processing: [1, "stepProcessing"],
@@ -38,7 +39,7 @@ export default function OrderDetail() {
     proof: "Bukti pengiriman", proofAlt: "Bukti pesanan telah diterima", proofMissing: "Foto bukti tidak dapat ditampilkan.", received: "Diterima", by: "oleh",
     activity: "Riwayat pengiriman", noActivity: "Belum ada aktivitas pengiriman.",
     reviews: "Beri ulasan", summary: "Pembayaran", payOnArrival: "Bayar tunai saat barang sampai", paid: "Sudah dibayar", productTotal: "Total produk", tax: "PPN", shipping: "Ongkir", tip: "Tip kurir", total: "Total",
-    chat: "Chat penjual", cancel: "Batalkan pesanan", cancelTitle: "Batalkan pesanan?", cancelDescription: "Pesanan yang dibatalkan tidak dapat dilanjutkan kembali.", reason: "Alasan pembatalan", reasonPlaceholder: "Jelaskan alasan pembatalan", keep: "Kembali", cancelling: "Membatalkan...",
+    chat: "Chat penjual", packedNoCancel: "Pesanan sudah dikemas penjual, jadi tidak bisa dibatalkan lagi. Ada masalah? Chat penjual.", cancel: "Batalkan pesanan", cancelTitle: "Batalkan pesanan?", cancelDescription: "Pesanan yang dibatalkan tidak dapat dilanjutkan kembali.", reason: "Alasan pembatalan", reasonPlaceholder: "Jelaskan alasan pembatalan", keep: "Kembali", cancelling: "Membatalkan...",
   } : {
     back: "My Orders", title: "Order {code}",
     loading: "Loading order details", missing: "Order not found", missingDescription: "This order is unavailable or you do not have access.",
@@ -49,7 +50,7 @@ export default function OrderDetail() {
     proof: "Delivery proof", proofAlt: "Proof that the order was received", proofMissing: "The proof photo cannot be shown.", received: "Received", by: "by",
     activity: "Delivery history", noActivity: "No delivery activity yet.",
     reviews: "Write a review", summary: "Payment", payOnArrival: "Pay cash when it arrives", paid: "Paid", productTotal: "Product total", tax: "VAT", shipping: "Delivery fee", tip: "Courier tip", total: "Total",
-    chat: "Chat with seller", cancel: "Cancel order", cancelTitle: "Cancel this order?", cancelDescription: "A cancelled order cannot be resumed.", reason: "Cancellation reason", reasonPlaceholder: "Explain why you are cancelling", keep: "Keep order", cancelling: "Cancelling...",
+    chat: "Chat with seller", packedNoCancel: "The seller is already packing this order, so it can no longer be cancelled. Any problem? Chat with the seller.", cancel: "Cancel order", cancelTitle: "Cancel this order?", cancelDescription: "A cancelled order cannot be resumed.", reason: "Cancellation reason", reasonPlaceholder: "Explain why you are cancelling", keep: "Keep order", cancelling: "Cancelling...",
   };
 
   const [order, setOrder] = useState(null);
@@ -116,6 +117,7 @@ export default function OrderDetail() {
           {!exceptional && <dl className="grid gap-2 rounded-xl bg-[var(--kucur-surface-muted)] p-3 text-[15px] sm:grid-cols-2">
             {assignment ? <><div><dt className="text-sm text-[var(--kucur-text-muted)]">{copy.schedule}</dt><dd className="font-semibold">{formatDate(assignment.batch.deliveryDate, { dateStyle: "long" })}</dd></div>{assignment.batch.courier?.fullName && <div><dt className="text-sm text-[var(--kucur-text-muted)]">{copy.courier}</dt><dd className="font-semibold">{assignment.batch.courier.fullName}</dd></div>}</> : <p className="text-sm text-[var(--kucur-text-muted)] sm:col-span-2">{copy.noBatch}</p>}
           </dl>}
+          {order.fulfillmentStatus === "processing" && <p className="rounded-xl bg-[var(--kucur-surface-muted)] p-3 text-sm text-[var(--kucur-text-muted)]">{copy.packedNoCancel}</p>}
           <div className="grid gap-2 sm:flex"><Button variant="secondary" onClick={chat}>{copy.chat}</Button>{cancellable.includes(order.fulfillmentStatus) && <Button variant="ghost" className="!text-rose-700 dark:!text-rose-300" onClick={() => setCancelOpen(true)}>{copy.cancel}</Button>}</div>
         </section>
 

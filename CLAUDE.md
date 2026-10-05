@@ -50,7 +50,7 @@ Satu **User** bisa punya banyak role (multi-role via `UserRole`): Customer, Merc
 - Ada **Buy Now** (direct checkout per produk). Produk simple dan varian (SKU); stok customer = gabungan semua varian. Gambar produk dipaksa rasio **1:1** (crop tengah, max 1600×1600).
 - Hitung di **backend**, bukan frontend: subtotal, **PPN global %** (snapshot per order), ongkir, tip kurir. Komponen uang disimpan terpisah (jangan digabung satu angka).
 - **Ongkir = jarak km dibulatkan ke atas × rate/km** (rate di Admin Settings). Customer bisa kasih tip kurir saat memilih pembayaran.
-- Cancel oleh customer hanya sampai status **Processing**; setelah Ready for Pickup tidak bisa.
+- Cancel oleh **customer** hanya saat **Menunggu/Diterima** (`pending`/`confirmed`); begitu lapak menekan "Mulai kemas" (`processing`) customer tidak bisa batal (diubah 2026-10-05 atas permintaan Steven). **Merchant/admin** masih boleh batal sampai `processing` dengan alasan wajib (mis. stok habis); stok dikembalikan dan customer dapat notifikasi.
 - Stok: reservasi dan konsumsi di transaksi; ada pencegahan oversell dan concurrent checkout.
 - Review hanya dari order selesai, unik per item, merchant bisa reply, admin bisa moderasi. Revenue dihitung saat order selesai.
 
@@ -97,7 +97,7 @@ Catatan desain: gambar/opsi produk disimpan JSON; reservasi stok di `CommerceOrd
 
 ## 9. Status terakhir
 
-- Backend tests 87/87, final repository 27/27, router 21/21, Prisma validate/generate pass, Playwright e2e **64/64** (2026-10-05; `admin-approval-e2e` butuh reset fixture via `node prisma/validation/prepareFinalModeE2EFixtures.js` sebelum diulang), lint dan build pass. Warning bundle Vite >500 kB (±697 kB) non-blocking.
+- Backend tests 87/87, final repository 28/28, router 21/21, Prisma validate/generate pass, Playwright e2e **64/64** (2026-10-05; `admin-approval-e2e` butuh reset fixture via `node prisma/validation/prepareFinalModeE2EFixtures.js` sebelum diulang), lint dan build pass. Warning bundle Vite >500 kB (±697 kB) non-blocking.
 - Integritas DB: 20 tabel, 40 FK, 0 orphan, 0 pelanggaran XOR.
 - **Feature freeze diberlakukan**: hanya boleh perbaikan blocking bug; tidak ada fitur baru, perubahan schema, atau refactor besar.
 - Polish halaman detail dan modal **selesai** (dicek 2026-10-04): komponen bersama `DetailSection`, `StatusTimeline`, `ActionDialog` di `frontend/src/components/ui/`, dicover `e2e/detail-polish.spec.js`.
