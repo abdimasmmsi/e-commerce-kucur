@@ -14,6 +14,7 @@ export const normalizeAuthUser = (user) => ({
 
 export const authService = {
   login: (email, password) => apiData("/api/auth/login", { method: "POST", body: { email, password } }),
+  emailStatus: (email) => apiData(`/api/auth/email-status?email=${encodeURIComponent(email)}`),
   register: async (input) => normalizeAuthUser(await apiData("/api/auth/register", { method: "POST", body: input })),
   me: async () => normalizeAuthUser(await apiData("/api/auth/me")),
   logout: () => apiRequest("/api/auth/logout", { method: "POST" }),

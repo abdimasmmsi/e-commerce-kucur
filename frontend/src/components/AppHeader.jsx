@@ -83,6 +83,8 @@ function AppHeader({ accountMode = false, workspaceRole = "" }) {
     return () => { document.removeEventListener("pointerdown", pointerDown); document.removeEventListener("keydown", keyDown); };
   }, []);
 
+  // Halaman Masuk/Daftar: tanpa kolom cari dan tombol Masuk di header (sudah ada formnya).
+  const isAuthPage = pathname === "/login" || pathname === "/register";
   const notificationButton = isAuthenticated && <div className="customer-notification-wrap" ref={notificationRef}>
     <button className="notification-button" type="button" title={t("header.notificationsLabel")} onClick={() => { setNotificationOpen((value) => !value); setProfileOpen(false); }} aria-label={`${t("header.notificationsLabel")}${unreadCount ? `, ${t("header.unreadNotifications", { count: unreadCount })}` : ""}`} aria-expanded={notificationOpen} aria-haspopup="dialog">
       <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.9" aria-hidden="true"><path strokeLinecap="round" strokeLinejoin="round" d="M18 8a6 6 0 0 0-12 0c0 7-3 7-3 9h18c0-2-3-2-3-9M10 20h4"/></svg>
@@ -102,7 +104,7 @@ function AppHeader({ accountMode = false, workspaceRole = "" }) {
         {!isAuthenticated && <PreferenceControls compact onLanguageChange={changeLanguage} onThemeChange={changeTheme} />}
         {notificationButton}
         {isAuthenticated && !accountMode && <CartShortcut label={t("header.cart")} />}
-        {initialized && !isAuthenticated && <div className="guest-auth-actions"><Link to="/login">{t("header.login")}</Link><Link className="register-link" to="/register">{t("header.register")}</Link></div>}
+        {initialized && !isAuthenticated && !isAuthPage && <div className="guest-auth-actions"><Link to="/login">{t("header.login")}</Link><Link className="register-link" to="/register">{t("header.register")}</Link></div>}
         {isAuthenticated && <div className="profile-menu-wrap" ref={profileRef}>
           <button className="profile-menu-trigger" type="button" title={t("nav.account")} onClick={() => { setProfileOpen((value) => !value); setNotificationOpen(false); }} aria-label={t("nav.account")} aria-expanded={profileOpen} aria-haspopup="menu"><UserAvatar className="profile-avatar" size={36} user={user}/><span className="profile-trigger-copy"><strong>{user.fullName}</strong><small>{t(`role.${activeRole}`)}</small></span><span className="profile-chevron" aria-hidden="true" /></button>
           {profileOpen && <div className="profile-dropdown" role="menu">
@@ -125,7 +127,7 @@ function AppHeader({ accountMode = false, workspaceRole = "" }) {
         </div>}
       </div>
     </div>
-    {!accountMode && pathname !== "/products" && <SearchForm className="customer-mobile-search" onSearch={submitSearch} query={search} setQuery={setSearch} t={t} />}
+    {!accountMode && pathname !== "/products" && !isAuthPage && <SearchForm className="customer-mobile-search" onSearch={submitSearch} query={search} setQuery={setSearch} t={t} />}
   </PageContainer></header>;
 }
 

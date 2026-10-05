@@ -12,7 +12,7 @@ function Login() {
   const [searchParams] = useSearchParams();
   const { activeRole, initialized, isAuthenticated, login, user } = useAuth();
   const { t } = usePreferences();
-  const [email, setEmail] = useState("");
+  const [email, setEmail] = useState(() => location.state?.email ?? "");
   const [password, setPassword] = useState("");
   const [error, setError] = useState("");
   const [submitting, setSubmitting] = useState(false);

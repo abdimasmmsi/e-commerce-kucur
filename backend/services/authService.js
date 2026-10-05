@@ -44,9 +44,14 @@ function createAuthService(repository) {
   const sessionLifetimeMs = Math.max(1, Number(process.env.AUTH_SESSION_TTL_HOURS) || 12) * 60 * 60 * 1000;
   return {
     publicUser,
+    async emailStatus(rawEmail) {
+      let email;
+      try { email = validateEmail(rawEmail); } catch { return { registered: false }; }
+      return { registered: Boolean(await repository.users.findByEmail(email)) };
+    },
     async register(input) {
       const email = validateEmail(input.email);
-      if (await repository.users.findByEmail(email)) throw errors.conflict("Email sudah digunakan.");
+      if (await repository.users.findByEmail(email)) throw errors.conflict("Email sudah terdaftar. Silakan masuk dengan email ini.");
       // Akun baru wajib menyertakan satu alamat pengiriman yang otomatis menjadi alamat utama.
       if (!input.address) throw errors.validation({ address: "Alamat pengiriman wajib diisi." });
       const addresses = normalizeAddresses([{ ...input.address, isPrimary: true }]);

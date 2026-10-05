@@ -97,7 +97,7 @@ Catatan desain: gambar/opsi produk disimpan JSON; reservasi stok di `CommerceOrd
 
 ## 9. Status terakhir
 
-- Backend tests 87/87, final repository 30/30, router 21/21, Prisma validate/generate pass, Playwright e2e **64/64** (2026-10-05; `admin-approval-e2e` butuh reset fixture via `node prisma/validation/prepareFinalModeE2EFixtures.js` sebelum diulang), lint dan build pass. Warning bundle Vite >500 kB (±697 kB) non-blocking.
+- Backend tests 87/87, final repository 30/30, router 21/21, Prisma validate/generate pass, Playwright e2e **67/67** (2026-10-05; `admin-approval-e2e` butuh reset fixture via `node prisma/validation/prepareFinalModeE2EFixtures.js` sebelum diulang), lint dan build pass. Warning bundle Vite >500 kB (±697 kB) non-blocking.
 - Integritas DB: 20 tabel, 40 FK, 0 orphan, 0 pelanggaran XOR.
 - **Feature freeze diberlakukan**: hanya boleh perbaikan blocking bug; tidak ada fitur baru, perubahan schema, atau refactor besar.
 - Polish halaman detail dan modal **selesai** (dicek 2026-10-04): komponen bersama `DetailSection`, `StatusTimeline`, `ActionDialog` di `frontend/src/components/ui/`, dicover `e2e/detail-polish.spec.js`.
