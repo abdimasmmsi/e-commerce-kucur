@@ -36,7 +36,7 @@ test("authentication rejects missing token and accepts valid login", async (t) =
 
 test("registration persists a hashed Customer and logout revokes only its session", async (t) => {
   const app = await fixture(); t.after(app.close);
-  const registered = await app.request("/api/auth/register", { method: "POST", body: { fullName: "New Customer", email: "new@example.test", phone: "081299999999", password: "password123" } });
+  const registered = await app.request("/api/auth/register", { method: "POST", body: { fullName: "New Customer", email: "new@example.test", phone: "081299999999", password: "password123", address: { label: "Rumah", recipientName: "New Customer", phone: "081299999999", address: "Dusun Krajan, Desa Kucur", latitude: -7.955, longitude: 112.548 } } });
   assert.equal(registered.status, 201);
   assert.deepEqual(registered.body.data.roles, ["customer"]);
   const stored = app.repository.users.findByEmail("new@example.test");

@@ -2,6 +2,7 @@ const crypto = require("node:crypto");
 const { promisify } = require("node:util");
 const { errors } = require("../errors/AppError");
 const { requiredString, validateEmail, validatePhone } = require("../validation/sharedValidation");
+const { normalizeAddresses } = require("../validation/addressValidation");
 
 const scrypt = promisify(crypto.scrypt);
 const PASSWORD_ROTATION_MONTHS = 3;
@@ -46,8 +47,11 @@ function createAuthService(repository) {
     async register(input) {
       const email = validateEmail(input.email);
       if (await repository.users.findByEmail(email)) throw errors.conflict("Email sudah digunakan.");
+      // Akun baru wajib menyertakan satu alamat pengiriman yang otomatis menjadi alamat utama.
+      if (!input.address) throw errors.validation({ address: "Alamat pengiriman wajib diisi." });
+      const addresses = normalizeAddresses([{ ...input.address, isPrimary: true }]);
       const timestamp = new Date().toISOString();
-      const user = await repository.users.create({ fullName: requiredString(input.fullName, "fullName", { max: 120 }), email, phone: validatePhone(input.phone), passwordHash: await hashPassword(input.password), passwordChangedAt: timestamp, passwordResetRequired: false, status: "active", language: "id", theme: "light", roles: ["customer"], createdAt: timestamp, updatedAt: timestamp });
+      const user = await repository.users.create({ addresses, fullName: requiredString(input.fullName, "fullName", { max: 120 }), email, phone: validatePhone(input.phone), passwordHash: await hashPassword(input.password), passwordChangedAt: timestamp, passwordResetRequired: false, status: "active", language: "id", theme: "light", roles: ["customer"], createdAt: timestamp, updatedAt: timestamp });
       return publicUser(user);
     },
     async login(input) {

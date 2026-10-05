@@ -76,7 +76,7 @@ Sumber kebenaran: `D:\Unsorted Downloads\db_ecommerce.sql` (versi dengan perbaik
 
 1 User · 2 UserRole · 3 Session · 4 Store · 5 Product · 6 ProductVariant · 7 Cart · 8 CartItem · 9 CommerceOrder · 10 CommerceOrderItem · 11 PaymentAttempt · 12 MerchantFee · 13 CourierProfile · 14 DeliveryBatch · 15 DeliveryBatchOrder · 16 Review · 17 Conversation · 18 Message · 19 Notification · 20 PlatformSettings
 
-Catatan desain: gambar/opsi produk disimpan JSON; reservasi stok di `CommerceOrderItem`; histori memakai kolom JSON (`CommerceOrder.activityHistory`, `CourierProfile.availabilityHistory`, `DeliveryBatchOrder.deliveryHistory`); `Notification` punya `dedupeKey` unik; `Conversation.openKey` unik; Store punya `latitude/longitude` dengan CHECK (keduanya null atau keduanya valid).
+Catatan desain: gambar/opsi produk disimpan JSON; reservasi stok di `CommerceOrderItem`; histori memakai kolom JSON (`CommerceOrder.activityHistory`, `CourierProfile.availabilityHistory`, `DeliveryBatchOrder.deliveryHistory`); `Notification` punya `dedupeKey` unik; `Conversation.openKey` unik; Store punya `latitude/longitude` dengan CHECK (keduanya null atau keduanya valid). Kolom tambahan disetujui Steven 2026-10-05: `User.addresses` JSON (migrasi `20261005090000_user_addresses`), maks 5 alamat customer, tepat satu `isPrimary`, titik peta wajib; alamat utama wajib saat daftar, dikelola di `/addresses`, dipilih di checkout (draf checkout disimpan di sessionStorage saat pindah ke Alamat Saya).
 
 ## 7. Arsitektur backend
 
@@ -97,7 +97,7 @@ Catatan desain: gambar/opsi produk disimpan JSON; reservasi stok di `CommerceOrd
 
 ## 9. Status terakhir
 
-- Backend tests 87/87, final repository 26/26, router 21/21, Prisma validate/generate pass, Playwright e2e **59/59** (2026-10-05), lint dan build pass. Warning bundle Vite >500 kB (±697 kB) non-blocking.
+- Backend tests 87/87, final repository 27/27, router 21/21, Prisma validate/generate pass, Playwright e2e **60/60** (2026-10-05; `admin-approval-e2e` butuh reset fixture via `node prisma/validation/prepareFinalModeE2EFixtures.js` sebelum diulang), lint dan build pass. Warning bundle Vite >500 kB (±697 kB) non-blocking.
 - Integritas DB: 20 tabel, 40 FK, 0 orphan, 0 pelanggaran XOR.
 - **Feature freeze diberlakukan**: hanya boleh perbaikan blocking bug; tidak ada fitur baru, perubahan schema, atau refactor besar.
 - Polish halaman detail dan modal **selesai** (dicek 2026-10-04): komponen bersama `DetailSection`, `StatusTimeline`, `ActionDialog` di `frontend/src/components/ui/`, dicover `e2e/detail-polish.spec.js`.

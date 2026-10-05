@@ -186,7 +186,10 @@ async function main() {
   const start = wib(35, 8);
   const users = {};
   await at(start, async () => {
-    for (const [key, person] of Object.entries(people)) users[key] = await auth.register({ ...person, password: PASSWORD });
+    for (const [key, person] of Object.entries(people)) {
+      const home = addresses[key] ?? { address: "Dusun Krajan, Desa Kucur, Kec. Dau, Kab. Malang", location: { latitude: -7.9562, longitude: 112.5447 } };
+      users[key] = await auth.register({ ...person, password: PASSWORD, address: { label: "Rumah", recipientName: person.fullName, phone: person.phone, address: home.address, latitude: home.location.latitude, longitude: home.location.longitude } });
+    }
     await prisma.targetUserRole.deleteMany({ where: { userId: { in: [users.admin.id, users.courier.id, users.courier2.id] } } });
     await prisma.targetUserRole.createMany({ data: [{ userId: users.admin.id, role: "ADMIN" }, { userId: users.courier.id, role: "COURIER" }, { userId: users.courier2.id, role: "COURIER" }] });
     for (const key of ["courier", "courier2"]) await prisma.targetCourierProfile.create({ data: { userId: users[key].id, maxActiveDeliveries: 15 } });

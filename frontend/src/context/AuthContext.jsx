@@ -71,9 +71,9 @@ export function AuthProvider({ children }) {
       return { success: false, code: error.code, message: publicError(error, "Login tidak dapat diproses.", errorMessage) };
     }
   }, [acceptUser, clearSession, errorMessage]);
-  const register = useCallback(async ({ fullName, email, phone, password }) => {
+  const register = useCallback(async ({ fullName, email, phone, password, address }) => {
     try {
-      const user = await authService.register({ fullName: fullName.trim(), email: email.trim().toLowerCase(), phone: phone.trim(), password });
+      const user = await authService.register({ fullName: fullName.trim(), email: email.trim().toLowerCase(), phone: phone.trim(), password, address });
       return { success: true, user, requiresLogin: true };
     } catch (error) {
       return { success: false, code: error.code, message: publicError(error, "Registrasi tidak dapat diproses.", errorMessage) };
@@ -120,14 +120,18 @@ export function AuthProvider({ children }) {
     try { return { success: true, ...(await authService.verifyCurrentPassword(currentPassword)) }; }
     catch (error) { return { success: false, code: error.code, message: publicError(error, "Kata sandi saat ini salah.", errorMessage), details: error.details }; }
   }, [errorMessage]);
+  const updateAddresses = useCallback(async (addresses) => {
+    try { return { success: true, ...acceptUser(await authService.updateAddresses(addresses), session.activeRole) }; }
+    catch (error) { return { success: false, code: error.code, message: publicError(error, "Alamat tidak dapat disimpan.", errorMessage) }; }
+  }, [acceptUser, errorMessage, session.activeRole]);
   const updatePreferences = useCallback(async (input) => {
     try { return { success: true, ...acceptUser(await authService.updatePreferences(input), session.activeRole) }; }
     catch (error) { return { success: false, code: error.code, message: publicError(error, "Preferensi tidak dapat disimpan.", errorMessage) }; }
   }, [acceptUser, errorMessage, session.activeRole]);
   const value = useMemo(() => ({
     user: session.user, activeRole: session.activeRole, isAuthenticated: Boolean(session.user), authLoading: !initialized, initialized,
-    login, register, logout, switchRole, hasRole, updateProfile, updateAvatar, removeAvatar, verifyCurrentPassword, changePassword, updatePreferences, refreshUserRoles: restoreSession,
-  }), [changePassword, hasRole, initialized, login, logout, register, removeAvatar, restoreSession, session, switchRole, updateAvatar, updatePreferences, updateProfile, verifyCurrentPassword]);
+    login, register, logout, switchRole, hasRole, updateProfile, updateAvatar, removeAvatar, verifyCurrentPassword, changePassword, updatePreferences, updateAddresses, refreshUserRoles: restoreSession,
+  }), [changePassword, hasRole, initialized, login, logout, register, removeAvatar, restoreSession, session, switchRole, updateAddresses, updateAvatar, updatePreferences, updateProfile, verifyCurrentPassword]);
   return <AuthContext.Provider value={value}>{children}</AuthContext.Provider>;
 }
 

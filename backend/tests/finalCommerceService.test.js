@@ -91,6 +91,21 @@ test("final settings persist installment toggles and admin contact", async () =>
   assert.equal(settings.maxDeliveryDistanceKm, 15);
 }));
 
+test("customer addresses keep one primary, require a map point, and allow at most five", async () => withRollback(async (repo, tx) => {
+  const { createUserService } = require("../services/userService");
+  const service = createUserService(repo);
+  const userId = randomUUID();
+  await tx.targetUser.create({ data: { id: userId, email: `${userId}@qa.invalid`, passwordHash: "hash", fullName: "QA Address", phone: "080000000009" } });
+  const actor = { id: userId, roles: ["customer"] };
+  const address = (label, extra = {}) => ({ label, recipientName: "QA", phone: "081234567890", address: `Jalan ${label}`, latitude: -7.95, longitude: 112.54, ...extra });
+  const saved = await service.updateAddresses(actor, { addresses: [address("Rumah"), address("Kantor", { isPrimary: true })] });
+  assert.deepEqual(saved.addresses.map((row) => [row.label, row.isPrimary]), [["Rumah", false], ["Kantor", true]]);
+  const fallback = await service.updateAddresses(actor, { addresses: [address("Rumah"), address("Kebun")] });
+  assert.deepEqual(fallback.addresses.map((row) => row.isPrimary), [true, false]);
+  await assert.rejects(service.updateAddresses(actor, { addresses: Array.from({ length: 6 }, (_, index) => address(`A${index}`)) }), /validation|tidak valid|Maksimal/i);
+  await assert.rejects(service.updateAddresses(actor, { addresses: [address("Tanpa titik", { latitude: null, longitude: null })] }), (error) => Boolean(error?.details?.["addresses.0.location"]));
+}));
+
 test("settings service accepts times echoed back as HH:MM:SS and persists the admin fee grace time", async () => withRollback(async (repo) => {
   const { createSettingsService } = require("../services/settingsService");
   const service = createSettingsService(repo);

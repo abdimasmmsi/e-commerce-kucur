@@ -1,5 +1,5 @@
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
-import { Link, useSearchParams } from "react-router-dom";
+import { Link, useLocation, useSearchParams } from "react-router-dom";
 import ProductImage from "../../components/ProductImage";
 import PageContainer from "../../components/ui/PageContainer";
 import { useAuth } from "../../context/AuthContext";
@@ -8,6 +8,7 @@ import { cartService, checkoutApi } from "../../services/commerceService";
 import { calculateCoordinateDistanceKm } from "../../services/deliveryFeeService";
 import { getDrivingDistanceKm, isOpenRouteServiceConfigured } from "../../services/openRouteService";
 import { productService } from "../../services/productService";
+import { clearCheckoutDraft, readCheckoutDraft, saveCheckoutDraft } from "../../utils/address";
 import { shortOrderCode } from "../../utils/orderCode";
 
 const makeKey = () => globalThis.crypto?.randomUUID?.() ?? `checkout-${Date.now()}-${Math.random().toString(36).slice(2)}`;
@@ -19,6 +20,10 @@ export default function Checkout() {
   const { user } = useAuth();
   const { formatCurrency, t } = usePreferences();
   const [searchParams] = useSearchParams();
+  const { pathname, search } = useLocation();
+  // Kembali dari Alamat Saya: pulihkan pilihan alamat, tip, dan metode bayar.
+  const [draft] = useState(() => { const saved = readCheckoutDraft(); return Date.now() - (saved.savedAt ?? 0) < 30 * 60 * 1000 ? saved : {}; });
+  useEffect(() => { clearCheckoutDraft(); }, []);
   const [selection, setSelection] = useState({ cart: null, direct: null });
   const [loading, setLoading] = useState(true);
   const [preview, setPreview] = useState(null);
@@ -29,9 +34,13 @@ export default function Checkout() {
   const [recipientName, setRecipientName] = useState(user.fullName ?? "");
   const [recipientPhone, setRecipientPhone] = useState(user.phone ?? "");
   const [address, setAddress] = useState("");
-  const [paymentMethod, setPaymentMethod] = useState("COD");
-  const [courierTip, setCourierTip] = useState(0);
-  const [location, setLocation] = useState({ status: "locating", latitude: null, longitude: null });
+  const [paymentMethod, setPaymentMethod] = useState(draft.paymentMethod ?? "COD");
+  const [courierTip, setCourierTip] = useState(Number.isFinite(draft.courierTip) ? draft.courierTip : 0);
+  const savedAddresses = useMemo(() => user.addresses ?? [], [user.addresses]);
+  // Alamat utama dipakai otomatis; "current" = isi manual + GPS HP (juga untuk akun tanpa alamat tersimpan).
+  const [addressChoice, setAddressChoice] = useState(() => (savedAddresses.find((row) => row.id === draft.addressId) ?? savedAddresses.find((row) => row.isPrimary) ?? savedAddresses[0])?.id ?? "current");
+  const goToAddresses = (openNew) => ({ to: "/addresses", state: { returnTo: `${pathname}${search}`, openNew }, onClick: () => saveCheckoutDraft({ paymentMethod, courierTip, addressId: addressChoice }) });
+  const [location, setLocation] = useState({ status: "idle", latitude: null, longitude: null });
   const [confirmedRequest, setConfirmedRequest] = useState(null);
   const previewRun = useRef(0);
   const directInput = useMemo(() => {
@@ -58,7 +67,11 @@ export default function Checkout() {
       { enableHighAccuracy: true, timeout: 8000, maximumAge: 60000 },
     );
   }, []);
-  useEffect(() => { queueMicrotask(locate); }, [locate]);
+  useEffect(() => { if (addressChoice === "current" && location.status === "idle") queueMicrotask(locate); }, [addressChoice, locate, location.status]);
+  const saved = savedAddresses.find((row) => row.id === addressChoice) ?? null;
+  const delivery = saved
+    ? { recipientName: saved.recipientName, recipientPhone: saved.phone, address: saved.address, location: { status: "found", latitude: Number(saved.latitude), longitude: Number(saved.longitude) } }
+    : { recipientName, recipientPhone, address, location };
 
   const items = useMemo(() => selection.direct
     ? [{ ...selection.direct, id: "direct", product: selection.direct.product, variant: selection.direct.product.variants?.find((row) => row.id === selection.direct.productVariantId) }]
@@ -66,9 +79,12 @@ export default function Checkout() {
   const groups = useMemo(() => Object.values(items.reduce((map, item) => { const key = String(item.product?.storeId ?? item.storeId); map[key] ??= { store: item.product?.store, items: [] }; map[key].items.push(item); return map; }, {})), [items]);
   const request = useMemo(() => ({
     ...(selection.direct ? { items: [{ productId: selection.direct.productId, productVariantId: selection.direct.productVariantId, quantity: selection.direct.quantity }] } : { cartItemIds: items.map((item) => item.id) }),
-    recipientName, recipientPhone, deliveryAddress: address, paymentMethod, courierTip, delivery: { address, recipientName, recipientPhone },
-  }), [address, courierTip, items, paymentMethod, recipientName, recipientPhone, selection.direct]);
-  const ready = Boolean(items.length && address.trim() && recipientName.trim() && recipientPhone.trim() && location.status === "found");
+    recipientName: delivery.recipientName, recipientPhone: delivery.recipientPhone, deliveryAddress: delivery.address, paymentMethod, courierTip, delivery: { address: delivery.address, recipientName: delivery.recipientName, recipientPhone: delivery.recipientPhone },
+  }), [delivery.address, courierTip, items, paymentMethod, delivery.recipientName, delivery.recipientPhone, selection.direct]);
+  const ready = Boolean(items.length && delivery.address.trim() && delivery.recipientName.trim() && delivery.recipientPhone.trim() && delivery.location.status === "found");
+  const destinationLat = delivery.location.latitude;
+  const destinationLng = delivery.location.longitude;
+  const destinationAddress = delivery.address;
 
   // Total dihitung otomatis setiap data penting berubah, jadi pembeli cukup menekan satu tombol.
   useEffect(() => {
@@ -76,7 +92,7 @@ export default function Checkout() {
     const run = ++previewRun.current;
     const timer = setTimeout(async () => {
       setCalculating(true); setError("");
-      const destination = { lat: location.latitude, lng: location.longitude };
+      const destination = { lat: destinationLat, lng: destinationLng };
       try {
         const stores = [...new Map(items.map((item) => [item.product?.storeId, item.product?.store]).filter(([id, store]) => id && store)).entries()];
         const distancesByStore = Object.fromEntries(await Promise.all(stores.map(async ([storeId, store]) => {
@@ -87,14 +103,14 @@ export default function Checkout() {
           if (!Number.isFinite(distance) || distance < 0) throw new Error(t("checkout.distanceMissing", { store: store.name }));
           return [storeId, distance];
         })));
-        const nextRequest = { ...request, delivery: { ...request.delivery, latitude: destination.lat, longitude: destination.lng, location: { label: address, address, latitude: destination.lat, longitude: destination.lng, source: isOpenRouteServiceConfigured ? "openrouteservice" : "coordinates" }, distancesByStore } };
+        const nextRequest = { ...request, delivery: { ...request.delivery, latitude: destination.lat, longitude: destination.lng, location: { label: saved?.label ?? destinationAddress, address: destinationAddress, latitude: destination.lat, longitude: destination.lng, source: isOpenRouteServiceConfigured ? "openrouteservice" : "coordinates" }, distancesByStore } };
         const result = await checkoutApi.preview(nextRequest);
         if (run === previewRun.current) { setPreview(result); setConfirmedRequest(nextRequest); }
       } catch (caught) { if (run === previewRun.current) { setPreview(null); setConfirmedRequest(null); setError(caught.message); } }
       finally { if (run === previewRun.current) setCalculating(false); }
     }, 600);
     return () => clearTimeout(timer);
-  }, [address, items, location.latitude, location.longitude, ready, request, t]);
+  }, [destinationAddress, destinationLat, destinationLng, items, ready, request, saved?.label, t]);
 
   const submit = async () => {
     if (!preview || !confirmedRequest || submitting || calculating) return;
@@ -128,15 +144,25 @@ export default function Checkout() {
       <main className="grid min-w-0 gap-4">
         <section className={cardClass} aria-labelledby="checkout-recipient">
           <h2 className="text-lg font-extrabold" id="checkout-recipient">{t("checkout.recipient")}</h2>
+          {savedAddresses.length > 0 && <fieldset className="grid min-w-0 gap-2"><legend className="sr-only">{t("checkout.savedAddress")}</legend>
+            {[...savedAddresses.map((row) => ({ id: row.id, title: row.label, badge: row.isPrimary, lines: [`${row.recipientName} · ${row.phone}`, row.address] })), { id: "current", title: t("checkout.currentLocation"), lines: [t("checkout.currentLocationHint")] }].map((option) => <label className={`flex min-w-0 cursor-pointer items-start gap-3 rounded-xl border p-3 ${addressChoice === option.id ? "border-[var(--kucur-green)] bg-[var(--kucur-green-soft)]" : "border-[var(--kucur-border)]"}`} key={option.id}>
+              <input className="mt-1 size-5 shrink-0 accent-[var(--kucur-green)]" type="radio" name="checkout-address" checked={addressChoice === option.id} onChange={() => { setAddressChoice(option.id); resetPreview(); }}/>
+              <span className="grid min-w-0 gap-0.5"><span className="flex flex-wrap items-center gap-2"><strong className="text-[15px]">{option.title}</strong>{option.badge && <span className="rounded-full bg-[var(--kucur-surface)] px-2 py-0.5 text-xs font-bold text-[var(--kucur-green-ink)]">{t("checkout.primaryAddress")}</span>}</span>{option.lines.map((line) => <span className="break-words text-sm text-[var(--kucur-text-muted)]" key={line}>{line}</span>)}</span>
+            </label>)}
+            <div className="flex flex-wrap gap-2">{savedAddresses.length < 5 && <Link className="inline-flex min-h-11 items-center rounded-xl border border-[var(--kucur-green)] px-4 text-sm font-bold text-[var(--kucur-green-ink)]" {...goToAddresses(true)}>{t("checkout.addAddress")}</Link>}<Link className="inline-flex min-h-11 items-center rounded-xl px-2 text-sm font-bold text-[var(--kucur-green-ink)] underline-offset-4 hover:underline" {...goToAddresses(false)}>{t("checkout.manageAddresses")}</Link></div>
+          </fieldset>}
+          {savedAddresses.length === 0 && <div className="flex flex-wrap items-center gap-2 rounded-xl bg-[var(--kucur-surface-muted)] p-3"><span className="min-w-0 flex-1 text-sm text-[var(--kucur-text-muted)]">{t("checkout.addAddressHint")}</span><Link className="inline-flex min-h-11 items-center rounded-xl border border-[var(--kucur-green)] bg-[var(--kucur-surface)] px-4 text-sm font-bold text-[var(--kucur-green-ink)]" {...goToAddresses(true)}>{t("checkout.addAddress")}</Link></div>}
+          {!saved && <>
           <div className="grid min-w-0 gap-3 sm:grid-cols-2">
             <label className="grid min-w-0 gap-1.5 text-[15px] font-semibold">{t("checkout.recipientName")}<input className={fieldClass} autoComplete="name" value={recipientName} onChange={(event) => { setRecipientName(event.target.value); resetPreview(); }}/></label>
             <label className="grid min-w-0 gap-1.5 text-[15px] font-semibold">{t("checkout.phone")}<input className={fieldClass} type="tel" inputMode="tel" autoComplete="tel" value={recipientPhone} onChange={(event) => { setRecipientPhone(event.target.value); resetPreview(); }}/></label>
           </div>
           <label className="grid min-w-0 gap-1.5 text-[15px] font-semibold">{t("checkout.address")}<textarea className={fieldClass} rows="3" placeholder={t("checkout.addressPlaceholder")} value={address} onChange={(event) => { setAddress(event.target.value); resetPreview(); }}/></label>
           <div className={`flex flex-wrap items-center justify-between gap-3 rounded-xl p-3 ${location.status === "found" ? "bg-[var(--kucur-green-soft)]" : "bg-amber-50 dark:bg-amber-950/50"}`} role="status">
-            <div className="flex min-w-0 items-start gap-2"><svg className={`mt-0.5 size-5 shrink-0 ${location.status === "found" ? "text-[var(--kucur-green-ink)]" : "text-amber-700 dark:text-amber-300"}`} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true"><path d="M12 21s-7-6.2-7-11.5a7 7 0 0 1 14 0C19 14.8 12 21 12 21Z"/><circle cx="12" cy="9.5" r="2.5"/></svg><div className="min-w-0"><strong className="block text-[15px]">{t("checkout.locationTitle")}</strong><span className="text-sm text-[var(--kucur-text-muted)]">{location.status === "found" ? t("checkout.locationFound") : location.status === "locating" ? t("checkout.locationLocating") : t("checkout.locationMissing")}</span></div></div>
-            {location.status !== "found" && <button className="min-h-11 rounded-xl border border-[var(--kucur-border-strong)] bg-[var(--kucur-surface)] px-4 text-sm font-bold disabled:opacity-50" type="button" disabled={location.status === "locating"} onClick={locate}>{t("checkout.useLocation")}</button>}
+            <div className="flex min-w-0 items-start gap-2"><svg className={`mt-0.5 size-5 shrink-0 ${location.status === "found" ? "text-[var(--kucur-green-ink)]" : "text-amber-700 dark:text-amber-300"}`} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true"><path d="M12 21s-7-6.2-7-11.5a7 7 0 0 1 14 0C19 14.8 12 21 12 21Z"/><circle cx="12" cy="9.5" r="2.5"/></svg><div className="min-w-0"><strong className="block text-[15px]">{t("checkout.locationTitle")}</strong><span className="text-sm text-[var(--kucur-text-muted)]">{location.status === "found" ? t("checkout.locationFound") : ["locating", "idle"].includes(location.status) ? t("checkout.locationLocating") : t("checkout.locationMissing")}</span></div></div>
+            {location.status !== "found" && <button className="min-h-11 rounded-xl border border-[var(--kucur-border-strong)] bg-[var(--kucur-surface)] px-4 text-sm font-bold disabled:opacity-50" type="button" disabled={["locating", "idle"].includes(location.status)} onClick={locate}>{t("checkout.useLocation")}</button>}
           </div>
+          </>}
         </section>
 
         <section className={cardClass} aria-labelledby="checkout-products">

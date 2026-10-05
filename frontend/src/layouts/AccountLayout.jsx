@@ -16,6 +16,7 @@ const Icon = ({ name }) => {
     messages: <path d="M4 5h16v11H9l-5 4V5Z"/>,
     reports: <><path d="M6 3h9l3 3v15H6V3Z"/><path d="M9 11h6M9 15h6M14 3v4h4"/></>,
     bug: <><path d="M8 9h8v7a4 4 0 0 1-8 0V9Z"/><path d="M10 9V7a2 2 0 0 1 4 0v2M4 12h4m8 0h4M5 18l3-2m8 0 3 2"/></>,
+    pin: <><path d="M12 21s-6-5.6-6-11a6 6 0 0 1 12 0c0 5.4-6 11-6 11Z"/><circle cx="12" cy="10" r="2.2"/></>,
     store: <><path d="M4 10h16l-2-6H6l-2 6Z"/><path d="M5 10v10h14V10M9 20v-6h6v6"/></>,
     logout: <><path d="M15 4h4v16h-4M10 8l-4 4 4 4M6 12h10"/></>,
   };
@@ -41,6 +42,7 @@ function AccountLayout() {
   const groups = [
     { label: t("accountNav.account"), items: [
       { to: "/profile", label: t("header.profile"), icon: "profile" },
+      ...(user?.roles?.includes("customer") ? [{ to: "/addresses", label: t("header.addresses"), icon: "pin" }] : []),
       { to: "/settings", label: t("header.settings"), icon: "settings" },
     ] },
     { label: t("accountNav.communication"), items: [

@@ -10,10 +10,11 @@ function MapEvents({ editable, onSelect }) {
   return null;
 }
 
-function MapLifecycle({ position }) {
+function MapLifecycle({ latitude, longitude }) {
   const map = useMap();
   useEffect(() => { const frame = requestAnimationFrame(() => map.invalidateSize()); return () => cancelAnimationFrame(frame); }, [map]);
-  useEffect(() => { if (position) map.setView(position, Math.max(map.getZoom(), 16)); }, [map, position]);
+  // Tanpa animasi: form bisa ditutup saat zoom masih berjalan, dan animasi Leaflet yang tertinggal memicu error setelah peta dilepas.
+  useEffect(() => { if (Number.isFinite(latitude) && Number.isFinite(longitude)) map.setView([latitude, longitude], Math.max(map.getZoom(), 16), { animate: false }); }, [map, latitude, longitude]);
   return null;
 }
 
@@ -23,7 +24,7 @@ export default function LeafletMap({ latitude, longitude, label, editable = fals
   return <MapContainer className="h-64 w-full max-w-full sm:h-72" center={position ?? KUCUR_MAP_DEFAULT_CENTER} zoom={position ? 16 : KUCUR_MAP_DEFAULT_ZOOM} scrollWheelZoom>
     <TileLayer attribution={OSM_ATTRIBUTION} url={OSM_TILE_URL} />
     <MapEvents editable={editable} onSelect={onSelect} />
-    <MapLifecycle position={position} />
+    <MapLifecycle latitude={latitude} longitude={longitude} />
     {position && <Marker position={position} icon={markerIcon} draggable={editable} eventHandlers={editable ? { dragend: (event) => { const point = event.target.getLatLng(); onSelect?.({ latitude: point.lat, longitude: point.lng }); } } : undefined}>{label && <Popup><span className="break-words">{label}</span></Popup>}</Marker>}
   </MapContainer>;
 }

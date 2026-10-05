@@ -1442,6 +1442,7 @@ model TargetUser {
   fullName String @db.VarChar(255)
   phone String @db.VarChar(50)
   avatarUrl String? @db.VarChar(500)
+  addresses Json?
   language TargetLanguage @default(en)
   theme TargetTheme @default(light)
   isActive Boolean @default(true)

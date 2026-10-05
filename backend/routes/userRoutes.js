@@ -12,6 +12,7 @@ module.exports = ({ userService, authMiddleware }) => {
   router.post("/me/password/verify", controller.verifyCurrentPassword);
   router.patch("/me/password", controller.updatePassword);
   router.patch("/me/preferences", controller.updatePreferences);
+  router.put("/me/addresses", controller.updateAddresses);
   router.post("/:userId/password-reset", authMiddleware.requireRole("admin"), controller.adminResetPassword);
   return router;
 };

@@ -17,6 +17,7 @@ import Register from "./pages/auth/Register";
 import Unauthorized from "./pages/auth/Unauthorized";
 import Profile from "./pages/auth/Profile";
 import AccountSettings from "./pages/auth/AccountSettings";
+import Addresses from "./pages/auth/Addresses";
 import ProductDetail from "./pages/customer/ProductDetail";
 const Checkout = lazy(() => import("./pages/customer/Checkout"));
 const CustomerOrders = lazy(() => import("./pages/customer/Orders"));
@@ -94,6 +95,7 @@ function App() {
 
         <Route element={<ProtectedRoute><AccountLayout /></ProtectedRoute>}>
           <Route path="/profile" element={<Profile />} />
+          <Route path="/addresses" element={<Addresses />} />
           <Route path="/settings" element={<AccountSettings />} />
           <Route path="/merchant/apply" element={<MerchantApply />} />
           <Route path="/messages" element={<ChatInbox />} />

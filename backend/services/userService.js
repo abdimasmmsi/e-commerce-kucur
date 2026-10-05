@@ -1,3 +1,4 @@
+const { normalizeAddresses } = require("../validation/addressValidation");
 const { errors } = require("../errors/AppError");
 const { requiredString, validateEmail, validatePhone } = require("../validation/sharedValidation");
 const { hashPassword, publicUser, verifyPassword } = require("./authService");
@@ -94,6 +95,14 @@ function createUserService(repository) {
         return row;
       });
       return { user: publicUser(updated), message: "Kata sandi sementara tersimpan. Seluruh sesi pengguna telah dicabut." };
+    },
+    async updateAddresses(user, input) {
+      const addresses = normalizeAddresses(input.addresses);
+      return repository.transaction(async (tx) => {
+        const updated = await tx.users.update(user.id, { addresses });
+        await audit(tx, user, "USER_ADDRESSES_UPDATED", "Pengguna memperbarui daftar alamat pengiriman.");
+        return publicUser(updated);
+      });
     },
     async updatePreferences(user, input) {
       const language = input.language;

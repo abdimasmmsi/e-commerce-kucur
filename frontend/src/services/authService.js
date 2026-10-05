@@ -1,7 +1,7 @@
 import { apiData, apiRequest } from "./apiClient";
 
 export const normalizeAuthUser = (user) => ({
-  id: String(user.id), fullName: String(user.fullName ?? ""), email: String(user.email ?? ""), phone: String(user.phone ?? ""), avatarUrl: String(user.avatarUrl ?? ""),
+  id: String(user.id), fullName: String(user.fullName ?? ""), email: String(user.email ?? ""), phone: String(user.phone ?? ""), avatarUrl: String(user.avatarUrl ?? ""), addresses: Array.isArray(user.addresses) ? user.addresses : [],
   roles: [...new Set(Array.isArray(user.roles) ? user.roles.map((role) => String(role).toLowerCase()) : [])],
   preferences: { language: user.preferences?.language === "id" ? "id" : "en", theme: user.preferences?.theme === "dark" ? "dark" : "light" },
   passwordSecurity: {
@@ -23,4 +23,5 @@ export const authService = {
   verifyCurrentPassword: (currentPassword) => apiData("/api/users/me/password/verify", { method: "POST", body: { currentPassword } }),
   updatePassword: (input) => apiData("/api/users/me/password", { method: "PATCH", body: input }),
   updatePreferences: async (input) => normalizeAuthUser(await apiData("/api/users/me/preferences", { method: "PATCH", body: input })),
+  updateAddresses: async (addresses) => normalizeAuthUser(await apiData("/api/users/me/addresses", { method: "PUT", body: { addresses } })),
 };
