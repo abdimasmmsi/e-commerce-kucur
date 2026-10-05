@@ -110,3 +110,14 @@ export const fillFaqText = (text, values) => text.replace(/\{(\w+)\}/g, (whole, 
 // Membuka chatbot dari mana saja (mis. menu Akun → Bantuan).
 export const OPEN_FAQ_EVENT = "kucur:open-faq";
 export const openFaqBot = () => window.dispatchEvent(new Event(OPEN_FAQ_EVENT));
+
+// Bahasa pertanyaan user (ID atau EN) dari mayoritas kata yang dikenali; seri → bahasa aplikasi.
+const ID_WORDS = new Set("yang saya aku ak sy gimana gmn bagaimana cara caranya tidak ga gak gk nggak bisa bs mau ingin apa apakah kapan berapa brp dimana mana kenapa knp pesanan pesenan barang beli belanja bayar kirim dikirim ongkir batal batalkan batalin lapak toko alamat sudah udah udh belum blm dan di ke dari untuk utk dengan dgn ini itu min kak dong sih kok ada lupa sandi ulasan akun daftar masuk harga jual jualan penjual pembeli tolong buat bikin ganti ubah lagi juga saja aja kalau kalo kurir antar sampai lama jam hari besok stok produk rusak libur iuran biaya pajak gratis cek lihat tambah hapus apa".split(" "));
+const EN_WORDS = new Set("the how do does did i my me to can could is are was what when where why which who will would should please want need help with for of and it its your you an a cost much many time get items item arrive arrives track change language buy pay delivery deliver shipping fee address account sign forgot store shop seller product products stock close open add remove hi hello thanks thank there this that be have has not no yes from on in at by".split(" "));
+export function detectLanguage(text, fallback = "id") {
+  const words = String(text ?? "").toLowerCase().replace(/[^a-z\s]/g, " ").split(/\s+/).filter(Boolean);
+  let id = 0; let en = 0;
+  for (const word of words) { if (ID_WORDS.has(word)) id += 1; else if (EN_WORDS.has(word)) en += 1; }
+  if (id === en) return fallback === "en" ? "en" : "id";
+  return en > id ? "en" : "id";
+}

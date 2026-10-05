@@ -13,7 +13,17 @@ test("visitor asks the FAQ bot in their own words and gets a confirmed answer", 
   await bot.getByRole("button", { name: "Ya", exact: true }).click();
   await expect(bot.getByText("Bayar tunai ke kurir saat barang sampai.", { exact: false })).toBeVisible();
   await assertNoHorizontalOverflow(page);
-  await bot.getByRole("button", { name: /Lihat produk/ }).click();
+  // Aplikasi berbahasa Indonesia, tapi pertanyaan berbahasa Inggris → balasan berbahasa Inggris.
+  await bot.getByPlaceholder(/Tulis pertanyaan/).fill("how much is the delivery fee");
+  await bot.getByRole("button", { name: "Kirim" }).click();
+  await expect(bot.getByText(/Do you mean:/)).toBeVisible();
+  await bot.getByRole("button", { name: "Yes", exact: true }).click();
+  await expect(bot.getByText(/per km/).last()).toContainText("Delivery fee");
+  await bot.getByPlaceholder(/Tulis pertanyaan/).fill("gimana cara beli");
+  await bot.getByRole("button", { name: "Kirim" }).click();
+  await expect(bot.getByText(/Maksud kamu:/).last()).toBeVisible();
+  await bot.getByRole("button", { name: "Ya", exact: true }).last().click();
+  await bot.getByRole("button", { name: /Lihat produk/ }).last().click();
   await expect(page).toHaveURL(/\/products$/);
   await expect(bot).toHaveCount(0);
 });

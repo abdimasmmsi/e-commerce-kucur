@@ -2,7 +2,7 @@
 // Menjaga supaya FAQ tetap sinkron dengan aplikasi: ID/EN lengkap, konsep dikenal, placeholder valid, tautan menuju rute yang ada.
 import fs from "node:fs";
 import { CONCEPTS, FAQS, STARTER_TOPICS } from "../src/data/faq.js";
-import { matchFaq } from "../src/utils/faqMatcher.js";
+import { detectLanguage, matchFaq } from "../src/utils/faqMatcher.js";
 
 const ROLES = new Set(["visitor", "customer", "merchant", "courier", "admin"]);
 const PLACEHOLDERS = new Set(["cutoff", "dispatch", "rate", "tax", "maxDaily", "initialFee", "adminFee", "adminFeeDay", "graceTime", "lateInterest", "distance", "contact"]);
@@ -30,8 +30,11 @@ for (const faq of FAQS) {
   if (faq.link && (!faq.link.label?.id || !faq.link.label?.en)) errors.push(`${where}: label tautan ID/EN belum lengkap`);
   if (faq.link && !routeExists(faq.link.to)) errors.push(`${where}: tautan ${faq.link.to} tidak ada di App.jsx`);
   // Pertanyaan FAQ itu sendiri harus dikenali sebagai FAQ yang sama (untuk role pertamanya).
-  const self = matchFaq(faq.q.id, faq.roles.find((role) => role !== "visitor") ?? faq.roles[0]);
-  if (!self.matches.some((row) => row.id === faq.id)) errors.push(`${where}: pertanyaannya sendiri tidak cocok ke FAQ ini (konsep terdeteksi: ${self.concepts.join(", ") || "-"})`);
+  for (const lang of ["id", "en"]) {
+    const self = matchFaq(faq.q[lang], faq.roles.find((role) => role !== "visitor") ?? faq.roles[0]);
+    if (!self.matches.some((row) => row.id === faq.id)) errors.push(`${where}: pertanyaan ${lang.toUpperCase()} tidak cocok ke FAQ ini (konsep terdeteksi: ${self.concepts.join(", ") || "-"})`);
+    if (detectLanguage(faq.q[lang], lang === "id" ? "en" : "id") !== lang) errors.push(`${where}: pertanyaan ${lang.toUpperCase()} tidak terdeteksi sebagai ${lang.toUpperCase()}`);
+  }
 }
 for (const [role, list] of Object.entries(STARTER_TOPICS)) for (const id of list) {
   const faq = FAQS.find((row) => row.id === id);
