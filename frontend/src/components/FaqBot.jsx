@@ -17,6 +17,21 @@ const COPY = {
   en: { open: "Open help", title: "Kucur Help", subtitle: "Quick answers about the app", close: "Close", restart: "Start over", hello: "Hi! What do you need? Pick a topic below or type your question.", placeholder: "Type a question, e.g. how to cancel an order", send: "Send", confirm: "Do you mean: **{q}**?", yes: "Yes", no: "No", choose: "Maybe you mean one of these:", unknown: "Sorry, I didn't get that. Try other words, or pick a topic below.", retry: "Okay. Try rephrasing your question, or pick the closest one:", more: "Anything else?", topics: "Other topics", stillConfused: "Still stuck?", chatAdmin: "Chat with Admin", loginForAdmin: "Log in to chat with Admin", popular: "Popular questions" },
 };
 
+// Logo chatbot (public/logo-chatbot.svg) sebagai komponen supaya warnanya ikut tema: kepala = currentColor, layar wajah = warna latar.
+const BotIcon = ({ className, face }) => <svg className={className} viewBox="40 40 432 410" aria-hidden="true">
+  <line x1="256" y1="92" x2="256" y2="140" stroke="currentColor" strokeWidth="14" strokeLinecap="round"/>
+  <circle cx="256" cy="76" r="20" fill="currentColor"/>
+  <rect x="70" y="236" width="34" height="86" rx="14" fill="currentColor"/>
+  <rect x="408" y="236" width="34" height="86" rx="14" fill="currentColor"/>
+  <rect x="112" y="140" width="288" height="236" rx="64" fill="currentColor"/>
+  <rect x="146" y="174" width="220" height="168" rx="42" fill={face}/>
+  <circle cx="212" cy="244" r="24" fill="currentColor"/>
+  <circle cx="300" cy="244" r="24" fill="currentColor"/>
+  <path d="M208 292 Q256 328 304 292" fill="none" stroke="currentColor" strokeWidth="14" strokeLinecap="round"/>
+  <rect x="216" y="376" width="80" height="26" rx="8" fill="currentColor"/>
+  <rect x="176" y="398" width="160" height="30" rx="15" fill="currentColor"/>
+</svg>;
+
 // **tebal** → <strong>
 const Rich = ({ text }) => text.split(/(\*\*[^*]+\*\*)/g).map((part, index) => part.startsWith("**") && part.endsWith("**") ? <strong key={index}>{part.slice(2, -2)}</strong> : <Fragment key={index}>{part}</Fragment>);
 
@@ -148,12 +163,12 @@ export default function FaqBot() {
   const workspaceNav = isAuthenticated && ["merchant", "courier", "admin"].includes(activeRole);
   return <>
     {!hidden && !open && <button className={`faq-bot-launcher ${workspaceNav ? "has-workspace-nav" : ""}`} type="button" aria-label={copy.open} onClick={() => setOpen(true)}>
-      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true"><path d="M4 5h16v11H9l-5 4V5Z"/><path d="M9.5 9a2.5 2.5 0 1 1 3.3 2.4c-.5.2-.8.6-.8 1.1V13M12 15.5h.01"/></svg>
+      <BotIcon face="var(--kucur-green)" />
     </button>}
     {open && createPortal(<div className="faq-bot-layer" role="presentation" onMouseDown={(event) => { if (event.target === event.currentTarget) setOpen(false); }}>
       <section className="faq-bot-panel" role="dialog" aria-modal="true" aria-labelledby="faq-bot-title">
         <header className="flex items-center gap-3 border-b border-[var(--kucur-border)] px-4 py-3">
-          <span className="grid size-10 shrink-0 place-items-center rounded-full bg-[var(--kucur-green-soft)] text-[var(--kucur-green-ink)]" aria-hidden="true"><svg className="size-5" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M4 5h16v11H9l-5 4V5Z"/><path d="M9.5 9a2.5 2.5 0 1 1 3.3 2.4c-.5.2-.8.6-.8 1.1V13M12 15.5h.01"/></svg></span>
+          <span className="grid size-10 shrink-0 place-items-center rounded-full bg-[var(--kucur-green-soft)] text-[var(--kucur-green-ink)]" aria-hidden="true"><BotIcon className="size-6" face="var(--kucur-green-soft)" /></span>
           <div className="grid min-w-0 flex-1"><strong className="text-base" id="faq-bot-title">{copy.title}</strong><span className="truncate text-xs text-[var(--kucur-text-muted)]">{copy.subtitle}</span></div>
           <button className="min-h-10 rounded-lg px-2 text-sm font-semibold text-[var(--kucur-text-muted)] hover:text-[var(--kucur-text)]" type="button" onClick={start}>{copy.restart}</button>
           <button className="grid size-10 place-items-center rounded-lg text-xl text-[var(--kucur-text-muted)] hover:text-[var(--kucur-text)]" type="button" aria-label={copy.close} onClick={() => setOpen(false)}>×</button>
