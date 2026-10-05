@@ -13,7 +13,7 @@ function ChatInbox({ adminMode = false }) {
   const navigate = useNavigate();
   const { activeRole, user } = useAuth();
   const { conversations, error, loading, markRead, startSupportChat } = useChat();
-  const { formatDate, t } = usePreferences();
+  const { formatDate, language, t } = usePreferences();
   const [search, setSearch] = useState("");
   const [filter, setFilter] = useState("all");
   const visibleConversations = useMemo(() => conversations
@@ -76,7 +76,7 @@ function ChatInbox({ adminMode = false }) {
       {loading && !visibleConversations.length && <LoadingPanel compact label={t("chat.loading")} rows={4} />}
       {!loading && !visibleConversations.length && <section className="chat-empty-state"><h2>{t("chat.empty")}</h2><p>{t(adminMode ? "chat.adminEmptyHint" : "chat.userEmptyHint")}</p>{!adminMode && activeRole !== "admin" && <button className="primary-button" type="button" onClick={openSupport}>{t("chat.startSupport")}</button>}</section>}
       </div></section>
-      <aside className="chat-inbox-empty-panel"><span className="chat-empty-icon" aria-hidden="true">✦</span><h2>{currentFilter.title}</h2><p>{t(adminMode ? "chat.adminEmptyHint" : "chat.userEmptyHint")}</p></aside>
+      <aside className="chat-inbox-empty-panel"><span className="chat-empty-icon" aria-hidden="true"><svg width="26" height="26" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round"><path d="M4 5h16v11H9l-5 4V5Z"/><path d="M8 9h8M8 12.5h5"/></svg></span><h2>{language === "id" ? "Pilih percakapan" : "Select a conversation"}</h2><p>{language === "id" ? "Buka percakapan di sebelah kiri untuk membaca dan membalas pesan." : "Open a conversation on the left to read and reply."}</p></aside>
     </div>
   </div>;
 }

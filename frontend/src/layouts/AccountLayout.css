@@ -56,3 +56,6 @@
 .account-nav-action.account-nav-logout:hover{background:var(--kucur-surface-muted)}
 .account-layout .account-layout-sidebar.is-hub .account-nav-action.account-nav-logout,.dark .account-layout .account-layout-sidebar.is-hub .account-nav-action.account-nav-logout{border-bottom:1px solid var(--kucur-border);color:var(--kucur-text)}
 .account-layout .account-layout-sidebar.is-hub .account-nav-action.account-nav-logout::after{content:"›";margin-left:auto;color:var(--kucur-text-muted);font-size:22px;line-height:1}
+
+/* Desktop: Bantuan (FAQ) sama ukurannya dengan tautan menu lain. */
+@media(min-width:901px){.account-layout-sidebar .account-nav-action.account-nav-logout{min-height:0;padding:10px;color:var(--kucur-text-muted);font-size:.78rem;font-weight:550}.account-layout-sidebar .account-nav-action.account-nav-logout svg{width:16px;height:16px;flex-basis:16px}}

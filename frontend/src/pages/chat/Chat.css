@@ -4,3 +4,46 @@
 .chat-page :is(.chat-room,.chat-context-card,.chat-room-header>button,.chat-quick-replies button,.chat-composer textarea){border-color:var(--kucur-border);background:var(--kucur-surface);color:var(--kucur-text)}
 .chat-page :is(.chat-room-header h1,.chat-conversation-copy h2){color:var(--kucur-text)}.chat-page :is(.chat-room-header p,.chat-message time,.chat-message em,.chat-room-welcome p,.chat-composer small){color:var(--kucur-text-muted)}
 .chat-page .chat-message{background:var(--kucur-surface-muted);color:var(--kucur-text)}.chat-page .chat-message.own{background:color-mix(in srgb,var(--kucur-green) 16%,var(--kucur-surface))}.chat-page .chat-closed-notice{background:var(--kucur-surface-muted);color:var(--kucur-text-muted)}
+
+/* Audit Okt 2026: ruang chat. Warna konteks mengikuti hijau aplikasi; di HP tampil seperti aplikasi chat. */
+.chat-page .chat-context-card span,.chat-page .chat-context-card a{color:var(--kucur-green-ink)}
+.chat-room-page .chat-composer textarea{min-height:48px;max-height:140px;resize:none;line-height:1.45}
+.chat-inbox-empty-panel .chat-empty-icon{color:var(--kucur-green-ink)}
+@media(max-width:767px){
+  .chat-room-page{display:flex;min-height:calc(100dvh - 64px);flex-direction:column;gap:10px;padding-bottom:0}
+  .chat-room-page .chat-room-header{position:sticky;top:0;z-index:5;display:flex;align-items:center;gap:10px;margin:0 -16px;padding:8px 12px;border-bottom:1px solid var(--kucur-border);background:var(--kucur-bg)}
+  .chat-room-page .chat-room-header>a{display:grid;width:40px;height:40px;flex:0 0 40px;place-items:center;border-radius:10px;font-size:22px;text-decoration:none}
+  .chat-room-page .chat-back-text{display:none}
+  .chat-room-page .chat-context-card{display:flex;align-items:center;justify-content:space-between;gap:10px;margin:0;padding:10px 12px}
+  .chat-room-page .chat-room{display:flex;flex:1;flex-direction:column;margin:0 -16px;padding:0;border:0;border-radius:0;background:transparent;box-shadow:none}
+  .chat-room-page .chat-order-toolbar{display:none}
+  .chat-room-page .chat-message-list{flex:1;padding:4px 16px 12px}
+  .chat-room-page .chat-composer{position:sticky;bottom:0;z-index:5;display:flex;align-items:flex-end;gap:8px;margin:0;padding:10px 12px calc(10px + env(safe-area-inset-bottom));border-top:1px solid var(--kucur-border);background:var(--kucur-bg)}
+  .chat-room-page .chat-composer label{flex:1;min-width:0}
+  .chat-room-page .chat-composer label>span{position:absolute;width:1px;height:1px;overflow:hidden;clip:rect(0 0 0 0)}
+  .chat-room-page .chat-composer>div{display:flex;flex:0 0 auto;align-items:center;gap:6px}
+  .chat-room-page .chat-composer button{min-height:48px;padding:0 16px}
+  .account-layout-shell.is-chat-room>.account-layout-sidebar{display:none}
+  .account-layout-shell.is-chat-room>.account-layout-main{padding-bottom:0}
+  .account-layout-shell.is-chat-room+.customer-bottom-nav{display:none}
+}
+/* Daftar percakapan: teks pratinjau dipotong rapi, tidak keluar kartu. */
+.chat-conversation-card{min-width:0}.chat-conversation-copy{min-width:0;overflow:hidden}
+@media(max-width:767px){
+  /* Ruang chat (semua role): menu bawah disembunyikan supaya kolom ketik tidak tertutup. */
+  body:has(.chat-room-page) .customer-bottom-nav{display:none}
+  .chat-room-page .chat-composer textarea{height:48px}
+  .chat-room-page .chat-context-card>div{min-width:0;text-align:left}
+  .chat-room-page .chat-room-header>div{display:flex;min-width:0;flex:1;align-items:center;gap:10px}
+  .chat-room-page .chat-room-header h1{overflow:hidden;font-size:1rem;line-height:1.25;text-overflow:ellipsis;white-space:nowrap}
+  .chat-room-page .chat-room-header p{display:-webkit-box;overflow:hidden;font-size:.8rem;-webkit-box-orient:vertical;-webkit-line-clamp:1}
+  .chat-room-page .chat-room-header>button{min-height:40px;flex:0 0 auto;padding:0 12px;font-size:.85rem}
+  .chat-room-page .chat-quick-replies{flex-wrap:nowrap;overflow-x:auto;padding:4px 16px 8px;scrollbar-width:none}
+  .chat-room-page .chat-quick-replies::-webkit-scrollbar{display:none}
+  .chat-room-page .chat-quick-replies button{flex:0 0 auto;min-height:40px;padding:0 14px;font-size:.85rem;white-space:nowrap}
+}
+@media(max-width:767px){
+  .chat-room-page .chat-room-header>button{width:auto;margin-left:auto}
+  .chat-room-page .chat-room-header>div>div{min-width:0}
+  .chat-room-page .chat-composer textarea{min-height:48px!important;padding:12px}
+}
