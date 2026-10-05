@@ -61,6 +61,15 @@ function createProductService(repository) {
     return store;
   };
   const withStores = async (products) => Promise.all(products.map(async (product) => ({ ...product, store: product.store || await repository.stores.findById(product.storeId) })));
+  const emptyStats = { ratingAverage: null, ratingCount: 0, soldCount: 0 };
+  const loadStats = async () => (typeof repository.products.stats === "function" ? repository.products.stats() : { products: {}, stores: {} });
+  const withStats = (product, stats) => ({ ...product, ...emptyStats, ...stats.products[product.id] });
+  // Data lapak yang aman ditampilkan ke pembeli (tanpa email/HP pemilik dan data keuangan).
+  const publicStoreFields = (store, stats) => ({
+    id: store.id, name: store.name, description: store.description, image: store.image, status: store.status, createdAt: store.createdAt,
+    location: { address: store.location?.address ?? null, latitude: store.location?.latitude ?? null, longitude: store.location?.longitude ?? null },
+    ratingAverage: stats.stores[store.id]?.ratingAverage ?? null, ratingCount: stats.stores[store.id]?.ratingCount ?? 0,
+  });
   return {
     async list(actor, manage = false, filters = {}) {
       let products = await repository.products.list();
@@ -70,10 +79,8 @@ function createProductService(repository) {
         if (!actor.roles.includes("admin")) { const stores = new Set((await repository.stores.list()).filter((item) => item.merchantUserId === actor.id).map((item) => item.id)); products = products.filter((item) => stores.has(item.storeId)); }
       }
       if (filters.storeId) products = products.filter((item) => String(item.storeId) === String(filters.storeId));
-      const hydrated = await withStores(products);
-      return manage
-        ? hydrated
-        : hydrated.filter((item) => item.status === "active" && item.store?.status === "active");
+      const [hydrated, stats] = await Promise.all([withStores(products), loadStats()]);
+      return (manage ? hydrated : hydrated.filter((item) => item.status === "active" && item.store?.status === "active")).map((item) => withStats(item, stats));
     },
     async get(productId, actor, manage = false, filters = {}) {
       const product = await repository.products.findById(productId);
@@ -82,7 +89,15 @@ function createProductService(repository) {
       const store = product.store || await repository.stores.findById(product.storeId);
       if (manage) { if (!actor) throw errors.unauthenticated(); await owned(product, actor); }
       else if (product.status !== "active" || store?.status !== "active") throw errors.notFound("Produk tidak ditemukan.");
-      return { ...product, store };
+      return withStats({ ...product, store }, await loadStats());
+    },
+    // Halaman lapak untuk pembeli: profil lapak, rating, total terjual, dan produk aktifnya.
+    async publicStore(storeId) {
+      const store = await repository.stores.findById(storeId);
+      if (!store || store.status !== "active") throw errors.notFound("Lapak tidak ditemukan atau sedang tutup.");
+      const stats = await loadStats();
+      const products = (await repository.products.list()).filter((item) => String(item.storeId) === String(store.id) && item.status === "active").map((item) => withStats({ ...item, store }, stats));
+      return { ...publicStoreFields(store, stats), soldCount: products.reduce((sum, item) => sum + item.soldCount, 0), productCount: products.length, products: products.map((item) => ({ ...item, store: publicStoreFields(store, stats) })) };
     },
     async create(input, actor) {
       const normalized = validateProduct(input);

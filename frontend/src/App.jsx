@@ -20,6 +20,7 @@ import AccountSettings from "./pages/auth/AccountSettings";
 import Addresses from "./pages/auth/Addresses";
 import ProductDetail from "./pages/customer/ProductDetail";
 const Checkout = lazy(() => import("./pages/customer/Checkout"));
+const StorePage = lazy(() => import("./pages/customer/StorePage"));
 const CustomerOrders = lazy(() => import("./pages/customer/Orders"));
 const CustomerOrderDetail = lazy(() => import("./pages/customer/OrderDetail"));
 const MyReviews = lazy(() => import("./pages/customer/MyReviews"));
@@ -82,6 +83,7 @@ function App() {
           <Route index element={<CustomerHome />} />
           <Route path="products" element={<Products />} />
           <Route path="products/:productId" element={<ProductDetail />} />
+          <Route path="stores/:storeId" element={<StorePage />} />
           <Route path="notifications" element={<ProtectedRoute allowedRoles={["customer"]}><CustomerNotifications /></ProtectedRoute>} />
           <Route path="cart" element={<ProtectedRoute allowedRoles={["customer"]}><Cart /></ProtectedRoute>} />
           <Route path="checkout" element={<ProtectedRoute allowedRoles={["customer"]}><Checkout /></ProtectedRoute>} />

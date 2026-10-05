@@ -2,9 +2,17 @@ const express = require("express");
 const { createStoreController } = require("../controllers/storeController");
 const { saveStoreImage } = require("../services/storeImageService");
 
-module.exports = ({ repository, storeService, authMiddleware }) => {
+module.exports = ({ repository, storeService, productService, reviewService, authMiddleware }) => {
   const router = express.Router();
   const controller = createStoreController(storeService);
+  // Publik (tanpa login): halaman lapak untuk pembeli.
+  router.get("/:storeId/public", async (req, res, next) => {
+    try { res.json({ data: await productService.publicStore(String(req.params.storeId)) }); } catch (error) { next(error); }
+  });
+  // Ulasan lapak juga publik; harus didaftarkan di sini karena router ini mewajibkan login untuk /api/stores/*.
+  router.get("/:storeId/reviews", async (req, res, next) => {
+    try { res.json({ data: await reviewService.store(String(req.params.storeId)) }); } catch (error) { next(error); }
+  });
   router.use(authMiddleware.requireAuth);
   router.get("/", authMiddleware.requireRole("customer", "merchant", "admin"), controller.list);
   router.get("/applications", authMiddleware.requireRole("admin"), controller.applications);

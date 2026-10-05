@@ -3,6 +3,7 @@ const { READ_METHODS, differences, normalize } = require("./dualReadRepository")
 const { currentReadContext } = require("./repositoryReadContext");
 const { defaultCanaryNormalizers } = require("./canaryComparisonAdapters");
 
+const FINAL_ONLY_READS = new Set(["products.stats"]);
 const ELIGIBLE_DOMAINS = new Set(["users", "sessions", "stores", "products", "commerce", "settings", "finance", "delivery", "reviews", "chats", "notifications"]);
 const DOMAIN_NAMES = { users: "AUTH", sessions: "AUTH", stores: "STORE", products: "PRODUCT", commerce: "COMMERCE", settings: "SETTINGS", finance: "FINANCE", delivery: "DELIVERY", reviews: "REVIEW", chats: "CHAT", notifications: "NOTIFICATION" };
 const publicDomainFor = (domain, operation) => operation.startsWith("commerce.getCart") || operation.startsWith("commerce.findCartItem") ? "CART" : DOMAIN_NAMES[domain];
@@ -88,6 +89,10 @@ function createRepositoryReadRouter(legacy, finalRepository, options = {}) {
         metrics.record({ kind:"read", requestId:context.requestId, userId:context.userId, domain:publicDomain, operation, readMode:config.mode, canarySelected, legacyDurationMs, finalDurationMs, comparisonResult:matches?"MATCH":"MISMATCH", expectedDifferenceCount, unexpectedDifferenceCount:mismatch.length, differencePaths:mismatch.slice(0,50).map((item)=>item.path), fallbackUsed, errorCode:matches?null:"FINAL_READ_MISMATCH" });
         return canarySelected && matches ? finalValue : legacyValue;
       };
+    }
+    // Method baca yang hanya ada di repository final (mis. statistik produk) langsung diteruskan saat mode final.
+    if (config.mode === "final") for (const [method, finalMethod] of Object.entries(finalRepository[domain] || {})) {
+      if (typeof finalMethod === "function" && !result[domain][method] && FINAL_ONLY_READS.has(`${domain}.${method}`)) result[domain][method] = (...args) => finalMethod(...args);
     }
   }
   result.transaction = async (work) => { const mutations = []; const value = await legacy.transaction((tx) => work(createRepositoryReadRouter(tx, finalRepository, { ...options, mode: "legacy", shadowSynchronizer: { enabled: true, afterWrite: async (mutation) => { mutations.push(mutation); } }, metrics }))); if (options.shadowSynchronizer?.enabled && mutations.length) await options.shadowSynchronizer.afterCommit({ mutations, metrics, unsafe }); return value; };

@@ -51,6 +51,10 @@ export const productService = {
     return normalizeProduct(await apiData(`/api/products/${encodeURIComponent(productId)}${query}`));
   },
   create: async (input) => normalizeProduct(await apiData("/api/products", { method: "POST", body: input })),
+  publicStore: async (storeId) => {
+    const store = await apiData(`/api/stores/${encodeURIComponent(storeId)}/public`);
+    return { ...store, products: (store.products ?? []).map(normalizeProduct) };
+  },
   update: async (productId, input) => normalizeProduct(await apiData(`/api/products/${encodeURIComponent(productId)}`, { method: "PATCH", body: input })),
 };
 

@@ -1,10 +1,12 @@
 import { useEffect, useState } from "react";
 import { Link, useNavigate, useParams } from "react-router-dom";
 import ReviewList from "../../components/ReviewList";
+import ProductCard from "../../components/customer/ProductCard";
+import { productStockBadge } from "../../utils/productStock";
 import { useAuth } from "../../context/AuthContext";
 import { useChat } from "../../context/ChatContext";
 import { cartService } from "../../services/commerceService";
-import { productService } from "../../services/productService";
+import { getProductDisplayPrice, productService } from "../../services/productService";
 import { getAverageRating, reviewService } from "../../services/reviewService";
 import ProductImage from "../../components/ProductImage";
 import { getPrimaryProductImage } from "../../services/productImageStorage";
@@ -28,6 +30,7 @@ function ProductDetail() {
   const [selectedImageId, setSelectedImageId] = useState(null);
   const [selectedOptions, setSelectedOptions] = useState({});
   const [reviews, setReviews] = useState(null);
+  const [moreProducts, setMoreProducts] = useState([]);
 
   useEffect(() => {
     let active = true;
@@ -37,6 +40,15 @@ function ProductDetail() {
     reviewService.publicForTarget("product", productId).then((result) => { if (active) setReviews((result.items || []).filter((review) => !review.isHidden)); }).catch(() => { if (active) setReviews([]); });
     return () => { active = false; };
   }, [productId]);
+
+  // "Produk lain dari lapak ini": terlaris dulu, tanpa produk yang sedang dibuka.
+  const productStoreId = product?.storeId;
+  useEffect(() => {
+    if (!productStoreId) return undefined;
+    let active = true;
+    productService.list({ storeId: productStoreId }).then((rows) => { if (active) setMoreProducts(rows.filter((row) => row.id !== productId).sort((a, b) => b.soldCount - a.soldCount).slice(0, 4)); }).catch(() => { if (active) setMoreProducts([]); });
+    return () => { active = false; };
+  }, [productId, productStoreId]);
 
   if (loading) return <PageContainer><LoadingPanel label={t("commerce.loadingProduct")} rows={5}/></PageContainer>;
   if (loadError || !product || product.status !== "active") {
@@ -100,8 +112,8 @@ function ProductDetail() {
   const actionClass = "inline-flex min-h-12 min-w-0 items-center justify-center rounded-xl border px-3 text-[15px] font-bold transition disabled:cursor-not-allowed disabled:opacity-45";
   const purchaseActions = <div className="grid grid-cols-[auto_minmax(0,1fr)_minmax(0,1.25fr)] gap-2"><button className={`${actionClass} border-[var(--kucur-border-strong)] bg-[var(--kucur-surface)] text-[var(--kucur-text)]`} type="button" onClick={handleSellerChat}>{t("commerce.chat")}</button><button className={`${actionClass} border-[var(--kucur-green)] bg-[var(--kucur-surface)] text-[var(--kucur-green-ink)]`} type="button" onClick={handleAdd} disabled={purchaseDisabled}>{t("commerce.addCart")}</button><button className={`${actionClass} border-[var(--kucur-green)] bg-[var(--kucur-green)] text-[var(--kucur-forest-dark)]`} type="button" onClick={handleBuyNow} disabled={purchaseDisabled}>{t("commerce.buyNow")}</button></div>;
   const copy = language === "id"
-    ? { quantity: "Jumlah", remaining: "Sisa {count}", choose: "Pilih varian dulu", safe: "Bayar tunai saat barang sampai. Jangan transfer langsung ke penjual.", description: "Deskripsi", information: "Info produk", category: "Kategori", sellerLocation: "Lokasi lapak", reviews: "Ulasan pembeli", noReviews: "Belum ada ulasan", decrease: "Kurangi jumlah", increase: "Tambah jumlah" }
-    : { quantity: "Quantity", remaining: "{count} left", choose: "Choose a variant first", safe: "Pay cash when your order arrives. Never transfer directly to the seller.", description: "Description", information: "Product info", category: "Category", sellerLocation: "Store location", reviews: "Customer reviews", noReviews: "No reviews yet", decrease: "Decrease quantity", increase: "Increase quantity" };
+    ? { quantity: "Jumlah", remaining: "Sisa {count}", choose: "Pilih varian dulu", safe: "Bayar tunai saat barang sampai. Jangan transfer langsung ke penjual.", description: "Deskripsi", information: "Info produk", category: "Kategori", sellerLocation: "Lokasi lapak", sold: "{count} terjual", visitStore: "Kunjungi lapak", moreFromStore: "Produk lain dari {store}", seeStore: "Lihat lapak", reviews: "Ulasan pembeli", noReviews: "Belum ada ulasan", decrease: "Kurangi jumlah", increase: "Tambah jumlah" }
+    : { quantity: "Quantity", remaining: "{count} left", choose: "Choose a variant first", safe: "Pay cash when your order arrives. Never transfer directly to the seller.", description: "Description", information: "Product info", category: "Category", sellerLocation: "Store location", sold: "{count} sold", visitStore: "Visit store", moreFromStore: "More from {store}", seeStore: "View store", reviews: "Customer reviews", noReviews: "No reviews yet", decrease: "Decrease quantity", increase: "Increase quantity" };
   const average = reviews?.length ? getAverageRating(reviews) : null;
   const stockText = availableStock <= 0 ? t("commerce.outOfStock") : selectionComplete ? copy.remaining.replace("{count}", selectedStock) : copy.choose;
 
@@ -115,10 +127,10 @@ function ProductDetail() {
         <div className="grid gap-1.5">
           <h1 className="break-words text-[22px] font-extrabold leading-tight text-[var(--kucur-text)] sm:text-3xl">{product.name}</h1>
           <strong className="break-words text-2xl font-extrabold text-[var(--kucur-text)]">{priceLabel}</strong>
-          <a className="w-fit text-[15px] text-[var(--kucur-text-muted)] hover:underline" href="#product-reviews">{average ? <><span className="font-bold text-amber-600 dark:text-amber-400">★ {average}</span> · {t("commerce.reviewCount", { count: reviews.length })}</> : copy.noReviews}</a>
+          <a className="w-fit text-[15px] text-[var(--kucur-text-muted)] hover:underline" href="#product-reviews">{average ? <><span className="font-bold text-amber-600 dark:text-amber-400">★ {average}</span> · {t("commerce.reviewCount", { count: reviews.length })}</> : copy.noReviews}{product.soldCount > 0 && <> · {copy.sold.replace("{count}", product.soldCount.toLocaleString(language === "id" ? "id-ID" : "en-US"))}</>}</a>
         </div>
         <div className="flex min-w-0 items-center justify-between gap-3 rounded-xl border border-[var(--kucur-border)] bg-[var(--kucur-surface)] p-3">
-          <div className="min-w-0"><strong className="block truncate text-[15px]">{store?.name ?? t("commerce.store")}</strong><span className="block truncate text-[13px] text-[var(--kucur-text-muted)]">{store?.location?.address || t("commerce.localProduct")}</span></div>
+          <Link className="group/store flex min-h-11 min-w-0 flex-1 items-center gap-3" to={`/stores/${product.storeId}`}><span className="grid size-11 shrink-0 place-items-center rounded-xl bg-[var(--kucur-green-soft)] text-lg font-extrabold text-[var(--kucur-green-ink)]" aria-hidden="true">{(store?.name ?? "?").trim().charAt(0).toUpperCase()}</span><span className="grid min-w-0"><strong className="block truncate text-[15px] group-hover/store:underline">{store?.name ?? t("commerce.store")}</strong><span className="block truncate text-[13px] font-bold text-[var(--kucur-green-ink)]">{copy.visitStore} ›</span></span></Link>
           <button className="min-h-11 shrink-0 rounded-xl border border-[var(--kucur-border-strong)] px-3 text-sm font-bold hover:border-[var(--kucur-green)]" type="button" onClick={handleSellerChat}>{t("commerce.chatSeller")}</button>
         </div>
         {variantSelectors}
@@ -137,6 +149,10 @@ function ProductDetail() {
       <section><h2>{copy.information}</h2><dl className="grid gap-3 text-[15px] [&>div]:grid [&_dt]:text-sm [&_dt]:text-[var(--kucur-text-muted)] [&_dd]:m-0 [&_dd]:break-words [&_dd]:font-semibold"><div><dt>{copy.category}</dt><dd>{product.category}</dd></div><div><dt>{copy.sellerLocation}</dt><dd>{store?.location?.address || store?.address || t("merchantOrderDetail.unavailableValue")}</dd></div></dl></section>
       <section className="lg:col-span-2" id="product-reviews"><h2>{copy.reviews}</h2><ReviewList reviews={reviews ?? []}/></section>
     </div>
+    {moreProducts.length > 0 && <section className="grid gap-3" aria-labelledby="more-from-store">
+      <div className="flex min-w-0 items-center justify-between gap-3"><h2 className="min-w-0 text-lg font-extrabold" id="more-from-store">{copy.moreFromStore.replace("{store}", store?.name ?? t("commerce.store"))}</h2><Link className="inline-flex min-h-11 shrink-0 items-center text-sm font-bold text-[var(--kucur-green-ink)]" to={`/stores/${product.storeId}`}>{copy.seeStore} ›</Link></div>
+      <div className="grid grid-cols-2 gap-3 sm:gap-4 md:grid-cols-4">{moreProducts.map((row) => <ProductCard key={row.id} product={row} storeName={store?.name ?? t("commerce.store")} price={row.hasVariants ? t("commerce.startsFrom", { price: formatCurrency(getProductDisplayPrice(row)) }) : formatCurrency(row.price)} {...productStockBadge(row, t)}/>)}</div>
+    </section>}
     <div className="sticky bottom-[calc(66px+env(safe-area-inset-bottom))] z-20 -mx-4 border-t border-[var(--kucur-border)] bg-[var(--kucur-surface)] px-4 py-3 md:bottom-0 lg:hidden">{purchaseActions}</div>
   </PageContainer>;
 }

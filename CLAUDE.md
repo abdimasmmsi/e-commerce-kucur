@@ -97,7 +97,7 @@ Catatan desain: gambar/opsi produk disimpan JSON; reservasi stok di `CommerceOrd
 
 ## 9. Status terakhir
 
-- Backend tests 87/87, final repository 27/27, router 21/21, Prisma validate/generate pass, Playwright e2e **60/60** (2026-10-05; `admin-approval-e2e` butuh reset fixture via `node prisma/validation/prepareFinalModeE2EFixtures.js` sebelum diulang), lint dan build pass. Warning bundle Vite >500 kB (±697 kB) non-blocking.
+- Backend tests 87/87, final repository 27/27, router 21/21, Prisma validate/generate pass, Playwright e2e **64/64** (2026-10-05; `admin-approval-e2e` butuh reset fixture via `node prisma/validation/prepareFinalModeE2EFixtures.js` sebelum diulang), lint dan build pass. Warning bundle Vite >500 kB (±697 kB) non-blocking.
 - Integritas DB: 20 tabel, 40 FK, 0 orphan, 0 pelanggaran XOR.
 - **Feature freeze diberlakukan**: hanya boleh perbaikan blocking bug; tidak ada fitur baru, perubahan schema, atau refactor besar.
 - Polish halaman detail dan modal **selesai** (dicek 2026-10-04): komponen bersama `DetailSection`, `StatusTimeline`, `ActionDialog` di `frontend/src/components/ui/`, dicover `e2e/detail-polish.spec.js`.
@@ -109,6 +109,7 @@ Catatan desain: gambar/opsi produk disimpan JSON; reservasi stok di `CommerceOrd
 - **PlatformSettings + 6 kolom** (migrasi `20261004120000_platform_settings_operational`, disetujui Steven 2026-10-04, setelah jurnal disubmit): toggle cicilan Lunas/3x/6x, `maxDeliveryDistanceKm` (checkout menolak alamat lebih jauh), `adminContactName/Phone` (tampil di halaman Akun). Tetap 20 tabel.
 - Uji coba di HP asli: `npm run dev:phone` di frontend (HTTPS port 5175, proxy ke backend demo 3001). Backend demo harus dijalankan dengan `CORS_ALLOWED_ORIGINS` berisi `https://<IP-laptop>:5175`; IP laptop bisa berubah.
 - **Jurnal sudah disubmit** (dikonfirmasi Steven 2026-10-04): screenshot jurnal, render Mermaid, dan finalisasi sitasi tidak perlu dikerjakan lagi.
+- **Produk & lapak (2026-10-05)**: kartu produk menampilkan rating + "X terjual" (`products.stats` di final repository: rating dari Review VISIBLE, terjual dari order DELIVERED/COMPLETED; method final-only diteruskan router lewat `FINAL_ONLY_READS`). Halaman lapak publik `/stores/:storeId` (API `GET /api/stores/:id/public` dan `/api/stores/:id/reviews` tanpa login). Detail produk: nama lapak bisa diklik + "Produk lain dari lapak ini". Perbaikan keamanan: API ulasan tidak lagi mengirim baris User/Order mentah (sebelumnya bocor passwordHash, email, alamat); ulasan publik pakai whitelist `publicReview`.
 - Sisa tugas: persiapan demo TA (data demo via `npm run db:demo:reset`, dijalankan Steven).
 - Ide masa depan (di luar scope): SMTP/Roundcube untuk notifikasi email, payment gateway Midtrans, kembali ke Tourism/Live In, integrasi SIG.
 
