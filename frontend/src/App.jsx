@@ -5,6 +5,7 @@ const CourierAssignmentLab = lazy(() => import("./pages/dev/CourierAssignmentLab
 import ProtectedRoute from "./components/ProtectedRoute";
 import PasswordSecurityNotice from "./components/PasswordSecurityNotice";
 import MobileBackToTop from "./components/MobileBackToTop";
+import FaqBot from "./components/FaqBot";
 
 import CustomerLayout from "./layouts/CustomerLayout";
 import AccountLayout from "./layouts/AccountLayout";
@@ -76,6 +77,7 @@ function App() {
     <BrowserRouter>
       <PasswordSecurityNotice />
       <MobileBackToTop />
+      <FaqBot />
       <Suspense fallback={<div className="page-container" role="status">Memuat halaman...</div>}><Routes>
         {import.meta.env.DEV && <Route path="/dev" element={<Dev />} />}
         {import.meta.env.DEV && <Route path="/dev/courier-assignment" element={<CourierAssignmentLab />} />}

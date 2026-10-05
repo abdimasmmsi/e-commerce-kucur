@@ -1,0 +1,12 @@
+/* Chatbot FAQ: tombol bulat di kanan bawah (di atas menu bawah HP) dan panel bantuan. */
+.faq-bot-launcher{position:fixed;right:16px;bottom:calc(80px + env(safe-area-inset-bottom));z-index:860;display:grid;width:52px;height:52px;place-items:center;border:0;border-radius:999px;background:var(--kucur-green);color:var(--kucur-forest-dark);box-shadow:0 8px 22px rgba(10,21,9,.22);cursor:pointer;transition:transform .15s ease}
+.faq-bot-launcher svg{width:26px;height:26px}
+.faq-bot-launcher:hover{transform:translateY(-2px)}
+.faq-bot-launcher:focus-visible{outline:3px solid var(--kucur-forest-dark);outline-offset:3px}
+@media(min-width:768px){.faq-bot-launcher{right:24px;bottom:24px}}
+.faq-bot-layer{position:fixed;inset:0;z-index:1200;display:flex;align-items:flex-end;justify-content:center;background:rgba(10,21,9,.38)}
+.faq-bot-panel{display:flex;width:100%;height:min(86dvh,720px);flex-direction:column;overflow:hidden;border-radius:20px 20px 0 0;background:var(--kucur-bg);color:var(--kucur-text);box-shadow:0 -10px 40px rgba(10,21,9,.25);padding-bottom:env(safe-area-inset-bottom)}
+@media(min-width:768px){.faq-bot-layer{align-items:flex-end;justify-content:flex-end;padding:24px;background:transparent;pointer-events:none}.faq-bot-panel{width:400px;height:min(640px,calc(100dvh - 48px));border:1px solid var(--kucur-border);border-radius:20px;pointer-events:auto;box-shadow:0 16px 48px rgba(10,21,9,.22)}}
+.dark .faq-bot-layer{background:rgba(0,0,0,.55)}
+@media(min-width:768px){.dark .faq-bot-layer{background:transparent}}
+@media(prefers-reduced-motion:reduce){.faq-bot-launcher{transition:none}}

@@ -7,7 +7,7 @@
     "dev": "vite",
     "build": "vite build",
     "check:encoding": "node scripts/check-encoding.mjs",
-    "lint": "npm run check:encoding && eslint .",
+    "lint": "npm run check:encoding && node scripts/check-faq.mjs && eslint .",
     "preview": "vite preview",
     "test:e2e": "npm run db:seed --prefix ../backend && playwright test",
     "test:e2e:report": "playwright show-report",
