@@ -3,6 +3,7 @@ import Button from "../../components/ui/Button";
 import EmptyState from "../../components/ui/EmptyState";
 import LoadingPanel from "../../components/ui/LoadingPanel";
 import PageHeader from "../../components/ui/PageHeader";
+import { downloadCsv, reportFileName } from "../../utils/csv";
 import { usePreferences } from "../../context/PreferencesContext";
 import { financeService } from "../../services/financeService";
 import "./AdminDeliveryFinance.css";
@@ -83,7 +84,7 @@ export default function AdminFinance() {
       </section>
 
       <section className="finance-obligations-section">
-        <div className="admin-section-heading"><div><h2>{t("adminFinance.obligations")}</h2><p>{storeCopy.hint}</p></div></div>
+        <div className="admin-section-heading"><div><h2>{t("adminFinance.obligations")}</h2><p>{storeCopy.hint}</p></div>{perStore.length > 0 && <button className="inline-flex min-h-11 items-center justify-center gap-2 rounded-xl border border-[var(--kucur-border-strong)] bg-[var(--kucur-surface)] px-4 text-sm font-bold text-[var(--kucur-text)] hover:border-[var(--kucur-green)] disabled:opacity-50" type="button" onClick={() => downloadCsv(reportFileName(language === "id" ? "biaya-admin-per-lapak" : "admin-fees-by-store"), [{ label: storeCopy.store, value: (row) => row.name }, { label: storeCopy.unpaid, value: (row) => Math.round(row.unpaid) }, { label: storeCopy.paid, value: (row) => Math.round(row.paid) }, { label: storeCopy.bills, value: (row) => row.count }, { label: storeCopy.nearest, value: (row) => (row.nearest ? String(row.nearest).slice(0, 10) : "") }], perStore)}><svg className="size-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true"><path d="M12 4v11m0 0 4-4m-4 4-4-4M5 19h14"/></svg>{language === "id" ? "Unduh CSV" : "Download CSV"}</button>}</div>
         {perStore.length ? <div className="finance-table-wrap"><table className="finance-table"><thead><tr><th>{storeCopy.store}</th><th className="numeric">{storeCopy.unpaid}</th><th className="numeric">{storeCopy.paid}</th><th>{storeCopy.bills}</th><th>{storeCopy.nearest}</th></tr></thead><tbody>{perStore.map((row) => <tr key={row.key}><td data-label={storeCopy.store}><strong>{row.name || t("adminFinance.unknownStore")}</strong></td><td className="numeric" data-label={storeCopy.unpaid}><strong className={row.overdue ? "text-rose-700 dark:text-rose-300" : ""}>{formatCurrency(row.unpaid)}</strong></td><td className="numeric" data-label={storeCopy.paid}>{formatCurrency(row.paid)}</td><td data-label={storeCopy.bills}>{row.count}</td><td data-label={storeCopy.nearest}>{row.unpaid ? <span className={row.overdue ? "font-bold text-rose-700 dark:text-rose-300" : ""}>{row.overdue ? storeCopy.overdue : formatDate(row.nearest)}</span> : <span className="font-bold text-[var(--kucur-green-ink)]">{storeCopy.clear}</span>}</td></tr>)}</tbody></table></div> : <EmptyState title={t("adminFinance.noFees")} description={t("adminFinance.noFeesHint")} />}
       </section>
     </>}

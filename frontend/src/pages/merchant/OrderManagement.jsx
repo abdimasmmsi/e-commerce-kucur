@@ -13,6 +13,7 @@ import { canonicalStoreId } from "../../services/legacyStoreReferences";
 import { filterByPeriod } from "../../utils/datePeriod";
 import { shortOrderCode } from "../../utils/orderCode";
 import { paginate } from "../../utils/pagination";
+import { downloadCsv, orderReportColumns, reportFileName } from "../../utils/csv";
 
 const PAGE_SIZE = 10;
 // Tab mengikuti alur kerja lapak; status lama di URL (?status=) dipetakan ke tab yang sesuai.
@@ -30,7 +31,7 @@ const actionLabelKeys = { confirmed: "actionConfirmed", processing: "actionProce
 const confirmKeys = { confirmed: "confirmConfirmed", processing: "confirmProcessing", "ready-for-pickup": "confirmReady" };
 
 function OrderManagementWorkspace({ storeId, routeStore }) {
-  const { errorMessage, formatCurrency, formatDate, language, t } = usePreferences();
+  const { errorMessage, formatCurrency, formatDate, language, statusLabel, t } = usePreferences();
   const copy = language === "id"
     ? { tabs: { new: "Baru", pack: "Dikemas", ready: "Siap diambil", shipping: "Dikirim", done: "Selesai", cancelled: "Batal" }, tabsLabel: "Tahap pesanan", search: "Cari kode pesanan atau nama pembeli", items: "{name} ×{qty}", more: "dan {count} produk lain", cod: "Total COD", detail: "Detail", periods: { all: "Semua waktu", today: "Hari ini", "7d": "7 hari", "1m": "30 hari", "1y": "1 tahun" }, revenue: "Pendapatan produk", empty: "Belum ada pesanan di tahap ini", emptyHint: "Pesanan akan pindah ke sini sesuai tahapnya.", done: "Status pesanan diperbarui." }
     : { tabs: { new: "New", pack: "Packing", ready: "Ready", shipping: "Shipping", done: "Completed", cancelled: "Cancelled" }, tabsLabel: "Order stages", search: "Search order code or buyer name", items: "{name} ×{qty}", more: "and {count} more", cod: "COD total", detail: "Details", periods: { all: "All time", today: "Today", "7d": "7 days", "1m": "30 days", "1y": "1 year" }, revenue: "Product revenue", empty: "No orders in this stage", emptyHint: "Orders move here as they progress.", done: "Order status updated." };
@@ -92,8 +93,10 @@ function OrderManagementWorkspace({ storeId, routeStore }) {
   const header = <header className="grid gap-1"><h1 className="text-2xl font-extrabold text-[var(--kucur-text)] sm:text-3xl">{t("orderManagement.title")}</h1><p className="text-[15px] text-[var(--kucur-text-muted)]">{routeStore?.name ?? t("orderManagement.activeStore")}</p></header>;
   if (loading) return <PageContainer className="space-y-4">{header}<LoadingPanel label={t("orderManagement.loading")} rows={5} /></PageContainer>;
 
+  const exportRows = () => downloadCsv(reportFileName(`${language === "id" ? "pesanan" : "orders"}-${String(routeStore?.name ?? "lapak").toLowerCase().replace(/[^a-z0-9]+/g, "-")}-${activeTab}`), orderReportColumns(language, statusLabel, { withStore: false }), rows);
+
   return <PageContainer className="space-y-4">
-    {header}
+    <div className="flex flex-wrap items-end justify-between gap-3">{header}<button className="inline-flex min-h-11 items-center justify-center gap-2 rounded-xl border border-[var(--kucur-border-strong)] bg-[var(--kucur-surface)] px-4 text-sm font-bold text-[var(--kucur-text)] hover:border-[var(--kucur-green)] disabled:opacity-50" type="button" disabled={!rows.length} onClick={exportRows}><svg className="size-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true"><path d="M12 4v11m0 0 4-4m-4 4-4-4M5 19h14"/></svg>{language === "id" ? `Unduh CSV (${rows.length})` : `Download CSV (${rows.length})`}</button></div>
     <div className="-mx-4 flex gap-2 overflow-x-auto px-4 pb-1 sm:mx-0 sm:flex-wrap sm:px-0" role="tablist" aria-label={copy.tabsLabel}>
       {tabs.map((item) => <button className={`inline-flex min-h-11 shrink-0 items-center gap-2 rounded-full border px-4 text-sm font-bold ${activeTab === item.key ? "border-[var(--kucur-text)] bg-[var(--kucur-text)] text-[var(--kucur-bg)]" : "border-[var(--kucur-border-strong)] bg-[var(--kucur-surface)] text-[var(--kucur-text)]"}`} type="button" role="tab" aria-selected={activeTab === item.key} key={item.key} onClick={() => chooseTab(item.key)}>{copy.tabs[item.key]}{counts[item.key] > 0 && <span className={`rounded-full px-2 text-xs ${activeTab === item.key ? "bg-[var(--kucur-bg)] text-[var(--kucur-text)]" : "bg-[var(--kucur-surface-muted)]"}`}>{counts[item.key]}</span>}</button>)}
     </div>

@@ -95,6 +95,14 @@ test("store owner is notified when an application is approved or rejected", asyn
   assert.match(notice?.body ?? "", /Foto lapak kurang jelas/);
 }));
 
+test("store is notified when an order leaves a product almost out of stock", async () => withRollback(async (repo, tx) => {
+  const fixture = await commerceFixture(tx); const service = createCommerceService(repo);
+  await service.create(inputFor([fixture.products[0]]), fixture.actor, `qa-${randomUUID()}`);
+  const owner = (await tx.targetStore.findUnique({ where: { id: fixture.products[0].storeId } })).merchantUserId;
+  const notice = await tx.targetNotification.findFirst({ where: { userId: owner, type: "PRODUCT_LOW_STOCK", entityId: fixture.products[0].id } });
+  assert.match(notice?.body ?? "", /tinggal 1/);
+}));
+
 test("final commerce insufficient stock rolls the entire checkout back", async () => withRollback(async (repo, tx) => {
   const fixture = await commerceFixture(tx); const service = createCommerceService(repo); const input = inputFor(fixture.products); input.items[1].quantity = 3;
   await assert.rejects(service.create(input, fixture.actor, `qa-${randomUUID()}`), (error) => error?.details?.quantity === "Stok produk tidak mencukupi.");

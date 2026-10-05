@@ -29,3 +29,5 @@
 .profile-workspace-summary .profile-role-error{color:#b91c1c}
 .role-chip-spinner{width:10px;height:10px;border:1.5px solid currentColor;border-right-color:transparent;border-radius:50%;animation:role-chip-spin .7s linear infinite}
 @keyframes role-chip-spin{to{transform:rotate(360deg)}}
+/* HP, pengunjung belum login: keranjang diganti tombol Masuk (Daftar tetap ada di halaman Masuk dan di Beranda). */
+@media(max-width:767px){.app-header .customer-nav-utilities .guest-auth-actions{display:flex!important;margin:0;gap:0}.app-header .guest-auth-actions .register-link{display:none!important}.app-header .guest-auth-actions a:first-child{display:inline-flex!important;min-height:40px;align-items:center;padding:0 16px;border-radius:12px;background:var(--kucur-green);color:var(--kucur-forest-dark);font-size:.9rem;font-weight:800}}

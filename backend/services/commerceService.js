@@ -64,7 +64,7 @@ function createCommerceService(repository) {
     if (actor.roles.includes("admin") || order.customerUserId === actor.id) return;
     const store = await repository.stores.findById(order.storeId); if (!actor.roles.includes("merchant") || store?.merchantUserId !== actor.id) throw errors.forbidden("Order tidak dapat diakses.");
   };
-  return {
+  const service = {
     preview: quote,
     async create(input, actor, idempotencyKey) {
       const key = requiredString(idempotencyKey || input.idempotencyKey, "idempotencyKey", { max: 100 });
@@ -94,5 +94,27 @@ function createCommerceService(repository) {
     async cancel(id, reason, actor) { const order = await this.get(id, actor); const byCustomer = String(order.customerUserId) === String(actor.id) && !actor.roles.includes("admin"); const cancellable = byCustomer ? ["pending", "confirmed"] : ["pending", "confirmed", "processing"]; if (!cancellable.includes(order.fulfillmentStatus)) throw errors.validation({ status: byCustomer && order.fulfillmentStatus === "processing" ? "Pesanan sudah dikemas penjual dan tidak bisa dibatalkan. Hubungi penjual lewat chat." : "Order tidak dapat dibatalkan pada tahap ini." }); if (order.paymentStatus === "paid") throw errors.conflict("Order berbayar memerlukan proses refund terpisah sebelum dibatalkan."); return repository.transaction(async (tx) => { const current = await tx.commerce.findOrder(id); if (!current || !cancellable.includes(current.fulfillmentStatus) || current.paymentStatus === "paid") throw errors.conflict("Order sudah berubah dan tidak dapat dibatalkan."); for (const reservation of current.reservations.filter((item) => item.status === "reserved")) { const claimed = await tx.commerce.releaseReservation(reservation.id); if (!claimed) continue; if (reservation.productVariantId) await tx.commerce.releaseVariant(reservation.productVariantId, reservation.quantity); else await tx.commerce.releaseSimple(reservation.productId, reservation.quantity); } const updated = await tx.commerce.updateOrder(id, { fulfillmentStatus: "cancelled", paymentStatus: current.paymentStatus === "pending" ? "cancelled" : current.paymentStatus, cancellationReason: String(reason || "").slice(0, 1000) || null, cancelledAt: new Date() }); await tx.commerce.addActivity({ orderId: id, actorUserId: actor.id, actorType: byCustomer ? "customer" : actor.roles.includes("admin") ? "admin" : "merchant", activityType: "ORDER_CANCELLED", fromStatus: current.fulfillmentStatus, toStatus: "cancelled", description: "Order dibatalkan dan stok dikembalikan." }); if (byCustomer) { const store = await tx.stores.findById(current.storeId); await notifySafe(tx, [{ userId: store?.merchantUserId, type: "COMMERCE_ORDER_CANCELLED", title: "Pesanan dibatalkan pembeli", body: `Pesanan #${current.orderCode} dibatalkan pembeli${reason ? `. Alasan: ${String(reason).slice(0, 200)}` : "."} Stok sudah dikembalikan.`, entityType: "COMMERCE_ORDER", entityId: id, metadata: { orderCode: current.orderCode, status: "cancelled", by: "customer" }, dedupeKey: `commerce-order-cancelled-merchant:${id}` }]); } return updated; }); },
     async reconcileExpired(actor) { if (!actor.roles.includes("admin")) throw errors.forbidden(); const expired = await repository.commerce.listExpiredPaymentOrders(new Date()); const reconciled = []; for (const candidate of expired) { const result = await repository.transaction(async (tx) => { const current = await tx.commerce.findOrder(candidate.id); if (!current || current.paymentStatus !== "pending" || current.paymentMethod !== "MIDTRANS") return null; for (const reservation of current.reservations.filter((item) => item.status === "reserved")) { const claimed = await tx.commerce.releaseReservation(reservation.id); if (!claimed) continue; if (reservation.productVariantId) await tx.commerce.releaseVariant(reservation.productVariantId, reservation.quantity); else await tx.commerce.releaseSimple(reservation.productId, reservation.quantity); } const updated = await tx.commerce.updateOrder(current.id, { paymentStatus: "expired", fulfillmentStatus: "cancelled", cancellationReason: "Pembayaran kedaluwarsa.", cancelledAt: new Date() }); await tx.commerce.addActivity({ orderId: current.id, actorUserId: actor.id, actorType: "admin", activityType: "PAYMENT_EXPIRED", fromStatus: "pending", toStatus: "expired", description: "Pembayaran kedaluwarsa; reservasi stok dilepas." }); return updated; }); if (result) reconciled.push(result); } return { reconciled: reconciled.length, orders: reconciled }; },
   };
+  // Setelah checkout: beri tahu lapak kalau stok produknya tinggal sedikit (sekali per produk per hari).
+  const LOW_STOCK = 5;
+  const originalCreate = service.create;
+  service.create = async (input, actor, idempotencyKey) => {
+    const result = await originalCreate(input, actor, idempotencyKey);
+    try {
+      const productIds = [...new Set((result.orders || []).flatMap((order) => (order.items || []).map((item) => item.productId)).filter(Boolean))];
+      const today = new Date().toISOString().slice(0, 10);
+      const items = [];
+      for (const productId of productIds) {
+        const product = await repository.products.findById(productId);
+        if (!product || product.status !== "active") continue;
+        const stock = product.hasVariants ? (product.variants || []).filter((variant) => variant.status === "active").reduce((sum, variant) => sum + Number(variant.stock || 0), 0) : Number(product.stock || 0);
+        if (stock > LOW_STOCK) continue;
+        const store = product.store || await repository.stores.findById(product.storeId);
+        items.push({ userId: store?.merchantUserId, type: "PRODUCT_LOW_STOCK", title: stock <= 0 ? "Stok habis" : "Stok hampir habis", body: stock <= 0 ? `Stok "${product.name}" sudah habis. Tambah stok supaya pembeli bisa memesan lagi.` : `Stok "${product.name}" tinggal ${stock}. Tambah stok sebelum habis.`, entityType: "PRODUCT", entityId: product.id, metadata: { stock, storeId: product.storeId }, dedupeKey: `low-stock:${product.id}:${stock <= 0 ? "out" : "low"}:${today}` });
+      }
+      await notifySafe(repository, items);
+    } catch (error) { console.warn(`[notification] ${error.message}`); }
+    return result;
+  };
+  return service;
 }
 module.exports = { createCommerceService };
