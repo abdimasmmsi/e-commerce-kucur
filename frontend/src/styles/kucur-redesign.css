@@ -110,7 +110,7 @@ a.primary-button {
   border-radius: var(--radius-control);
   padding: 10px 16px;
   background:var(--kucur-green);
-  color:var(--kucur-forest-dark)df8;
+  color:var(--kucur-on-green);
   font-size: .88rem;
   font-weight: 620;
   box-shadow: none;
@@ -245,7 +245,7 @@ label > small, .field-group small { color: var(--kucur-muted); }
 .app-nav-links a:hover, .app-nav-links a.active, .guest-auth-actions a:hover { background: transparent; color: var(--kucur-forest-dark); }
 .app-nav-links a.active::after { content: ""; position: absolute; inset: auto 0 -1px; height: 2px; background: var(--kucur-clay); }
 .guest-auth-actions { gap: 12px; margin-left: 12px; }
-.guest-auth-actions .register-link { min-height: 38px; padding-inline: 13px; border-radius: var(--radius-control); background:var(--kucur-green); color:var(--kucur-forest-dark); }
+.guest-auth-actions .register-link { min-height: 38px; padding-inline: 13px; border-radius: var(--radius-control); background:var(--kucur-green); color:var(--kucur-on-green); }
 .app-authenticated-area { border-left-color: var(--kucur-border); }
 .notification-button, .profile-menu-trigger { border-color: var(--kucur-border); border-radius: var(--radius-control); background: var(--kucur-paper); }
 .notification-button:hover, .profile-menu-trigger:hover { background: #f5f2e9; }
@@ -368,7 +368,7 @@ label > small, .field-group small { color: var(--kucur-muted); }
 .merchant-dashboard__period, .courier-period-filter { padding-bottom:14px; border-bottom:1px solid var(--kucur-border); }
 .merchant-dashboard__period button, .courier-period-filter button { padding:7px 10px; border-color:transparent; border-radius:5px; background:transparent; color:var(--kucur-muted); font-weight:550; }
 .merchant-dashboard__period button:hover, .courier-period-filter button:hover { background:var(--kucur-sand); color:var(--kucur-ink); }
-.merchant-dashboard__period button.is-active, .courier-period-filter button.active { border-color:var(--kucur-green); background:var(--kucur-green); color:var(--kucur-forest-dark); }
+.merchant-dashboard__period button.is-active, .courier-period-filter button.active { border-color:var(--kucur-green); background:var(--kucur-green); color:var(--kucur-on-green); }
 .merchant-dashboard__activity { padding:22px 0 0; border:0; border-top:1px solid var(--kucur-border); border-radius:0; background:transparent; }
 .merchant-dashboard__activity-item { border-color:var(--kucur-border); }
 .merchant-dashboard__empty { border:1px dashed var(--kucur-border); border-radius:var(--radius-control); background:transparent; }
@@ -414,7 +414,7 @@ label > small, .field-group small { color: var(--kucur-muted); }
 .customer-card-price { color: var(--kucur-clay-dark); font-size: 1.02rem; font-weight: 680; }
 .customer-card-actions { grid-template-columns:minmax(0,1fr) minmax(0,1fr) auto; gap: 7px; }
 .customer-card-actions a, .customer-card-actions button { min-height: 38px; border-radius: 7px; padding: 8px 10px; font-size: .76rem; font-weight: 600; }
-.customer-card-actions a:first-child { border-color:var(--kucur-green); background:var(--kucur-green); color:var(--kucur-forest-dark); }
+.customer-card-actions a:first-child { border-color:var(--kucur-green); background:var(--kucur-green); color:var(--kucur-on-green); }
 .customer-card-actions button:hover { border-color: var(--kucur-forest); background: #f3f6f1; }
 .customer-catalog-card:hover { border-color: #b9b5aa; }
 .customer-catalog-card:hover .customer-card-image img { transform: scale(1.025); }

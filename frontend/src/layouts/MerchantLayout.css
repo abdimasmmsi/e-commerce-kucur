@@ -592,7 +592,7 @@
   border: 1px solid var(--kucur-green);
   border-radius: var(--kucur-control-radius, 12px);
   background: var(--kucur-green);
-  color: var(--kucur-forest-dark);
+  color: var(--kucur-on-green);
   font-weight: 700;
 }
 
@@ -611,7 +611,7 @@
 .merchant-workspace .store-manage-button {
   border:1px solid var(--kucur-green);
   background:var(--kucur-green);
-  color:var(--kucur-forest-dark);
+  color:var(--kucur-on-green);
 }
 
 .merchant-workspace .store-card {

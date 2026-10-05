@@ -64,7 +64,7 @@ function ProductManagement() {
   };
   const counts = { active: products.filter((item) => item.status === "active").length, inactive: products.filter((item) => item.status !== "active").length, "low-stock": products.filter((item) => hasLowProductStock(item)).length };
   if (loading) return <PageContainer><LoadingPanel label={t("productManagement.loading")} rows={4} /></PageContainer>;
-  const chipClass = (active) => `inline-flex min-h-11 shrink-0 items-center rounded-full border px-4 text-sm font-bold ${active ? "border-[var(--kucur-text)] bg-[var(--kucur-text)] text-[var(--kucur-bg)]" : "border-[var(--kucur-border-strong)] bg-[var(--kucur-surface)] text-[var(--kucur-text)]"}`;
+  const chipClass = (active) => `inline-flex min-h-11 shrink-0 items-center rounded-full border px-4 text-sm font-bold ${active ? "border-[var(--kucur-brand)] bg-[var(--kucur-brand)] text-[var(--kucur-on-brand)]" : "border-[var(--kucur-border-strong)] bg-[var(--kucur-surface)] text-[var(--kucur-text)]"}`;
   const fieldClass = "min-h-12 w-full min-w-0 rounded-xl border border-[var(--kucur-border-strong)] bg-[var(--kucur-surface)] px-3 text-base text-[var(--kucur-text)]";
   return <PageContainer className="merchant-standard-page merchant-product-management space-y-4">
     <header className="flex flex-wrap items-end justify-between gap-3"><div><h1 className="text-2xl font-extrabold sm:text-3xl">{t("productManagement.title")}</h1><p className="text-[15px] text-[var(--kucur-text-muted)]">{store?.name ?? t("productManagement.activeStore")} · {products.length}</p></div><Link to={`/merchant/stores/${storeId}/products/add`}>{t("productManagement.add")}</Link></header>

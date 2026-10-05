@@ -55,7 +55,7 @@ export default function Dashboard() {
             <div className="rounded-xl bg-[var(--kucur-surface-muted)] p-3"><dt className="text-[13px] text-[var(--kucur-text-muted)]">{copy.left}</dt><dd className="text-2xl font-extrabold">{data.remaining}</dd></div>
             <div className="col-span-2 flex items-center justify-between gap-3 rounded-xl bg-amber-50 p-3 text-left dark:bg-amber-950/40"><dt className="text-[15px] text-[var(--kucur-text-muted)]">{copy.cod}</dt><dd className="text-xl font-extrabold">{formatCurrency(data.cod)}</dd></div>
           </dl>
-          <Link className="inline-flex min-h-12 items-center justify-center rounded-xl bg-[var(--kucur-green)] px-4 text-base font-bold text-[var(--kucur-forest-dark)]" to={`/courier/batches/${data.todayBatch.id}`}>{copy.open}</Link>
+          <Link className="inline-flex min-h-12 items-center justify-center rounded-xl bg-[var(--kucur-green)] px-4 text-base font-bold text-[var(--kucur-on-green)]" to={`/courier/batches/${data.todayBatch.id}`}>{copy.open}</Link>
         </> : <EmptyState title={copy.none} description={copy.noneHint} />}
       </section>
 

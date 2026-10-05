@@ -58,14 +58,14 @@ function Products() {
   ].filter(Boolean);
   const reset = () => { setSearch(""); setCategory("All"); setStoreId("All"); setMinimumPrice(""); setMaximumPrice(""); setSort("Featured"); };
 
-  const chipClass = (active) => `inline-flex min-h-11 shrink-0 items-center rounded-full border px-4 text-sm font-bold transition ${active ? "border-[var(--kucur-green)] bg-[var(--kucur-green-soft)] text-[var(--kucur-green-ink)]" : "border-[var(--kucur-border-strong)] bg-[var(--kucur-surface)] text-[var(--kucur-text)]"}`;
+  const chipClass = (active) => `inline-flex min-h-10 shrink-0 items-center rounded-full border px-4 text-sm font-bold transition ${active ? "border-[var(--kucur-brand)] bg-[var(--kucur-brand)] text-[var(--kucur-on-brand)]" : "border-[var(--kucur-border)] bg-[var(--kucur-surface)] text-[var(--kucur-text)] hover:border-[var(--kucur-border-strong)]"}`;
   const advancedActive = storeId !== "All" || minimumPrice !== "" || maximumPrice !== "";
 
-  return <CustomerPage className="space-y-4 sm:space-y-6">
-    <header className="grid gap-1"><h1 className="text-2xl font-extrabold text-[var(--kucur-text)] sm:text-3xl">{t("commerce.catalogTitle")}</h1><p className="text-[15px] text-[var(--kucur-text-muted)]">{t("commerce.catalogDescription")}</p></header>
+  return <CustomerPage className="space-y-3 !pt-0 sm:space-y-6 sm:!pt-8">
+    <header className="grid gap-1 max-sm:pt-4"><h1 className="text-xl font-extrabold tracking-[-0.02em] text-[var(--kucur-text)] sm:text-3xl">{t("commerce.catalogTitle")}</h1><p className="hidden text-[15px] text-[var(--kucur-text-muted)] sm:block">{t("commerce.catalogDescription")}</p></header>
     {!loading && error && <p className="rounded-xl border border-rose-300 bg-rose-50 px-4 py-3 text-[15px] font-semibold text-rose-900 dark:border-rose-800 dark:bg-rose-950 dark:text-rose-100" role="alert">{t("commerce.loadError", { message: error })}</p>}
 
-    <form className="grid min-w-0 gap-4" role="search" aria-label={t("catalogFilters.title")} onSubmit={(event) => event.preventDefault()}>
+    <form className="grid min-w-0 gap-3 border-[var(--kucur-border)] max-sm:-mx-4 max-sm:!max-w-none max-sm:border-y max-sm:bg-[var(--kucur-surface)] max-sm:px-4 max-sm:py-3 sm:gap-4" role="search" aria-label={t("catalogFilters.title")} onSubmit={(event) => event.preventDefault()}>
       <label className="relative block"><span className="sr-only">{t("commerce.search")}</span><svg className="pointer-events-none absolute left-3.5 top-1/2 size-5 -translate-y-1/2 text-[var(--kucur-text-muted)]" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" aria-hidden="true"><circle cx="11" cy="11" r="7"/><path d="m20 20-3.5-3.5"/></svg><input className={`${controlClass} !min-h-12 !pl-11 !text-base`} type="search" value={search} onChange={(event) => setSearch(event.target.value)} placeholder={t("catalogFilters.searchPlaceholder")}/></label>
       <div className="-mx-4 flex gap-2 overflow-x-auto px-4 py-1 [scrollbar-width:none] sm:mx-0 sm:flex-wrap sm:px-0 [&::-webkit-scrollbar]:hidden" role="group" aria-label={t("commerce.category")}>
         <button className={chipClass(category === "All")} type="button" aria-pressed={category === "All"} onClick={() => setCategory("All")}>{t("catalogFilters.allCategories")}</button>
@@ -75,7 +75,7 @@ function Products() {
         <p className="text-sm font-semibold text-[var(--kucur-text-muted)]" aria-live="polite">{loading ? " " : t("catalogFilters.results", { count: rows.length })}</p>
         <label className="flex items-center gap-2 text-sm font-semibold"><span className="text-[var(--kucur-text-muted)]">{t("commerce.sort")}</span><select className={`${controlClass} !w-auto`} value={sort} onChange={(event) => setSort(event.target.value)}><option value="Featured">{t("catalogFilters.recommended")}</option><option value="Newest">{t("catalogFilters.newest")}</option><option value="Lowest">{t("commerce.lowestPrice")}</option><option value="Highest">{t("commerce.highestPrice")}</option><option value="Name">{t("catalogFilters.nameAscending")}</option></select></label>
       </div>
-      <details className="group rounded-xl border border-[var(--kucur-border)] bg-[var(--kucur-surface)] px-3" open={advancedActive || undefined}>
+      <details className="group rounded-xl border border-[var(--kucur-border)] bg-[var(--kucur-surface)] px-3 max-sm:-mx-1" open={advancedActive || undefined}>
         <summary className="flex min-h-12 cursor-pointer list-none items-center justify-between gap-3 text-[15px] font-bold">{t("catalogFilters.moreFilters")}<svg className="size-5 text-[var(--kucur-text-muted)] transition group-open:rotate-180" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true"><path d="m6 9 6 6 6-6"/></svg></summary>
         <div className="grid gap-3 pb-3 sm:grid-cols-2">
           <label className="grid gap-1.5 text-sm font-semibold">{t("commerce.seller")}<select className={controlClass} value={storeId} onChange={(event) => setStoreId(event.target.value)}><option value="All">{t("catalogFilters.allMerchants")}</option>{stores.map((store) => <option value={String(store.id)} key={store.id}>{store.name}</option>)}</select></label>
@@ -86,7 +86,7 @@ function Products() {
       {(chips.length > 0 || sort !== "Featured") && <div className="flex min-w-0 flex-wrap items-center gap-2">{chips.map((chip) => <button className="inline-flex min-h-9 max-w-full items-center gap-2 rounded-full bg-[var(--kucur-green-soft)] px-3 text-sm font-bold text-[var(--kucur-green-ink)]" type="button" onClick={chip.clear} key={chip.key}><span className="truncate">{chip.label}</span><b aria-hidden="true">{"×"}</b></button>)}<button className="min-h-9 rounded-full px-3 text-sm font-bold text-[var(--kucur-text-muted)] underline" type="button" onClick={reset}>{t("catalogFilters.reset")}</button></div>}
     </form>
 
-    {loading ? <CustomerLoading label={t("commerce.loadingProducts")} count={8}/> : !error && rows.length ? <div className="grid grid-cols-2 gap-3 sm:gap-4 md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5">{rows.map((product) => <ProductCard key={product.id} product={product} storeName={storeMap.get(String(product.storeId))?.name ?? t("commerce.store")} price={product.hasVariants ? t("commerce.startsFrom", { price: formatCurrency(getProductDisplayPrice(product)) }) : formatCurrency(product.price)} {...productStockBadge(product, t)}/>)}</div> : !error && <CustomerEmpty title={t("commerce.emptyProducts")} description={t("commerce.emptyProductsHint")}/>}
+    {loading ? <CustomerLoading label={t("commerce.loadingProducts")} count={8}/> : !error && rows.length ? <div className="grid grid-cols-2 gap-2.5 sm:gap-4 md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5">{rows.map((product) => <ProductCard key={product.id} product={product} storeName={storeMap.get(String(product.storeId))?.name ?? t("commerce.store")} price={product.hasVariants ? t("commerce.startsFrom", { price: formatCurrency(getProductDisplayPrice(product)) }) : formatCurrency(product.price)} {...productStockBadge(product, t)}/>)}</div> : !error && <CustomerEmpty title={t("commerce.emptyProducts")} description={t("commerce.emptyProductsHint")}/>}
   </CustomerPage>;
 }
 

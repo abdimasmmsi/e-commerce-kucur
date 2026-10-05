@@ -1,5 +1,5 @@
 const variants = {
-  primary: "border-[var(--kucur-green)] bg-[var(--kucur-green)] text-[var(--kucur-forest-dark)] hover:border-[var(--kucur-green-hover)] hover:bg-[var(--kucur-green-hover)]",
+  primary: "border-[var(--kucur-green)] bg-[var(--kucur-green)] text-[var(--kucur-on-green)] hover:border-[var(--kucur-green-hover)] hover:bg-[var(--kucur-green-hover)]",
   secondary: "border-[var(--kucur-border-strong)] bg-[var(--kucur-surface)] text-[var(--kucur-text)] hover:border-[var(--kucur-green)] hover:bg-[var(--kucur-green-soft)]",
   outline: "border-[var(--kucur-green)] bg-transparent text-[var(--kucur-green-ink)] hover:bg-[var(--kucur-green-soft)]",
   danger: "border-kucur-danger bg-kucur-danger text-white hover:brightness-90",

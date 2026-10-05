@@ -63,7 +63,7 @@ export default function Addresses() {
   const form = <section className="grid gap-4 rounded-2xl border border-[var(--kucur-green)] bg-[var(--kucur-surface)] p-4 sm:p-5">
     <h2 className="text-lg font-extrabold">{editing === "new" ? copy.newTitle : copy.editTitle}</h2>
     <AddressForm value={draft} onChange={setDraft} />
-    <div className="grid grid-cols-2 gap-2 sm:flex sm:justify-end"><button className={`${buttonClass} border border-[var(--kucur-border-strong)]`} type="button" disabled={busy} onClick={() => { setEditing(null); setDraft(null); }}>{copy.cancel}</button><button className={`${buttonClass} bg-[var(--kucur-green)] text-[var(--kucur-forest-dark)]`} type="button" disabled={busy} onClick={saveDraft}>{busy ? copy.saving : copy.save}</button></div>
+    <div className="grid grid-cols-2 gap-2 sm:flex sm:justify-end"><button className={`${buttonClass} border border-[var(--kucur-border-strong)]`} type="button" disabled={busy} onClick={() => { setEditing(null); setDraft(null); }}>{copy.cancel}</button><button className={`${buttonClass} bg-[var(--kucur-green)] text-[var(--kucur-on-green)]`} type="button" disabled={busy} onClick={saveDraft}>{busy ? copy.saving : copy.save}</button></div>
   </section>;
 
   return <div className="grid min-w-0 max-w-3xl gap-4">

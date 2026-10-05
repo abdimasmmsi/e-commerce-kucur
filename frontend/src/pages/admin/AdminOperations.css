@@ -79,7 +79,7 @@
 .admin-lifecycle li:not(:last-child)::after { position: absolute; z-index: 0; top: 14px; left: calc(50% + 17px); width: calc(100% - 34px); height: 2px; background: var(--kucur-border); content: ""; }
 .admin-lifecycle li.is-complete:not(:last-child)::after { background: var(--kucur-green); }
 .admin-lifecycle i { position: relative; z-index: 1; display: grid; place-items: center; width: 30px; height: 30px; border: 2px solid var(--kucur-border-strong); border-radius: 50%; background: var(--kucur-surface); font-style: normal; }
-.admin-lifecycle .is-complete i { border-color: var(--kucur-green); background: var(--kucur-green); color: var(--kucur-navy); }
+.admin-lifecycle .is-complete i { border-color: var(--kucur-green); background: var(--kucur-green); color: var(--kucur-on-green); }
 .admin-lifecycle .is-active span { color: var(--kucur-text); }
 .admin-order-detail-grid { display: grid; grid-template-columns: minmax(0,1fr) minmax(260px,.35fr); gap: 20px; align-items: start; }
 .admin-order-summary { position: sticky; top: 24px; }

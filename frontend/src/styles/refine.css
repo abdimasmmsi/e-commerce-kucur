@@ -1,51 +1,66 @@
 /*
-  Polesan UI (Okt 2026) mengikuti audit redesign-skill:
-  - aksen hijau lebih kalem (tidak neon), satu keluarga abu hangat untuk latar/border
-  - latar diberi tekstur butiran halus supaya tidak datar
-  - bayangan berwarna hangat, kartu tanpa garis kaku
-  - umpan balik tekan (scale) dan transisi halus
-  - tipografi: judul dirapatkan, angka rata (tabular)
-  File ini dimuat paling akhir; hapus import-nya di main.jsx untuk kembali ke tampilan sebelumnya.
+  Palet "Forest" (Okt 2026, mockup disetujui Steven: https://claude.ai/artifact/WtoLjnHHEW2bJvUsoVjvZg):
+  - header & identitas: hijau hutan tua (--kucur-brand), teks putih
+  - latar abu netral (bukan krem), permukaan putih, garis tipis
+  - hijau aksi lebih tua dengan teks putih (--kucur-on-green), amber hanya untuk rating/penanda
 */
 :root {
-  --kucur-green: #3eb64b;
-  --kucur-green-hover: #34a040;
-  --kucur-green-soft: #ebf5e6;
+  --kucur-brand: #173f29;
+  --kucur-brand-strong: #10301f;
+  --kucur-on-brand: #ffffff;
+  --kucur-on-brand-muted: #b9d4bf;
+  --kucur-green: #23803a;
+  --kucur-green-hover: #1b6a2f;
+  --kucur-green-soft: #e4f0e1;
   --kucur-green-ink: #1f7326;
-  --kucur-bg: #f6f4ee;
-  --kucur-surface-muted: #f2efe7;
-  --kucur-surface-elevated: #faf8f3;
-  --kucur-border: #e6e1d5;
-  --kucur-border-strong: #d4cdbd;
-  --kucur-text-muted: #636b5c;
-  --shadow-soft: 0 1px 2px rgb(64 52 28 / 5%), 0 6px 18px -6px rgb(64 52 28 / 12%);
+  --kucur-on-green: #ffffff;
+  --kucur-amber: #e3a21a;
+  --kucur-amber-soft: #fff1d1;
+  --kucur-amber-ink: #6b4300;
+  --kucur-bg: #f2f3ee;
+  --kucur-surface: #ffffff;
+  --kucur-surface-muted: #f0f2ec;
+  --kucur-surface-elevated: #f6f7f3;
+  --kucur-border: #e1e4dc;
+  --kucur-border-strong: #c9cec3;
+  --kucur-text: #17201a;
+  --kucur-text-muted: #57615a;
+  --kucur-placeholder: repeating-linear-gradient(135deg, #eceee8 0 9px, #dfe2da 9px 10px);
+  --shadow-soft: 0 1px 2px rgb(23 32 26 / 5%), 0 4px 14px -6px rgb(23 32 26 / 10%);
   --kucur-shadow-sm: var(--shadow-soft);
-  --shadow-lift: 0 2px 4px rgb(64 52 28 / 6%), 0 14px 30px -10px rgb(64 52 28 / 22%);
-  --kucur-grain: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='180' height='180'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='.9' numOctaves='2' stitchTiles='stitch'/%3E%3CfeColorMatrix values='0 0 0 0 .35 0 0 0 0 .3 0 0 0 0 .2 0 0 0 .5 0'/%3E%3C/filter%3E%3Crect width='180' height='180' filter='url(%23n)' opacity='.22'/%3E%3C/svg%3E");
+  --shadow-lift: 0 2px 4px rgb(23 32 26 / 6%), 0 12px 26px -10px rgb(23 32 26 / 18%);
 }
 [data-theme="dark"], .dark {
-  --kucur-green: #4cc75a;
-  --kucur-green-hover: #5ad468;
-  --kucur-green-ink: #7fdc72;
-  --kucur-green-soft: #1c3119;
-  --kucur-text-muted: #a9b4a6;
+  --kucur-brand: #0f2418;
+  --kucur-brand-strong: #0b1c12;
+  --kucur-on-brand: #eef6ea;
+  --kucur-on-brand-muted: #9fbfa6;
+  --kucur-green: #5fcf6d;
+  --kucur-green-hover: #74d880;
+  --kucur-green-ink: #86dd7a;
+  --kucur-green-soft: #1b3020;
+  --kucur-on-green: #08170c;
+  --kucur-amber: #f0b93a;
+  --kucur-amber-soft: #4a3410;
+  --kucur-amber-ink: #ffe1a6;
+  --kucur-text: #e8ede6;
+  --kucur-text-muted: #a7b2a4;
+  --kucur-bg: #0e1410;
+  --kucur-surface: #151d17;
+  --kucur-surface-elevated: #1b241d;
+  --kucur-surface-muted: #1b241d;
+  --kucur-input: #121a14;
+  --kucur-hover: #1f2a22;
+  --kucur-border: rgb(200 222 200 / 12%);
+  --kucur-border-strong: rgb(200 222 200 / 24%);
+  --kucur-placeholder: repeating-linear-gradient(135deg, #18221b 0 9px, #243026 9px 10px);
+  --shadow-soft: 0 1px 2px rgb(0 0 0 / 30%), 0 6px 16px -8px rgb(0 0 0 / 45%);
   --kucur-shadow-sm: var(--shadow-soft);
-  --kucur-bg: #0d100c;
-  --kucur-surface: #141912;
-  --kucur-surface-elevated: #1a2017;
-  --kucur-surface-muted: #1a2017;
-  --kucur-border: rgb(196 214 186 / 12%);
-  --kucur-border-strong: rgb(196 214 186 / 22%);
-  --shadow-soft: 0 1px 2px rgb(0 0 0 / 30%), 0 8px 20px -8px rgb(0 0 0 / 45%);
-  --shadow-lift: 0 2px 4px rgb(0 0 0 / 35%), 0 16px 32px -12px rgb(0 0 0 / 55%);
+  --shadow-lift: 0 2px 4px rgb(0 0 0 / 35%), 0 14px 28px -12px rgb(0 0 0 / 55%);
 }
 
-/* Latar hangat dengan butiran halus (tidak ikut di kartu/permukaan). */
 html, body, #root { background-color: var(--kucur-bg); }
-body { background-image: var(--kucur-grain); background-size: 180px 180px; }
-.dark body, [data-theme="dark"] body { background-image: var(--kucur-grain); opacity: 1; }
-.dark #root, [data-theme="dark"] #root { background: transparent; }
-#root { background: transparent; }
+#root, .dark #root, [data-theme="dark"] #root { background: transparent; }
 
 /* Tipografi: judul lebih tegas, baris tidak menyisakan satu kata, angka rata. */
 h1, h2 { letter-spacing: -0.02em; text-wrap: balance; }
@@ -65,17 +80,112 @@ button:not(:disabled):active, a[class*="min-h-"]:active, a.primary-button:active
   button:not(:disabled):active, a[class*="min-h-"]:active, [role="button"]:active { transform: none; }
 }
 
-/* Header: sedikit transparan dengan blur, garis bawah lembut. */
-.app-header { background: color-mix(in srgb, var(--kucur-surface) 92%, transparent) !important; backdrop-filter: saturate(1.4) blur(10px); border-bottom-color: var(--kucur-border) !important; }
+/* Header Forest: hijau hutan tua untuk semua peran, kolom cari putih, ikon putih. */
+.app-header, .dark .app-header, [data-theme="dark"] .app-header { background: var(--kucur-brand) !important; background-image: none !important; border-bottom: 0 !important; box-shadow: none !important; backdrop-filter: none !important; color: var(--kucur-on-brand); }
+.app-header .app-brand, .dark .app-header .app-brand { color: var(--kucur-on-brand) !important; }
+.app-header .app-logo, .dark .app-header .app-logo { border-radius: 10px !important; background: var(--kucur-on-brand) !important; color: var(--kucur-brand) !important; font-weight: 800; }
+.app-header .app-nav-links a, .dark .app-header .app-nav-links a { color: var(--kucur-on-brand-muted) !important; }
+.app-header .app-nav-links a:hover, .app-header .app-nav-links a.active, .dark .app-header .app-nav-links a.active { color: var(--kucur-on-brand) !important; }
+.app-header .app-nav-links a.active::after { height: 3px; background: var(--kucur-amber) !important; }
+.app-header .app-workspace-context span { color: var(--kucur-on-brand-muted); }
+.app-header .customer-nav-search, .dark .app-header .customer-nav-search { border-color: transparent !important; background: var(--kucur-surface) !important; color: var(--kucur-text-muted) !important; box-shadow: none !important; }
+.dark .app-header .customer-nav-search { background: #1b261e !important; }
+.app-header .customer-nav-search:focus-within { box-shadow: 0 0 0 3px color-mix(in srgb, var(--kucur-amber) 70%, transparent) !important; }
+.app-header .notification-button, .app-header .profile-menu-trigger, .app-header .customer-nav-utilities > a, .app-header .theme-toggle, .dark .app-header .notification-button, .dark .app-header .profile-menu-trigger, .dark .app-header .theme-toggle { border-color: transparent !important; background: transparent !important; color: var(--kucur-on-brand) !important; box-shadow: none !important; }
+.app-header .notification-button:hover, .app-header .profile-menu-trigger:hover, .app-header .customer-nav-utilities > a:hover, .app-header .theme-toggle:hover { background: rgb(255 255 255 / 12%) !important; }
+.app-header .notification-button > strong, .app-header .customer-nav-utilities > a > strong { border-color: var(--kucur-brand) !important; background: var(--kucur-amber) !important; color: #2a1d00 !important; --tw-ring-color: var(--kucur-brand); }
+.app-header .profile-trigger-copy small { color: var(--kucur-on-brand-muted); }
+.app-header .profile-chevron { color: var(--kucur-on-brand-muted); }
+.app-header .profile-menu-trigger .user-avatar { background: var(--kucur-amber) !important; color: #2a1d00 !important; }
+.app-header .profile-dropdown, .app-header [data-notification-panel] { color: var(--kucur-text); }
+.app-header .guest-auth-actions a { color: var(--kucur-on-brand) !important; }
+.app-header .guest-auth-actions .register-link { background: var(--kucur-on-brand) !important; color: var(--kucur-brand) !important; }
+.app-header .language-slider { border-color: rgb(255 255 255 / 25%); background: rgb(255 255 255 / 8%); }
+.app-header .language-slider button { color: var(--kucur-on-brand-muted); }
+.app-header .language-slider button.active { color: var(--kucur-brand); }
+.app-header .language-slider i { background: var(--kucur-on-brand); }
+@media (max-width: 767px) {
+  .app-header .guest-auth-actions a:first-child { background: var(--kucur-on-brand) !important; color: var(--kucur-brand) !important; }
+  .app-header .customer-mobile-search { margin-bottom: 14px; min-height: 46px !important; border-radius: 12px !important; }
+}
 
 /* Tombol bulat bantuan & tombol ke atas: bayangan hangat, tombol ke atas netral supaya tidak bersaing. */
 .faq-bot-launcher { box-shadow: 0 10px 24px -6px color-mix(in srgb, var(--kucur-green) 55%, transparent), 0 2px 6px rgb(0 0 0 / 12%); }
 .mobile-back-to-top { background: var(--kucur-surface) !important; color: var(--kucur-text) !important; border-color: var(--kucur-border-strong) !important; box-shadow: var(--shadow-soft) !important; }
 
-/* Menu bawah HP: permukaan sedikit transparan, indikator aktif hijau kalem. */
-.customer-bottom-nav { background: color-mix(in srgb, var(--kucur-surface) 94%, transparent) !important; backdrop-filter: saturate(1.4) blur(10px); box-shadow: 0 -6px 20px -12px rgb(64 52 28 / 25%) !important; }
+/* Menu bawah HP: permukaan polos, garis tipis, item aktif hijau. */
+.customer-bottom-nav { background: var(--kucur-surface) !important; backdrop-filter: none; box-shadow: none !important; border-top: 1px solid var(--kucur-border) !important; }
+.customer-bottom-nav > a.active::before, .customer-bottom-nav > button[aria-expanded="true"]::before { display: none; }
+.customer-bottom-nav > a.active, .customer-bottom-nav > button[aria-expanded="true"] { font-weight: 800; }
 
-/* Beranda: kartu sapaan diberi sentuhan khas Kucur (cahaya hijau lembut + motif daun samar di pojok). */
-.home-hero { border-color: transparent !important; box-shadow: var(--shadow-soft) !important; }
-.home-hero::before { content: ""; position: absolute; inset: 0; z-index: -1; background: radial-gradient(120% 90% at 100% 0%, color-mix(in srgb, var(--kucur-green) 16%, transparent) 0%, transparent 55%), radial-gradient(80% 60% at 0% 100%, color-mix(in srgb, #e9b44c 10%, transparent) 0%, transparent 60%); }
-.home-hero::after { content: ""; position: absolute; top: -10px; right: -18px; z-index: -1; width: 92px; height: 92px; opacity: .1; background: var(--kucur-green-ink); -webkit-mask: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='black' stroke-width='1.4' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='M5 19c0-8 5-14 15-15-1 10-7 15-15 15Zm0 0 8-8'/%3E%3C/svg%3E") center / contain no-repeat; mask: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='black' stroke-width='1.4' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='M5 19c0-8 5-14 15-15-1 10-7 15-15 15Zm0 0 8-8'/%3E%3C/svg%3E") center / contain no-repeat; transform: rotate(-12deg); }
+/* Gambar produk kosong: pola garis tipis, bukan kotak pastel. */
+.kucur-placeholder { background: var(--kucur-placeholder); }
+
+/* Kartu tanpa bayangan tebal: garis tipis, sudut lebih kecil. */
+:root { --radius-card: 12px; }
+
+/* Beranda: banner pengiriman (hijau muda / hijau tua di mode gelap). */
+.home-banner { background: #dfeedd; color: #123321; }
+.dark .home-banner, [data-theme="dark"] .home-banner { background: #1d3a26; color: #eef6ea; }
+
+/* Kartu metrik admin: tanpa garis warna di kiri (pola "AI"), label tidak kapital semua. */
+.admin-metric-card::before { display: none !important; }
+.admin-metric-card { padding: 16px 18px !important; }
+.admin-metric-card > span { text-transform: none !important; letter-spacing: 0 !important; font-size: .9rem !important; font-weight: 700 !important; }
+
+/* Label kecil huruf kapital semua + jarak huruf lebar = pola "AI"; jadi kalimat biasa. */
+.uppercase,
+.account-nav-group h2,
+.account-photo-modal header span,
+.account-profile-heading span,.account-panel-heading>span,
+.account-store-availability>div>span,
+.admin-metric-card>span,
+.auth-eyebrow,
+.batch-date-group>h3,
+.chat-context-card span,
+.chat-toolbar label span,
+.courier-test-lab__header > div > span,
+.create-store-card-preview>span,
+.dashboard-stat-card > span:first-child,
+.finance-table th,
+.merchant-application-status>div strong,
+.merchant-apply-eyebrow,
+.merchant-detail-heading>div:first-child span,
+.merchant-feature-unavailable > span,
+.merchant-history-status,
+.merchant-nav-group h3,
+.merchant-nav-section-label,
+.merchant-review-modal form>header span,
+.merchant-review-product,
+.merchant-review-summary span,
+.merchant-role-panel > div span,
+.page-container th,
+.password-security-eyebrow,
+.pickup-reason-modal form>header span,
+.profile-workspace-summary>span,
+.review-product-label,
+.store-detail-overview>div:nth-child(2)>span,
+.store-switcher-heading,
+.store-switcher>span,
+.store-type-label,
+.store-workspace-header__eyebrow,
+.stores-eyebrow,
+.unauthorized-eyebrow,
+.workspace-nav-group > h3 { text-transform: none !important; letter-spacing: 0 !important; }
+
+/* Judul halaman merchant: tanpa garis hijau pendek + garis bawah (pola "AI"). */
+.merchant-standard-page > header:not(.relative)::after,
+.merchant-main > div[class*="max-w-7xl"] > header::after,
+.merchant-main > .page-container > header:not(.relative)::after,
+.merchant-workspace .stores-header::after,
+.merchant-workspace .merchant-reviews-page > .page-header::after { display: none !important; }
+.merchant-workspace .stores-header,
+.merchant-workspace .merchant-reviews-page > .page-header,
+.merchant-standard-page > header:not(.relative),
+.merchant-main > .page-container > header:not(.relative) { border-bottom: 0 !important; padding-bottom: 0 !important; margin-bottom: 20px !important; }
+
+/* Bintang ulasan merchant: amber khas Kucur, bintang kosong cukup kontras (≥ 3:1). */
+.merchant-review-stars { color: #c27c0e !important; }
+.merchant-review-stars i { color: #868e86 !important; }
+.dark .merchant-review-stars { color: var(--kucur-amber) !important; }
+.dark .merchant-review-stars i { color: #6f7a6e !important; }

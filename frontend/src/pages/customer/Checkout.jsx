@@ -127,7 +127,7 @@ export default function Checkout() {
       <div className="grid gap-1"><span className="text-sm font-bold text-[var(--kucur-green-ink)]">{t("checkout.success")}</span><h1 className="text-2xl font-extrabold">{t("checkout.successTitle")}</h1><p className="text-[15px] text-[var(--kucur-text-muted)]">{t("checkout.ordersCreated", { count: created.length })}</p></div>
       {totalToPay > 0 && <p className="w-full rounded-xl bg-[var(--kucur-green-soft)] p-3 text-[15px] font-semibold">{t("checkout.successPay", { amount: formatCurrency(totalToPay) })}</p>}
       <div className="flex flex-wrap justify-center gap-2">{created.map((order) => <Link className="rounded-full border border-[var(--kucur-border-strong)] px-3 py-1.5 text-sm font-bold" to={`/orders/${order.id}`} key={order.id}>{shortOrderCode(order.orderCode ?? order.orderNumber)}</Link>)}</div>
-      <div className="grid w-full gap-2 sm:grid-cols-2"><Link className="inline-flex min-h-12 items-center justify-center rounded-xl bg-[var(--kucur-green)] px-4 font-bold text-[var(--kucur-forest-dark)]" to="/orders">{t("checkout.viewOrders")}</Link><Link className="inline-flex min-h-12 items-center justify-center rounded-xl border border-[var(--kucur-border-strong)] px-4 font-bold" to="/products">{t("checkout.shopMore")}</Link></div>
+      <div className="grid w-full gap-2 sm:grid-cols-2"><Link className="inline-flex min-h-12 items-center justify-center rounded-xl bg-[var(--kucur-green)] px-4 font-bold text-[var(--kucur-on-green)]" to="/orders">{t("checkout.viewOrders")}</Link><Link className="inline-flex min-h-12 items-center justify-center rounded-xl border border-[var(--kucur-border-strong)] px-4 font-bold" to="/products">{t("checkout.shopMore")}</Link></div>
     </section></PageContainer>;
   }
 
@@ -135,14 +135,14 @@ export default function Checkout() {
     return <PageContainer><section className="mx-auto grid max-w-lg justify-items-center gap-3 rounded-2xl border border-[var(--kucur-border)] bg-[var(--kucur-surface)] p-6 text-center sm:p-8">
       <h1 className="text-xl font-extrabold">{t("checkout.emptyTitle")}</h1>
       <p className="text-[15px] text-[var(--kucur-text-muted)]">{t("checkout.emptyHint")}</p>
-      <Link className="inline-flex min-h-12 w-full items-center justify-center rounded-xl bg-[var(--kucur-green)] px-4 font-bold text-[var(--kucur-forest-dark)] sm:w-auto" to="/products">{t("checkout.emptyAction")}</Link>
+      <Link className="inline-flex min-h-12 w-full items-center justify-center rounded-xl bg-[var(--kucur-green)] px-4 font-bold text-[var(--kucur-on-green)] sm:w-auto" to="/products">{t("checkout.emptyAction")}</Link>
     </section></PageContainer>;
   }
 
   const actionLabel = submitting ? t("checkout.processing") : calculating ? t("checkout.calculating") : preview ? t("checkout.createOrder") : t("checkout.completeData");
   const actionDisabled = !preview || submitting || calculating;
   const totalLine = <div className="grid"><span className="text-[13px] text-[var(--kucur-text-muted)]">{t("checkout.payTotal")}</span><strong className="text-xl font-extrabold">{preview ? formatCurrency(preview.grandTotal) : "–"}</strong></div>;
-  const actionButton = <button className="inline-flex min-h-12 items-center justify-center rounded-xl bg-[var(--kucur-green)] px-5 text-base font-bold text-[var(--kucur-forest-dark)] border border-transparent disabled:cursor-not-allowed disabled:border-[var(--kucur-border-strong)] disabled:bg-[var(--kucur-surface-muted)] disabled:text-[var(--kucur-text-muted)]" type="button" disabled={actionDisabled} onClick={submit}>{actionLabel}</button>;
+  const actionButton = <button className="inline-flex min-h-12 items-center justify-center rounded-xl bg-[var(--kucur-green)] px-5 text-base font-bold text-[var(--kucur-on-green)] border border-transparent disabled:cursor-not-allowed disabled:border-[var(--kucur-border-strong)] disabled:bg-[var(--kucur-surface-muted)] disabled:text-[var(--kucur-text-muted)]" type="button" disabled={actionDisabled} onClick={submit}>{actionLabel}</button>;
 
   return <PageContainer className="space-y-5 pb-28 lg:pb-0">
     <header><h1 className="text-2xl font-extrabold">{t(selection.direct ? "checkout.directTitle" : "checkout.title")}</h1></header>

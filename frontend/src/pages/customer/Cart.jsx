@@ -6,7 +6,7 @@ import { cartService } from "../../services/commerceService";
 import LoadingPanel from "../../components/ui/LoadingPanel";
 import PageContainer from "../../components/ui/PageContainer";
 
-const primaryLink = "inline-flex min-h-12 items-center justify-center rounded-xl bg-[var(--kucur-green)] px-5 text-base font-bold text-[var(--kucur-forest-dark)] hover:bg-[var(--kucur-green-hover)]";
+const primaryLink = "inline-flex min-h-12 items-center justify-center rounded-xl bg-[var(--kucur-green)] px-5 text-base font-bold text-[var(--kucur-on-green)] hover:bg-[var(--kucur-green-hover)]";
 const secondaryLink = "inline-flex min-h-12 items-center justify-center rounded-xl border border-[var(--kucur-border-strong)] bg-[var(--kucur-surface)] px-5 text-base font-bold text-[var(--kucur-text)] hover:bg-[var(--kucur-green-soft)]";
 
 function EmptyCart({ t }) {

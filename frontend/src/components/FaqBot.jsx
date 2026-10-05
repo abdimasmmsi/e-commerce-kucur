@@ -10,7 +10,7 @@ import { detectLanguage, faqsForRole, fillFaqText, matchFaq, OPEN_FAQ_EVENT } fr
 import "./FaqBot.css";
 
 // Halaman dengan tombol aksi di bawah layar: tombol bot disembunyikan supaya tidak menutupi (bot tetap bisa dibuka dari Akun).
-const HIDDEN_ON = [/^\/checkout/, /^\/products\/[^/]+$/, /^\/messages\/[^/]+$/, /^\/admin\/support-chats\/[^/]+$/];
+const HIDDEN_ON = [/^\/checkout/, /^\/products\/[^/]+$/, /^\/messages\/[^/]+$/, /^\/admin\/support-chats\/[^/]+$/, /^\/courier\/batches\/[^/]+$/];
 
 const COPY = {
   id: { open: "Buka bantuan", title: "Bantuan Kucur", subtitle: "Jawaban cepat seputar aplikasi", close: "Tutup", restart: "Mulai ulang", hello: "Halo! Mau tanya apa? Pilih topik di bawah, atau tulis pertanyaanmu.", placeholder: "Tulis pertanyaan, mis. cara batal pesanan", send: "Kirim", confirm: "Maksud kamu: **{q}**?", yes: "Ya", no: "Bukan", choose: "Mungkin maksudmu salah satu ini:", unknown: "Maaf, aku belum paham pertanyaannya. Coba tulis dengan kata lain, atau pilih topik di bawah.", retry: "Oke. Coba tulis ulang pertanyaanmu dengan kata lain, atau pilih yang paling mirip:", more: "Ada lagi yang bisa dibantu?", topics: "Topik lain", stillConfused: "Masih bingung?", chatAdmin: "Chat Admin", loginForAdmin: "Masuk untuk chat Admin", popular: "Pertanyaan populer" },
@@ -142,7 +142,7 @@ export default function FaqBot() {
     const lang = message.lang ?? appLang;
     const copy = COPY[lang];
     if (message.kind === "hello") return <div className="grid gap-2"><p className={`${bubble} bg-[var(--kucur-surface-muted)]`}>{copy.hello}</p><span className="text-xs font-bold uppercase tracking-wide text-[var(--kucur-text-muted)]">{copy.popular}</span>{topicChips(lang)}</div>;
-    if (message.kind === "confirm") return <div className="grid gap-2"><p className={`${bubble} bg-[var(--kucur-surface-muted)]`}><Rich text={copy.confirm.replace("{q}", message.faq.q[lang].replace(/[?]$/, ""))} /></p><div className="flex gap-2"><button className="min-h-11 rounded-xl bg-[var(--kucur-green)] px-5 text-sm font-bold text-[var(--kucur-forest-dark)]" type="button" onClick={() => confirmYes(message.faq, lang)}>{copy.yes}</button><button className="min-h-11 rounded-xl border border-[var(--kucur-border-strong)] bg-[var(--kucur-surface)] px-5 text-sm font-bold" type="button" onClick={() => confirmNo(message.faq, lang)}>{copy.no}</button></div></div>;
+    if (message.kind === "confirm") return <div className="grid gap-2"><p className={`${bubble} bg-[var(--kucur-surface-muted)]`}><Rich text={copy.confirm.replace("{q}", message.faq.q[lang].replace(/[?]$/, ""))} /></p><div className="flex gap-2"><button className="min-h-11 rounded-xl bg-[var(--kucur-green)] px-5 text-sm font-bold text-[var(--kucur-on-green)]" type="button" onClick={() => confirmYes(message.faq, lang)}>{copy.yes}</button><button className="min-h-11 rounded-xl border border-[var(--kucur-border-strong)] bg-[var(--kucur-surface)] px-5 text-sm font-bold" type="button" onClick={() => confirmNo(message.faq, lang)}>{copy.no}</button></div></div>;
     if (message.kind === "choices") return <div className="grid gap-2"><p className={`${bubble} bg-[var(--kucur-surface-muted)]`}>{message.text}</p>{message.faqs.length > 0 && <div className="flex flex-wrap gap-2">{message.faqs.map((faq) => <button className={chip} type="button" key={faq.id} onClick={() => answer(faq, lang)}>{faq.q[lang]}</button>)}</div>}{(message.withTopics || !message.faqs.length) && topicChips(lang)}</div>;
     if (message.kind === "unknown") return <div className="grid gap-2"><p className={`${bubble} bg-[var(--kucur-surface-muted)]`}>{copy.unknown}</p>{topicChips(lang)}<div className="flex flex-wrap items-center gap-2 text-sm text-[var(--kucur-text-muted)]">{copy.stillConfused} {adminButton(lang)}</div></div>;
     const { faq } = message;
@@ -153,7 +153,7 @@ export default function FaqBot() {
       <div className={`${bubble} grid gap-2 border border-[var(--kucur-border)] bg-[var(--kucur-surface)]`}>
         <strong className="text-[15px]">{faq.q[lang]}</strong>
         {steps.length > 1 ? <ol className="m-0 grid list-decimal gap-1.5 pl-5">{steps.map((line, index) => <li key={index}><Rich text={line} /></li>)}</ol> : <p className="m-0"><Rich text={steps[0]} /></p>}
-        {showLink && <button className="mt-1 min-h-11 w-fit rounded-xl bg-[var(--kucur-green)] px-4 text-sm font-bold text-[var(--kucur-forest-dark)]" type="button" onClick={() => go(faq.link.to)}>{faq.link.label[lang]} →</button>}
+        {showLink && <button className="mt-1 min-h-11 w-fit rounded-xl bg-[var(--kucur-green)] px-4 text-sm font-bold text-[var(--kucur-on-green)]" type="button" onClick={() => go(faq.link.to)}>{faq.link.label[lang]} →</button>}
       </div>
       <div className="flex flex-wrap items-center gap-2 text-sm text-[var(--kucur-text-muted)]"><span>{copy.more}</span><button className={chip} type="button" onClick={() => push({ from: "bot", kind: "choices", faqs: [], text: copy.topics, withTopics: true, lang })}>{copy.topics}</button>{adminButton(lang)}</div>
     </div>;
@@ -175,12 +175,12 @@ export default function FaqBot() {
         </header>
         <div className="grid flex-1 content-start gap-4 overflow-y-auto px-4 py-4" ref={listRef} aria-live="polite">
           {messages.map((message) => message.from === "user"
-            ? <p className={`${bubble} ml-auto bg-[var(--kucur-green)] text-[var(--kucur-forest-dark)]`} key={message.id}>{message.text}</p>
+            ? <p className={`${bubble} ml-auto bg-[var(--kucur-green)] text-[var(--kucur-on-green)]`} key={message.id}>{message.text}</p>
             : <div key={message.id}>{renderBot(message)}</div>)}
         </div>
         <form className="flex gap-2 border-t border-[var(--kucur-border)] p-3" onSubmit={ask}>
           <label className="min-w-0 flex-1"><span className="sr-only">{copy.placeholder}</span><input ref={inputRef} className="min-h-12 w-full rounded-xl border border-[var(--kucur-border-strong)] bg-[var(--kucur-surface)] px-3 text-base text-[var(--kucur-text)]" value={input} onChange={(event) => setInput(event.target.value)} placeholder={copy.placeholder} autoComplete="off" enterKeyHint="send" /></label>
-          <button className="min-h-12 shrink-0 rounded-xl bg-[var(--kucur-green)] px-4 font-bold text-[var(--kucur-forest-dark)] disabled:opacity-50" type="submit" disabled={!input.trim()}>{copy.send}</button>
+          <button className="min-h-12 shrink-0 rounded-xl bg-[var(--kucur-green)] px-4 font-bold text-[var(--kucur-on-green)] disabled:opacity-50" type="submit" disabled={!input.trim()}>{copy.send}</button>
         </form>
       </section>
     </div>, document.body)}

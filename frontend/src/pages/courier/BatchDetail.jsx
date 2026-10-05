@@ -62,7 +62,7 @@ export default function BatchDetail() {
   const stops = [...batch.orders].sort((a, b) => (a.pickupSequence ?? 99) - (b.pickupSequence ?? 99));
   const delivered = stops.filter((item) => item.status === "DELIVERED").length;
   const codTotal = stops.filter((item) => item.commerceOrder.paymentMethod === "COD" && item.commerceOrder.paymentStatus !== "paid" && ACTIVE.includes(item.status)).reduce((sum, item) => sum + Number(item.commerceOrder.totalAmount || 0), 0);
-  const actionClass = "inline-flex min-h-12 w-full items-center justify-center rounded-xl bg-[var(--kucur-green)] px-4 text-base font-bold text-[var(--kucur-forest-dark)] disabled:opacity-50";
+  const actionClass = "inline-flex min-h-12 w-full items-center justify-center rounded-xl bg-[var(--kucur-green)] px-4 text-base font-bold text-[var(--kucur-on-green)] disabled:opacity-50";
   const smallClass = "inline-flex min-h-11 items-center justify-center gap-2 rounded-xl border border-[var(--kucur-border-strong)] px-3 text-sm font-bold";
 
   return <><PageContainer as="main" className="space-y-4 text-[var(--kucur-text)]">

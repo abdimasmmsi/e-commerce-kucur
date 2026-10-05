@@ -13,7 +13,7 @@
 @media(max-width:600px){.account-nav-logout{margin-top:0}}
 
 .account-workspace-switch{display:grid;gap:8px;margin-bottom:16px}
-.account-workspace-switch button{display:flex;align-items:center;gap:10px;width:100%;min-height:52px;padding:10px 14px;border:1px solid var(--kucur-green);border-radius:12px;background:var(--kucur-green);color:var(--kucur-forest-dark);font:inherit;font-size:15px;font-weight:800;text-align:left;cursor:pointer}
+.account-workspace-switch button{display:flex;align-items:center;gap:10px;width:100%;min-height:52px;padding:10px 14px;border:1px solid var(--kucur-green);border-radius:12px;background:var(--kucur-green);color:var(--kucur-on-green);font:inherit;font-size:15px;font-weight:800;text-align:left;cursor:pointer}
 .account-workspace-switch button svg{width:22px;height:22px;flex:0 0 22px}
 .account-workspace-switch button span{flex:1}
 @media(max-width:600px){.account-workspace-switch{margin-bottom:8px}}
@@ -24,7 +24,7 @@
 .account-help-contact .account-help-number{color:var(--kucur-text);font-weight:700}
 .account-help-contact div{display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-top:6px}
 .account-help-contact a{display:inline-flex;min-height:44px;align-items:center;justify-content:center;border:1px solid var(--kucur-border-strong);border-radius:10px;font-weight:700;font-size:14px}
-.account-help-contact a:first-child{border-color:var(--kucur-green);background:var(--kucur-green);color:var(--kucur-forest-dark)}
+.account-help-contact a:first-child{border-color:var(--kucur-green);background:var(--kucur-green);color:var(--kucur-on-green)}
 @media(max-width:600px){.account-help-contact{grid-column:1/-1}}
 
 /* HP & tablet: hub akun berupa daftar menu berbaris; halaman lain hanya tautan kembali. */

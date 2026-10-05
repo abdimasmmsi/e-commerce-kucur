@@ -22,7 +22,7 @@ const progress = {
 };
 
 function OrderSkeleton() {
-  return <article className="animate-pulse rounded-2xl border border-[var(--kucur-border)] bg-[var(--kucur-surface)] p-4" aria-hidden="true">
+  return <article className="animate-pulse border-[var(--kucur-border)] bg-[var(--kucur-surface)] p-4 max-sm:border-y sm:rounded-xl sm:border" aria-hidden="true">
     <div className="flex justify-between gap-4"><span className="h-5 w-40 rounded bg-[var(--kucur-surface-elevated)]"/><span className="h-6 w-24 rounded-full bg-[var(--kucur-surface-elevated)]"/></div>
     <div className="mt-4 flex gap-3"><span className="size-14 rounded-xl bg-[var(--kucur-surface-elevated)]"/><span className="h-4 w-44 rounded bg-[var(--kucur-surface-elevated)]"/></div>
     <div className="mt-4 flex items-end justify-between border-t border-[var(--kucur-border)] pt-3"><span className="h-7 w-28 rounded bg-[var(--kucur-surface-elevated)]"/><span className="h-11 w-24 rounded-xl bg-[var(--kucur-surface-elevated)]"/></div>
@@ -62,19 +62,19 @@ function Orders() {
     }
   };
 
-  return <PageContainer className="space-y-4">
-    <header className="flex min-w-0 items-end justify-between gap-3">
-      <h1 className="text-2xl font-extrabold text-[var(--kucur-text)] sm:text-3xl">{t("customerOrders.title")}</h1>
+  return <PageContainer className="space-y-2.5 !pt-0 sm:space-y-4 sm:!pt-8">
+    <header className="flex min-w-0 items-end justify-between gap-3 max-sm:pt-4">
+      <h1 className="text-xl font-extrabold tracking-[-0.02em] text-[var(--kucur-text)] sm:text-3xl">{t("customerOrders.title")}</h1>
       {!loading && <span className="text-sm font-semibold text-[var(--kucur-text-muted)]">{t("customerOrders.count", { count: orders.length })}</span>}
     </header>
 
-    <div className="grid grid-cols-3 gap-1 rounded-xl border border-[var(--kucur-border)] bg-[var(--kucur-surface-muted)] p-1 sm:max-w-md" role="tablist" aria-label={t("customerOrders.tabsLabel")}>
-      {tabs.map((item) => <button className={`min-h-11 whitespace-nowrap rounded-lg px-1 text-[13px] font-bold transition sm:text-sm ${tab === item.key ? "bg-[var(--kucur-surface)] text-[var(--kucur-text)] shadow-sm" : "text-[var(--kucur-text-muted)]"}`} type="button" role="tab" aria-selected={tab === item.key} key={item.key} onClick={() => setTab(item.key)}>{t(item.label)}{!loading && counts[item.key] > 0 && ` (${counts[item.key]})`}</button>)}
+    <div className="grid grid-cols-3 border-[var(--kucur-border)] bg-[var(--kucur-surface)] max-sm:-mx-4 max-sm:!max-w-none max-sm:border-y sm:max-w-md sm:rounded-xl sm:border" role="tablist" aria-label={t("customerOrders.tabsLabel")}>
+      {tabs.map((item) => <button className={`min-h-12 whitespace-nowrap px-1 text-sm transition ${tab === item.key ? "font-extrabold text-[var(--kucur-green-ink)] shadow-[inset_0_-3px_0_var(--kucur-green)]" : "font-semibold text-[var(--kucur-text-muted)]"}`} type="button" role="tab" aria-selected={tab === item.key} key={item.key} onClick={() => setTab(item.key)}>{t(item.label)}{!loading && counts[item.key] > 0 && ` (${counts[item.key]})`}</button>)}
     </div>
 
     {error && !cancelling && <p className="rounded-xl border border-rose-300 bg-rose-50 p-4 text-[15px] font-semibold text-rose-800 dark:border-rose-800 dark:bg-rose-950 dark:text-rose-200" role="alert">{error}</p>}
 
-    <section className="grid min-w-0 gap-3 lg:grid-cols-2" aria-live="polite" aria-busy={loading}>
+    <section className="grid min-w-0 gap-2.5 max-sm:-mx-4 max-sm:!max-w-none sm:gap-3 lg:grid-cols-2" aria-live="polite" aria-busy={loading}>
       {loading && Array.from({ length: 4 }, (_, index) => <OrderSkeleton key={index}/>)}
       {!loading && !error && rows.map((order) => {
         const storeName = order.storeName ?? order.store?.name ?? t("customerOrders.fallbackStore");
@@ -83,7 +83,7 @@ function Orders() {
         const isPaid = order.paymentStatus === "paid";
         const canCancel = customerCancellableStatuses.includes(order.status);
         const isMoving = ["picked-up", "on-delivery", "courier-assigned", "ready-for-pickup"].includes(order.status);
-        return <article className="flex min-w-0 flex-col gap-3 rounded-2xl border border-[var(--kucur-border)] bg-[var(--kucur-surface)] p-4" key={order.id}>
+        return <article className="flex min-w-0 flex-col gap-3 border-[var(--kucur-border)] bg-[var(--kucur-surface)] p-4 max-sm:border-y sm:rounded-xl sm:border" key={order.id}>
           <div className="flex min-w-0 items-start justify-between gap-3">
             <div className="min-w-0"><h2 className="truncate text-base font-bold text-[var(--kucur-text)]" title={storeName}>{storeName}</h2><p className="text-[13px] text-[var(--kucur-text-muted)]"><span title={order.orderCode ?? order.orderNumber}>{t("customerOrders.orderReference", { number: shortOrderCode(order.orderCode ?? order.orderNumber).slice(1) })}</span> · <time dateTime={order.createdAt}>{formatDate(order.createdAt, { dateStyle: "medium" })}</time></p></div>
             <StatusBadge className="shrink-0" status={order.status}/>
@@ -94,11 +94,11 @@ function Orders() {
           </div>}
           {stepIndex >= 0 && <div className="grid grid-cols-5 gap-1" aria-hidden="true">{[0, 1, 2, 3, 4].map((index) => <i className={`h-1.5 rounded-full ${index <= stepIndex ? "bg-[var(--kucur-green)]" : "bg-[var(--kucur-border)]"}`} key={index}/>)}</div>}
           <p className="text-sm text-[var(--kucur-text-muted)]">{t(`customerOrders.${stepKey}`)}</p>
-          <div className="flex min-w-0 flex-wrap items-center justify-between gap-3 border-t border-[var(--kucur-border)] pt-3">
+          <div className="flex min-w-0 flex-wrap items-center justify-between gap-3 border-t border-dashed border-[var(--kucur-border-strong)] pt-3">
             <div className="min-w-0 flex-1"><span className="block text-[13px] text-[var(--kucur-text-muted)]">{order.status === "cancelled" ? t("customerOrders.total") : isPaid ? t("customerOrders.paid") : t("customerOrders.payOnArrival")}</span><strong className="block text-lg font-extrabold text-[var(--kucur-text)]">{formatCurrency(order.totalAmount)}</strong></div>
             <div className={`${canCancel ? "grid w-full grid-cols-2" : "flex shrink-0"} gap-2`}>
               {canCancel && <button className="min-h-11 rounded-xl border border-rose-300 px-3 text-sm font-bold text-rose-700 hover:bg-rose-50 dark:border-rose-800 dark:text-rose-300 dark:hover:bg-rose-950" type="button" onClick={() => { setCancelling(order.id); setReason(""); setError(""); }}>{t("customerOrders.cancel")}</button>}
-              <Link className={`inline-flex min-h-11 items-center justify-center rounded-xl px-4 text-sm font-bold ${isMoving ? "bg-[var(--kucur-green)] text-[var(--kucur-forest-dark)]" : "border border-[var(--kucur-border-strong)] text-[var(--kucur-text)] hover:border-[var(--kucur-green)]"}`} to={`/orders/${order.id}`} aria-label={`${t("customerOrders.details")} ${shortOrderCode(order.orderCode ?? order.orderNumber)}`}>{isMoving ? t("customerOrders.track") : t("customerOrders.details")}</Link>
+              <Link className={`inline-flex min-h-11 items-center justify-center rounded-xl px-4 text-sm font-bold ${isMoving ? "bg-[var(--kucur-green)] text-[var(--kucur-on-green)]" : "border border-[var(--kucur-border-strong)] text-[var(--kucur-text)] hover:border-[var(--kucur-green)]"}`} to={`/orders/${order.id}`} aria-label={`${t("customerOrders.details")} ${shortOrderCode(order.orderCode ?? order.orderNumber)}`}>{isMoving ? t("customerOrders.track") : t("customerOrders.details")}</Link>
             </div>
           </div>
           {cancelling === order.id && <div className="grid gap-3 rounded-xl border border-rose-300 bg-[var(--kucur-surface-elevated)] p-3 dark:border-rose-800"><label className="grid gap-1.5 text-[15px] font-semibold text-[var(--kucur-text)]"><span>{t("customerOrders.cancellationReason")}</span><textarea className="w-full rounded-xl border border-[var(--kucur-border-strong)] bg-[var(--kucur-surface)] px-3 py-2 text-base text-[var(--kucur-text)]" rows="3" value={reason} onChange={(event) => { setReason(event.target.value); setError(""); }} placeholder={t("customerOrders.cancellationPlaceholder")}/></label>{error && <p className="text-sm text-rose-700 dark:text-rose-300" role="alert">{error}</p>}<div className="grid grid-cols-2 gap-2 sm:flex sm:justify-end"><button className="min-h-11 rounded-xl border border-[var(--kucur-border-strong)] bg-[var(--kucur-surface)] px-3 text-sm font-bold text-[var(--kucur-text)]" type="button" onClick={() => { setCancelling(null); setError(""); }}>{t("customerOrders.back")}</button><button className="min-h-11 rounded-xl bg-rose-600 px-3 text-sm font-bold text-white" type="button" onClick={() => cancel(order.id)}>{t("customerOrders.confirmCancellation")}</button></div></div>}
@@ -106,7 +106,7 @@ function Orders() {
       })}
     </section>
 
-    {!loading && !error && !rows.length && <section className="grid min-h-56 justify-items-center content-center gap-2 rounded-2xl border border-dashed border-[var(--kucur-border-strong)] bg-[var(--kucur-surface)] p-6 text-center"><span className="grid size-12 place-items-center rounded-xl bg-[var(--kucur-green-soft)] text-[var(--kucur-green-ink)]" aria-hidden="true"><svg className="size-6" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round"><path d="M6 4h12v16H6zM9 8h6M9 12h6M9 16h4"/></svg></span><h2 className="text-lg font-bold text-[var(--kucur-text)]">{orders.length ? t("customerOrders.filteredEmpty") : t("customerOrders.empty")}</h2><p className="text-[15px] text-[var(--kucur-text-muted)]">{orders.length ? t("customerOrders.filteredEmptyHint") : t("customerOrders.emptyHint")}</p><Link className="mt-3 inline-flex min-h-12 items-center justify-center rounded-xl bg-[var(--kucur-green)] px-5 text-base font-bold text-[var(--kucur-forest-dark)]" to="/products">{t("customerOrders.shop")}</Link></section>}
+    {!loading && !error && !rows.length && <section className="grid min-h-56 justify-items-center content-center gap-2 rounded-xl border border-dashed border-[var(--kucur-border-strong)] bg-[var(--kucur-surface)] p-6 text-center"><span className="grid size-12 place-items-center rounded-xl bg-[var(--kucur-green-soft)] text-[var(--kucur-green-ink)]" aria-hidden="true"><svg className="size-6" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round"><path d="M6 4h12v16H6zM9 8h6M9 12h6M9 16h4"/></svg></span><h2 className="text-lg font-bold text-[var(--kucur-text)]">{orders.length ? t("customerOrders.filteredEmpty") : t("customerOrders.empty")}</h2><p className="text-[15px] text-[var(--kucur-text-muted)]">{orders.length ? t("customerOrders.filteredEmptyHint") : t("customerOrders.emptyHint")}</p><Link className="mt-3 inline-flex min-h-12 items-center justify-center rounded-xl bg-[var(--kucur-green)] px-5 text-base font-bold text-[var(--kucur-on-green)]" to="/products">{t("customerOrders.shop")}</Link></section>}
   </PageContainer>;
 }
 

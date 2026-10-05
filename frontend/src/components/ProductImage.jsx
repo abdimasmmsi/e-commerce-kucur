@@ -24,8 +24,9 @@ function ProductImage({ product, image: suppliedImage, alt = "", className = "" 
 
   if (!source) {
     const style = categoryStyle(product?.category);
-    return <span className={`${className} product-image-fallback grid h-full w-full place-items-center ${style.tint}`} role="img" aria-label={alt || product?.name || "Produk Kucur"}>
-      <svg className="size-[30%] max-h-16 max-w-16 text-[var(--kucur-text)] opacity-55" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.6" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true"><path d={style.path} /></svg>
+    // Tanpa foto: pola garis tipis + ikon kategori kecil (bukan blok warna pastel besar).
+    return <span className={`${className} product-image-fallback kucur-placeholder grid h-full w-full place-items-center`} role="img" aria-label={alt || product?.name || "Produk Kucur"}>
+      <svg className="size-[22%] max-h-11 max-w-11 text-[var(--kucur-text-muted)] opacity-80" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.6" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true"><path d={style.path} /></svg>
     </span>;
   }
   return <img className={className} src={source} alt={alt} onError={() => setSource("")} />;
