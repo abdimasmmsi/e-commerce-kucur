@@ -13,7 +13,7 @@ const publicError = (error, fallback, errorMessage) => {
 };
 
 export function AuthProvider({ children }) {
-  const { applyCanonicalPreferences, errorMessage } = usePreferences();
+  const { applyCanonicalPreferences, errorMessage, language, theme } = usePreferences();
   const [session, setSession] = useState(emptySession);
   const [initialized, setInitialized] = useState(false);
   const clearSession = useCallback(() => { clearAuthToken(); setSession(emptySession); }, []);
@@ -73,12 +73,13 @@ export function AuthProvider({ children }) {
   }, [acceptUser, clearSession, errorMessage]);
   const register = useCallback(async ({ fullName, email, phone, password, address }) => {
     try {
-      const user = await authService.register({ fullName: fullName.trim(), email: email.trim().toLowerCase(), phone: phone.trim(), password, address });
+      // Akun baru memakai bahasa/tema yang sedang dipilih pengunjung.
+      const user = await authService.register({ fullName: fullName.trim(), email: email.trim().toLowerCase(), phone: phone.trim(), password, address, language, theme });
       return { success: true, user, requiresLogin: true };
     } catch (error) {
       return { success: false, code: error.code, message: publicError(error, "Registrasi tidak dapat diproses.", errorMessage) };
     }
-  }, [errorMessage]);
+  }, [errorMessage, language, theme]);
   const logout = useCallback(async () => {
     try { if (getAuthToken()) await authService.logout(); }
     catch { /* Local logout still succeeds if revocation cannot reach the backend. */ }

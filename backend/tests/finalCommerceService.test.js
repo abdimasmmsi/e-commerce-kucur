@@ -72,11 +72,27 @@ test("customer cannot cancel once the store starts packing, but the store still 
   await tx.targetCommerceOrder.update({ where: { id: order.id }, data: { fulfillmentStatus: "CONFIRMED" } });
   const second = (await service.create(inputFor([fixture.products[0]]), fixture.actor, `qa-${randomUUID()}`)).orders[0];
   assert.equal((await service.cancel(order.id, "Berubah pikiran", fixture.actor)).fulfillmentStatus, "cancelled");
+  const owner = (await tx.targetStore.findUnique({ where: { id: fixture.products[0].storeId } })).merchantUserId;
+  const merchantNotice = await tx.targetNotification.findFirst({ where: { userId: owner, type: "COMMERCE_ORDER_CANCELLED", entityId: order.id } });
+  assert.match(merchantNotice?.body ?? "", /dibatalkan pembeli.*Berubah pikiran/);
+  const customerNotice = await tx.targetNotification.findFirst({ where: { userId: fixture.actor.id, type: "COMMERCE_ORDER_CANCELLED", entityId: order.id } });
+  assert.match(customerNotice?.body ?? "", /Alasan: Berubah pikiran/);
   await tx.targetCommerceOrder.update({ where: { id: second.id }, data: { fulfillmentStatus: "PROCESSING" } });
   await assert.rejects(service.cancel(second.id, "Berubah pikiran", fixture.actor), (error) => /sudah dikemas/i.test(error?.details?.status || ""));
   const store = await tx.targetStore.findUnique({ where: { id: fixture.products[0].storeId } });
   const merchant = { id: store.merchantUserId, roles: ["merchant"] };
   assert.equal((await service.cancel(second.id, "Stok rusak", merchant)).fulfillmentStatus, "cancelled");
+}));
+
+test("store owner is notified when an application is approved or rejected", async () => withRollback(async (repo, tx) => {
+  const { createStoreService } = require("../services/storeService");
+  const service = createStoreService(repo);
+  const ownerId = randomUUID(); const storeId = randomUUID();
+  await tx.targetUser.create({ data: { id: ownerId, email: `${ownerId}@qa.invalid`, passwordHash: "hash", fullName: "QA Owner", phone: "080000000010" } });
+  await tx.targetStore.create({ data: { id: storeId, merchantUserId: ownerId, name: "QA Lapak Baru", status: "PENDING", address: "Kucur" } });
+  await service.reviewApplication(storeId, { status: "REJECTED", reason: "Foto lapak kurang jelas" }, { id: null, roles: ["admin"] });
+  const notice = await tx.targetNotification.findFirst({ where: { userId: ownerId, type: "STORE_REJECTED" } });
+  assert.match(notice?.body ?? "", /Foto lapak kurang jelas/);
 }));
 
 test("final commerce insufficient stock rolls the entire checkout back", async () => withRollback(async (repo, tx) => {

@@ -1,9 +1,11 @@
 const { errors } = require("../errors/AppError");
+const { notifyAdmins, notifySafe } = require("./notifyHelpers");
 const { requiredString, storeTypes, validateLocation } = require("../validation/sharedValidation");
 
 const normalizeStoreType = (value) => String(value).toLowerCase();
 
 function createStoreService(repository) {
+  const notifyLater = (work) => { Promise.resolve().then(work).catch((error) => console.warn(`[notification] ${error.message}`)); };
   const validateInput = (input, partial = false) => {
     const result = {};
     if (!partial || input.name !== undefined) result.name = requiredString(input.name, "name", { max: 160 });
@@ -35,6 +37,7 @@ function createStoreService(repository) {
         const store = await tx.stores.create({ ...validateInput(input), merchantUserId: actor.id, status: "pending_initial_payment", approvalStatus: "PENDING", createdAt: timestamp, updatedAt: timestamp });
         if (tx.finance) await tx.finance.createStatusHistory({ storeId: store.id, oldStatus: "new", newStatus: "pending_initial_payment", reason: "Menunggu setup dan pembayaran pertama Iuran Pokok.", changedByUserId: actor.id, metadata: { process: "store-creation" } });
         await tx.audits.append({ entityType: "store", entityId: store.id, actorId: actor.id, actorRole: actor.roles.includes("merchant") ? "merchant" : "customer", activityType: "STORE_CREATED", previousStatus: null, nextStatus: store.status, description: `Store ${store.name} dibuat.`, reason: null, isSystem: false });
+        notifyLater(() => notifyAdmins(repository, { type: "STORE_APPLICATION_SUBMITTED", title: "Pengajuan lapak baru", body: `${actor.fullName || "Warga"} mengajukan lapak "${store.name}". Tinjau di Persetujuan Lapak.`, entityType: "STORE", entityId: store.id, dedupeKey: `store-application:${store.id}` }));
         return store;
       });
     },
@@ -83,6 +86,7 @@ function createStoreService(repository) {
         if (nextStatus === "APPROVED" && tx.users?.addRole) await tx.users.addRole(store.merchantUserId, "merchant");
         if (tx.finance) await tx.finance.createStatusHistory({ storeId, oldStatus: "PENDING", newStatus: nextStatus, reason: nextStatus === "REJECTED" ? reason : "Pengajuan lapak disetujui Admin.", changedByUserId: actor.id, metadata: { process: "store-approval" } });
         await tx.audits.append({ entityType: "store", entityId: storeId, actorId: actor.id, actorRole: "admin", activityType: nextStatus === "APPROVED" ? "STORE_APPROVED" : "STORE_REJECTED", previousStatus: "PENDING", nextStatus, description: nextStatus === "APPROVED" ? `Lapak ${store.name} disetujui.` : `Lapak ${store.name} ditolak.`, reason: reason || null, isSystem: false });
+        await notifySafe(tx, [{ userId: store.merchantUserId, type: nextStatus === "APPROVED" ? "STORE_APPROVED" : "STORE_REJECTED", title: nextStatus === "APPROVED" ? "Lapak disetujui" : "Pengajuan lapak ditolak", body: nextStatus === "APPROVED" ? `Lapak "${store.name}" disetujui admin. Kamu sudah bisa menambah produk.` : `Pengajuan lapak "${store.name}" ditolak. Alasan: ${reason}`, entityType: "STORE", entityId: storeId, dedupeKey: `store-review:${storeId}:${nextStatus}` }]);
         return { ...updated, merchant: store.merchant, statusHistory: store.statusHistory };
       });
     },

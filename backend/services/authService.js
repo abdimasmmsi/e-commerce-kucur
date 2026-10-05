@@ -17,9 +17,9 @@ const passwordSecurity = (user) => {
     resetRequired: Boolean(user.passwordResetRequired),
   };
 };
-const publicUser = ({ passwordHash, passwordChangedAt, passwordResetRequired, language = "en", theme = "light", ...user }) => ({
+const publicUser = ({ passwordHash, passwordChangedAt, passwordResetRequired, language = "id", theme = "light", ...user }) => ({
   ...user,
-  preferences: { language: language === "id" ? "id" : "en", theme: theme === "dark" ? "dark" : "light" },
+  preferences: { language: language === "en" ? "en" : "id", theme: theme === "dark" ? "dark" : "light" },
   passwordSecurity: passwordSecurity({ ...user, passwordChangedAt, passwordResetRequired }),
 });
 
@@ -51,7 +51,7 @@ function createAuthService(repository) {
       if (!input.address) throw errors.validation({ address: "Alamat pengiriman wajib diisi." });
       const addresses = normalizeAddresses([{ ...input.address, isPrimary: true }]);
       const timestamp = new Date().toISOString();
-      const user = await repository.users.create({ addresses, fullName: requiredString(input.fullName, "fullName", { max: 120 }), email, phone: validatePhone(input.phone), passwordHash: await hashPassword(input.password), passwordChangedAt: timestamp, passwordResetRequired: false, status: "active", language: "id", theme: "light", roles: ["customer"], createdAt: timestamp, updatedAt: timestamp });
+      const user = await repository.users.create({ addresses, fullName: requiredString(input.fullName, "fullName", { max: 120 }), email, phone: validatePhone(input.phone), passwordHash: await hashPassword(input.password), passwordChangedAt: timestamp, passwordResetRequired: false, status: "active", language: input.language === "en" ? "en" : "id", theme: input.theme === "dark" ? "dark" : "light", roles: ["customer"], createdAt: timestamp, updatedAt: timestamp });
       return publicUser(user);
     },
     async login(input) {

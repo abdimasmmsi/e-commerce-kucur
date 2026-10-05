@@ -16,8 +16,8 @@ function NotificationCenter() {
   const { activeRole } = useAuth();
   const { notifications, unreadCount, isRead, markAllRead, markRead, loadMore, hasMore, loading, error } = useNotifications();
   const [status, setStatus] = useState("all");
-  const { formatDate, t } = usePreferences();
-  const localizedContent = useCallback((item) => { const content = localizeNotificationContent(item, t); return { title: shortenOrderCodes(content.title), message: shortenOrderCodes(content.message) }; }, [t]);
+  const { formatDate, language, t } = usePreferences();
+  const localizedContent = useCallback((item) => { const content = localizeNotificationContent(item, t, language); return { title: shortenOrderCodes(content.title), message: shortenOrderCodes(content.message) }; }, [language, t]);
   const rows = useMemo(() => notifications
     .filter((item) => status === "all" || !isRead(item))
     .sort((a, b) => new Date(b.createdAt) - new Date(a.createdAt)), [isRead, notifications, status]);

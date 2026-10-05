@@ -7,6 +7,8 @@ async function main() {
   if (database !== "kucur") throw new Error(`Final-mode fixture preparation refused database ${database}`);
   const storeId = "12000000-0000-4000-8000-000000000001";
   const customerUserId = "00000000-0000-4000-8000-000000000002";
+  // Test tema/bahasa mengubah preferensi akun QA; kembalikan ke default (Indonesia, terang).
+  await prisma.targetUser.updateMany({ where: { email: { endsWith: "@kucur.test" } }, data: { language: "id", theme: "light" } });
   // Test commerce membeli produk QA B setiap run; isi ulang stok supaya e2e bisa diulang.
   await prisma.targetProduct.update({ where: { id: "20000000-0000-4000-8000-000000000003" }, data: { stock: 20 } });
   const store = await prisma.targetStore.update({ where: { id: storeId }, data: { status: "PENDING", reviewedByUserId: null, reviewedAt: null, rejectionReason: null } });

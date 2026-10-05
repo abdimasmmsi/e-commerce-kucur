@@ -4,7 +4,7 @@ test("Admin rejection requires reason and persists dedicated fixture history", a
   await loginThroughUi(page, "admin");
   await page.goto("/admin/merchant-approval/12000000-0000-4000-8000-000000000001");
   await expect(page.locator(".page-container h1", { hasText: "E2E Approval Store" })).toBeVisible();
-  await expect(page.getByText(/^(Menunggu Persetujuan|Menunggu review|Pending|Pending review)$/i).first()).toBeVisible();
+  await expect(page.getByText(/^(Menunggu|Menunggu Persetujuan|Menunggu review|Pending|Pending review)$/i).first()).toBeVisible();
   await page.getByRole("button", { name: /Tolak Pengajuan|Reject Application/i }).click();
   await page.getByRole("button", { name: /Konfirmasi Penolakan|Confirm Rejection/i }).click();
   await expect(page.getByRole("alert")).toContainText(/wajib diisi|required/i);

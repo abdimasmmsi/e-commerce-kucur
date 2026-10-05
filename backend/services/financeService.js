@@ -35,6 +35,8 @@ async function completePlatformTransaction(tx, transactionId, completedAt = new 
   await audit(tx, null, "admin-fee-obligation", obligation.id, "ADMIN_FEE_CREATED", `Biaya Admin dibuat untuk transaksi ${transaction.sourceEntityId}.`); return obligation;
 }
 
+const { notifyAdmins, notifySafe } = require("./notifyHelpers");
+
 function createFinanceService(repository) {
   const transactionalRetry = async (work) => { let lastError; for (let attempt = 0; attempt < 5; attempt += 1) { try { return await repository.transaction(work); } catch (error) { lastError = error; if (!["P2034", "P2002"].includes(error.code)) throw error; await new Promise((resolve) => setTimeout(resolve, 15 * (attempt + 1))); } } throw lastError; };
   const reconcileInstallments = async (now = new Date(), actor = null) => {
@@ -49,7 +51,7 @@ function createFinanceService(repository) {
     }); return { reconciled: candidates.length, penaltiesCreated };
   };
   const summary = async (storeId, actor) => { await reconcileInstallments(new Date(), null); const store = await repository.stores.findById(storeId); requireOwner(store, actor); const initialFee = await repository.finance.getInitialFee(storeId); const adminFees = await repository.finance.listAdminFees(storeId); const outstandingFees = adminFees.filter((row) => row.status === "OUTSTANDING"); const sum = (rows, key) => rows.reduce((total, row) => total + Number(row[key] || 0), 0); return { store, initialFee: initialFee && { ...initialFee, total: initialFee.initialAmountSnapshot, paid: sum(initialFee.installments.filter((row) => row.status === "PAID"), "principalAmount"), outstanding: sum(initialFee.installments, "principalOutstanding") + sum(initialFee.installments, "penaltyOutstanding"), nextDueAt: initialFee.installments.find((row) => row.status !== "PAID")?.dueAt || null }, adminFee: { outstanding: sum(outstandingFees, "feeAmount"), overdue: sum(outstandingFees.filter((row) => new Date(row.cutoffAt) <= new Date()), "feeAmount"), nextCutoffAt: outstandingFees.map((row) => row.cutoffAt).sort()[0] || null, obligations: adminFees, status: outstandingFees.length ? "OUTSTANDING" : "PAID" }, serverNow: new Date().toISOString() }; };
-  return {
+  const service = {
     summary,
     getInitialFee: async (storeId, actor) => { const store = await repository.stores.findById(storeId); requireOwner(store, actor); return repository.finance.getInitialFee(storeId); },
     async setupInitialFee(storeId, input, actor) { const store = await repository.stores.findById(storeId); requireOwner(store, actor); const planType = String(input.planType || "").toUpperCase(); const count = PLAN_COUNTS[planType]; if (!count) throw errors.validation({ planType: "Pilih FULL, THREE_MONTHS, atau SIX_MONTHS." }); return repository.transaction(async (tx) => { if (await tx.finance.getInitialFee(storeId)) throw errors.conflict("Kontrak Iuran Pokok Store sudah ada."); const settings = await tx.settings.get(); const enabled = planType === "FULL" ? settings.installmentFullEnabled : planType === "THREE_MONTHS" ? settings.installment3MonthsEnabled : settings.installment6MonthsEnabled; if (!enabled) throw errors.validation({ planType: "Skema cicilan sedang dinonaktifkan." }); const total = toCents(settings.initialStoreFeeAmount); const base = total / BigInt(count); const now = new Date(); const installments = Array.from({ length: count }, (_, index) => { const amount = index === count - 1 ? total - base * BigInt(count - 1) : base; return { installmentNumber: index + 1, principalAmount: fromCents(amount), principalOutstanding: fromCents(amount), penaltyOutstanding: "0.00", dueAt: addJakartaMonths(now, index), status: "PENDING" }; }); const contract = await tx.finance.createInitialFee({ storeId, initialAmountSnapshot: settings.initialStoreFeeAmount, planType, installmentCount: count, status: "PENDING" }, installments); await tx.stores.update(storeId, { status: "pending_initial_payment" }); await tx.finance.createStatusHistory({ storeId, oldStatus: store.status, newStatus: "pending_initial_payment", reason: "Menunggu pembayaran pertama Iuran Pokok.", changedByUserId: actor.id, metadata: { process: "initial-fee-setup" } }); await audit(tx, actor, "store-initial-fee", contract.id, "INITIAL_FEE_CREATED", `Kontrak ${planType} dibuat.`); return contract; }); },
@@ -64,6 +66,43 @@ function createFinanceService(repository) {
     async reconcileAdminFees(now = new Date(), actor) { if (!actor.roles.includes("admin")) throw errors.forbidden(); const settings = await repository.settings.get(); if (!settings.suspendStoreForOutstandingAdminFee) return { suspended: 0 }; const stores = await repository.finance.listStoresForAdminFeeReconcile(now); for (const store of stores) await repository.transaction(async (tx) => { const fresh = await tx.stores.findById(store.id); if (fresh.status !== "active") return; await tx.stores.update(store.id, { status: "suspended_admin_fee" }); await tx.finance.createStatusHistory({ storeId: store.id, oldStatus: "active", newStatus: "suspended_admin_fee", reason: "Admin Fee melewati cutoff.", changedByUserId: null, metadata: { process: "admin-fee-reconciliation" } }); await audit(tx, null, "store", store.id, "STORE_SUSPENDED_ADMIN_FEE", "Store ditangguhkan karena tunggakan Admin Fee."); }); return { suspended: stores.length }; },
     async monitoring(actor) { if (!actor.roles.includes("admin")) throw errors.forbidden(); return repository.finance.monitoring(); },
   };
+  // Pembungkus notifikasi: aksi keuangan tetap jalan walaupun notifikasi gagal.
+  const storeOf = async (storeId) => { try { return await repository.stores.findById(storeId); } catch { return null; } };
+  const pendingForAdmin = (kindLabel) => async (result, storeId, actor) => {
+    const store = storeId ? await storeOf(storeId) : null;
+    await notifyAdmins(repository, { type: "PAYMENT_PENDING", title: "Pembayaran menunggu konfirmasi", body: `${kindLabel}${store ? ` dari lapak "${store.name}"` : actor?.fullName ? ` dari ${actor.fullName}` : ""} menunggu konfirmasi admin.`, entityType: "STORE_FINANCE", entityId: store?.id ?? null, dedupeKey: result?.id ? `payment-pending:${result.id}` : undefined });
+  };
+  const wrapAfter = (name, after) => { const original = service[name]; service[name] = async (...args) => { const result = await original(...args); try { await after(result, ...args); } catch (error) { console.warn(`[notification] ${error.message}`); } return result; }; };
+  wrapAfter("submitInstallmentPayment", (result, storeId, _id, _input, actor) => pendingForAdmin("Cicilan iuran pokok")(result, storeId, actor));
+  wrapAfter("createSettlement", (result, storeId, _input, actor) => pendingForAdmin("Pembayaran biaya admin")(result, storeId, actor));
+  wrapAfter("createContribution", (result, _input, actor) => pendingForAdmin("Iuran sukarela")(result, null, actor));
+  const originalConfirm = service.confirmPayment;
+  service.confirmPayment = async (kind, id, actor, approved = true) => {
+    let target = null;
+    try {
+      if (kind === "installment") { const payment = await repository.finance.findInstallmentPayment(id); const installment = payment && await repository.finance.findInstallment(payment.installmentId); const store = installment && await storeOf(installment.initialFee.storeId); target = store && { userId: store.merchantUserId, store, label: "Cicilan iuran pokok" }; }
+      if (kind === "settlement") { const settlement = await repository.finance.findSettlement(id); const store = settlement && await storeOf(settlement.storeId); target = store && { userId: store.merchantUserId, store, label: "Pembayaran biaya admin", wasSuspended: store.status === "suspended_admin_fee" }; }
+      if (kind === "contribution") { const contribution = await repository.finance.findContribution(id); target = contribution && { userId: contribution.merchantUserId, label: "Iuran sukarela" }; }
+    } catch { target = null; }
+    const result = await originalConfirm(kind, id, actor, approved);
+    if (target?.userId) {
+      const items = [{ userId: target.userId, type: approved ? (kind === "installment" ? "STORE_INSTALLMENT_PAID" : kind === "settlement" ? "ADMIN_FEE_PAID" : "PAYMENT_SUCCESS") : "PAYMENT_FAILED", title: approved ? "Pembayaran dikonfirmasi" : "Pembayaran ditolak", body: `${target.label}${target.store ? ` untuk lapak "${target.store.name}"` : ""} ${approved ? "sudah dikonfirmasi admin. Terima kasih!" : "ditolak admin. Cek nominal lalu kirim ulang atau hubungi admin."}`, entityType: "STORE_FINANCE", entityId: target.store?.id ?? null, dedupeKey: `payment-result:${kind}:${id}` }];
+      if (approved && target.wasSuspended) { const fresh = await storeOf(target.store.id); if (fresh?.status === "active") items.push({ userId: target.userId, type: "STORE_REACTIVATED", title: "Lapak aktif kembali", body: `Biaya admin lunas. Lapak "${fresh.name}" aktif lagi dan bisa menerima pesanan.`, entityType: "STORE", entityId: fresh.id, dedupeKey: `store-reactivated:${fresh.id}:${id}` }); }
+      await notifySafe(repository, items);
+    }
+    return result;
+  };
+  const originalReconcile = service.reconcileAdminFees;
+  service.reconcileAdminFees = async (now = new Date(), actor) => {
+    let candidates = [];
+    try { candidates = await repository.finance.listStoresForAdminFeeReconcile(now); } catch { candidates = []; }
+    const result = await originalReconcile(now, actor);
+    const items = [];
+    for (const candidate of candidates) { const fresh = await storeOf(candidate.id); if (fresh?.status === "suspended_admin_fee") items.push({ userId: fresh.merchantUserId, type: "STORE_SUSPENDED", title: "Lapak ditangguhkan", body: `Lapak "${fresh.name}" ditangguhkan karena biaya admin belum lunas. Lunasi di Keuangan Lapak supaya aktif lagi.`, entityType: "STORE_FINANCE", entityId: fresh.id, dedupeKey: `store-suspended:${fresh.id}:${new Date(now).toISOString().slice(0, 10)}` }); }
+    await notifySafe(repository, items);
+    return result;
+  };
+  return service;
 }
 
 module.exports = { createFinanceService, generateCommerceFinance, completePlatformTransaction, toCents, fromCents, addJakartaMonths, cutoffFor };

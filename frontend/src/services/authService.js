@@ -3,7 +3,7 @@ import { apiData, apiRequest } from "./apiClient";
 export const normalizeAuthUser = (user) => ({
   id: String(user.id), fullName: String(user.fullName ?? ""), email: String(user.email ?? ""), phone: String(user.phone ?? ""), avatarUrl: String(user.avatarUrl ?? ""), addresses: Array.isArray(user.addresses) ? user.addresses : [],
   roles: [...new Set(Array.isArray(user.roles) ? user.roles.map((role) => String(role).toLowerCase()) : [])],
-  preferences: { language: user.preferences?.language === "id" ? "id" : "en", theme: user.preferences?.theme === "dark" ? "dark" : "light" },
+  preferences: { language: user.preferences?.language === "en" ? "en" : "id", theme: user.preferences?.theme === "dark" ? "dark" : "light" },
   passwordSecurity: {
     changedAt: user.passwordSecurity?.changedAt ?? null,
     recommendedChangeAt: user.passwordSecurity?.recommendedChangeAt ?? null,

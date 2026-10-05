@@ -24,7 +24,7 @@ export function PreferencesProvider({ children }) {
   }, []);
   const applyCanonicalPreferences = useCallback((preferences) => {
     if (!preferences) return;
-    const nextLanguage = preferences.language === "id" ? "id" : "en";
+    const nextLanguage = preferences.language === "en" ? "en" : "id";
     const nextTheme = preferences.theme === "dark" ? "dark" : "light";
     localStorage.setItem(LANGUAGE_KEY, nextLanguage);
     localStorage.setItem(THEME_KEY, nextTheme);

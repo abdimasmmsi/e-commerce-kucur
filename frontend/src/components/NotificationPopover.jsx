@@ -51,7 +51,7 @@ function NotificationPopover({ notifications, unreadCount, isRead, markAllRead, 
         {notifications.length ? notifications.map((notification) => {
           const read = isRead(notification);
           const navigable = isValidNotificationTarget(notification.link);
-          const content = localizeNotificationContent(notification, t);
+          const content = localizeNotificationContent(notification, t, language);
           return <button className={`grid w-full min-w-0 grid-cols-[10px_minmax(0,1fr)] gap-3 border-b border-[var(--kucur-border)] px-4 py-3 text-left transition last:border-b-0 hover:bg-[var(--kucur-surface-muted)] ${read ? "" : "bg-[color-mix(in_srgb,var(--kucur-green-soft)_45%,var(--kucur-surface))]"}`} type="button" key={notification.id} onClick={() => onNotificationClick(notification, navigable)}>
             <span className={`mt-1.5 size-2.5 rounded-full ${read ? "bg-transparent" : "bg-[var(--kucur-green)]"}`} aria-hidden="true" />
             <span className="grid min-w-0 gap-0.5">
