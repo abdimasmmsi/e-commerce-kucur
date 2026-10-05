@@ -39,7 +39,7 @@ function Home() {
 
   return <CustomerPage className="space-y-5 sm:space-y-8">
     <div className="grid min-w-0 gap-4 lg:grid-cols-[minmax(0,1fr)_380px] lg:items-stretch">
-      <CustomerPanel className="grid content-start gap-4 p-4 sm:p-6">
+      <CustomerPanel className="home-hero relative isolate grid content-start gap-4 overflow-hidden p-4 sm:p-6">
         <div>
           <h1 className="text-2xl font-extrabold tracking-[-0.02em] text-[var(--kucur-text)] sm:text-3xl">{firstName ? text("hello", { name: firstName }) : text("helloGuest")}</h1>
           <p className="mt-1 text-[15px] text-[var(--kucur-text-muted)]">{text("subtitle")}</p>

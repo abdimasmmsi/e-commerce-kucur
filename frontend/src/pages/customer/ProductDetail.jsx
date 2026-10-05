@@ -109,7 +109,7 @@ function ProductDetail() {
 
   const optionAvailable = (group, option) => (product.variants ?? []).some((variant) => variant.status === "active" && Number(variant.stock) > 0 && variant.options?.[group.name] === option && (product.variantGroups ?? []).every((otherGroup) => otherGroup.id === group.id || !selectedOptions[otherGroup.name] || variant.options?.[otherGroup.name] === selectedOptions[otherGroup.name]));
   const variantSelectors = product.hasVariants && <div className="grid gap-4">{(product.variantGroups ?? []).map((group) => <fieldset className="min-w-0" key={group.id}><legend className="mb-2 text-[15px] font-bold">{group.name}</legend><div className="flex flex-wrap gap-2">{group.options.map((option) => { const active = selectedOptions[group.name] === option; return <button className={`min-h-11 rounded-xl border px-4 text-[15px] font-semibold transition disabled:cursor-not-allowed disabled:opacity-40 disabled:line-through ${active ? "border-[var(--kucur-green)] bg-[var(--kucur-green-soft)] text-[var(--kucur-green-ink)]" : "border-[var(--kucur-border-strong)] bg-[var(--kucur-surface)] text-[var(--kucur-text)] hover:border-[var(--kucur-green)]"}`} type="button" key={option} aria-pressed={active} disabled={!optionAvailable(group, option)} onClick={() => { setSelectedOptions((current) => ({ ...current, [group.name]: option })); setSelectedImageId(null); setQuantity(1); setMessage(""); }}>{option}</button>; })}</div></fieldset>)}</div>;
-  const actionClass = "inline-flex min-h-12 min-w-0 items-center justify-center rounded-xl border px-3 text-[15px] font-bold transition disabled:cursor-not-allowed disabled:opacity-45";
+  const actionClass = "inline-flex min-h-12 min-w-0 items-center justify-center whitespace-nowrap rounded-xl border px-2.5 text-[15px] font-bold transition disabled:cursor-not-allowed disabled:opacity-45 sm:px-3";
   const purchaseActions = <div className="grid grid-cols-[auto_minmax(0,1fr)_minmax(0,1.25fr)] gap-2"><button className={`${actionClass} border-[var(--kucur-border-strong)] bg-[var(--kucur-surface)] text-[var(--kucur-text)]`} type="button" onClick={handleSellerChat}>{t("commerce.chat")}</button><button className={`${actionClass} border-[var(--kucur-green)] bg-[var(--kucur-surface)] text-[var(--kucur-green-ink)]`} type="button" onClick={handleAdd} disabled={purchaseDisabled}>{t("commerce.addCart")}</button><button className={`${actionClass} border-[var(--kucur-green)] bg-[var(--kucur-green)] text-[var(--kucur-forest-dark)]`} type="button" onClick={handleBuyNow} disabled={purchaseDisabled}>{t("commerce.buyNow")}</button></div>;
   const copy = language === "id"
     ? { quantity: "Jumlah", remaining: "Sisa {count}", choose: "Pilih varian dulu", safe: "Bayar tunai saat barang sampai. Jangan transfer langsung ke penjual.", description: "Deskripsi", information: "Info produk", category: "Kategori", sellerLocation: "Lokasi lapak", sold: "{count} terjual", visitStore: "Kunjungi lapak", moreFromStore: "Produk lain dari {store}", seeStore: "Lihat lapak", reviews: "Ulasan pembeli", noReviews: "Belum ada ulasan", decrease: "Kurangi jumlah", increase: "Tambah jumlah" }
@@ -117,7 +117,7 @@ function ProductDetail() {
   const average = reviews?.length ? getAverageRating(reviews) : null;
   const stockText = availableStock <= 0 ? t("commerce.outOfStock") : selectionComplete ? copy.remaining.replace("{count}", selectedStock) : copy.choose;
 
-  return <PageContainer className="space-y-5 sm:space-y-6">
+  return <PageContainer className="space-y-5 pb-24 sm:space-y-6 lg:pb-0">
     <div className="grid min-w-0 gap-4 sm:gap-6 lg:grid-cols-[minmax(0,1fr)_minmax(360px,.85fr)]">
       <section className="min-w-0">
         <div className="aspect-square max-w-full overflow-hidden rounded-2xl bg-[var(--kucur-surface-elevated)] [&_img]:h-full [&_img]:w-full [&_img]:object-cover"><ProductImage key={selectedImage?.id ?? "fallback"} product={product} image={selectedImage} alt={product.name} /></div>
@@ -153,7 +153,7 @@ function ProductDetail() {
       <div className="flex min-w-0 items-center justify-between gap-3"><h2 className="min-w-0 text-lg font-extrabold" id="more-from-store">{copy.moreFromStore.replace("{store}", store?.name ?? t("commerce.store"))}</h2><Link className="inline-flex min-h-11 shrink-0 items-center text-sm font-bold text-[var(--kucur-green-ink)]" to={`/stores/${product.storeId}`}>{copy.seeStore} ›</Link></div>
       <div className="grid grid-cols-2 gap-3 sm:gap-4 md:grid-cols-4">{moreProducts.map((row) => <ProductCard key={row.id} product={row} storeName={store?.name ?? t("commerce.store")} price={row.hasVariants ? t("commerce.startsFrom", { price: formatCurrency(getProductDisplayPrice(row)) }) : formatCurrency(row.price)} {...productStockBadge(row, t)}/>)}</div>
     </section>}
-    <div className="sticky bottom-[calc(66px+env(safe-area-inset-bottom))] z-20 -mx-4 border-t border-[var(--kucur-border)] bg-[var(--kucur-surface)] px-4 py-3 md:bottom-0 lg:hidden">{purchaseActions}</div>
+    <div className="fixed inset-x-0 bottom-[calc(66px+env(safe-area-inset-bottom))] z-20 border-t border-[var(--kucur-border)] bg-[color-mix(in_srgb,var(--kucur-surface)_94%,transparent)] px-4 py-3 backdrop-blur-md md:bottom-0 lg:hidden">{purchaseActions}</div>
   </PageContainer>;
 }
 

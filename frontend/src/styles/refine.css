@@ -1,0 +1,81 @@
+/*
+  Polesan UI (Okt 2026) mengikuti audit redesign-skill:
+  - aksen hijau lebih kalem (tidak neon), satu keluarga abu hangat untuk latar/border
+  - latar diberi tekstur butiran halus supaya tidak datar
+  - bayangan berwarna hangat, kartu tanpa garis kaku
+  - umpan balik tekan (scale) dan transisi halus
+  - tipografi: judul dirapatkan, angka rata (tabular)
+  File ini dimuat paling akhir; hapus import-nya di main.jsx untuk kembali ke tampilan sebelumnya.
+*/
+:root {
+  --kucur-green: #3eb64b;
+  --kucur-green-hover: #34a040;
+  --kucur-green-soft: #ebf5e6;
+  --kucur-green-ink: #1f7326;
+  --kucur-bg: #f6f4ee;
+  --kucur-surface-muted: #f2efe7;
+  --kucur-surface-elevated: #faf8f3;
+  --kucur-border: #e6e1d5;
+  --kucur-border-strong: #d4cdbd;
+  --kucur-text-muted: #636b5c;
+  --shadow-soft: 0 1px 2px rgb(64 52 28 / 5%), 0 6px 18px -6px rgb(64 52 28 / 12%);
+  --kucur-shadow-sm: var(--shadow-soft);
+  --shadow-lift: 0 2px 4px rgb(64 52 28 / 6%), 0 14px 30px -10px rgb(64 52 28 / 22%);
+  --kucur-grain: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='180' height='180'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='.9' numOctaves='2' stitchTiles='stitch'/%3E%3CfeColorMatrix values='0 0 0 0 .35 0 0 0 0 .3 0 0 0 0 .2 0 0 0 .5 0'/%3E%3C/filter%3E%3Crect width='180' height='180' filter='url(%23n)' opacity='.22'/%3E%3C/svg%3E");
+}
+[data-theme="dark"], .dark {
+  --kucur-green: #4cc75a;
+  --kucur-green-hover: #5ad468;
+  --kucur-green-ink: #7fdc72;
+  --kucur-green-soft: #1c3119;
+  --kucur-text-muted: #a9b4a6;
+  --kucur-shadow-sm: var(--shadow-soft);
+  --kucur-bg: #0d100c;
+  --kucur-surface: #141912;
+  --kucur-surface-elevated: #1a2017;
+  --kucur-surface-muted: #1a2017;
+  --kucur-border: rgb(196 214 186 / 12%);
+  --kucur-border-strong: rgb(196 214 186 / 22%);
+  --shadow-soft: 0 1px 2px rgb(0 0 0 / 30%), 0 8px 20px -8px rgb(0 0 0 / 45%);
+  --shadow-lift: 0 2px 4px rgb(0 0 0 / 35%), 0 16px 32px -12px rgb(0 0 0 / 55%);
+}
+
+/* Latar hangat dengan butiran halus (tidak ikut di kartu/permukaan). */
+html, body, #root { background-color: var(--kucur-bg); }
+body { background-image: var(--kucur-grain); background-size: 180px 180px; }
+.dark body, [data-theme="dark"] body { background-image: var(--kucur-grain); opacity: 1; }
+.dark #root, [data-theme="dark"] #root { background: transparent; }
+#root { background: transparent; }
+
+/* Tipografi: judul lebih tegas, baris tidak menyisakan satu kata, angka rata. */
+h1, h2 { letter-spacing: -0.02em; text-wrap: balance; }
+h1 { line-height: 1.15; }
+p { text-wrap: pretty; }
+strong, dd, td, time, .tabular-nums { font-variant-numeric: tabular-nums; }
+
+/* Umpan balik sentuhan & transisi. */
+button, a, [role="button"], input, select, textarea, summary {
+  transition: background-color .18s ease, border-color .18s ease, color .18s ease, box-shadow .2s ease, transform .12s ease, opacity .18s ease;
+}
+button:not(:disabled):active, a[class*="min-h-"]:active, a.primary-button:active, a.secondary-button:active, [role="button"]:active, .customer-bottom-nav > a:active {
+  transform: scale(0.97);
+}
+@media (prefers-reduced-motion: reduce) {
+  button, a, [role="button"] { transition: none; }
+  button:not(:disabled):active, a[class*="min-h-"]:active, [role="button"]:active { transform: none; }
+}
+
+/* Header: sedikit transparan dengan blur, garis bawah lembut. */
+.app-header { background: color-mix(in srgb, var(--kucur-surface) 92%, transparent) !important; backdrop-filter: saturate(1.4) blur(10px); border-bottom-color: var(--kucur-border) !important; }
+
+/* Tombol bulat bantuan & tombol ke atas: bayangan hangat, tombol ke atas netral supaya tidak bersaing. */
+.faq-bot-launcher { box-shadow: 0 10px 24px -6px color-mix(in srgb, var(--kucur-green) 55%, transparent), 0 2px 6px rgb(0 0 0 / 12%); }
+.mobile-back-to-top { background: var(--kucur-surface) !important; color: var(--kucur-text) !important; border-color: var(--kucur-border-strong) !important; box-shadow: var(--shadow-soft) !important; }
+
+/* Menu bawah HP: permukaan sedikit transparan, indikator aktif hijau kalem. */
+.customer-bottom-nav { background: color-mix(in srgb, var(--kucur-surface) 94%, transparent) !important; backdrop-filter: saturate(1.4) blur(10px); box-shadow: 0 -6px 20px -12px rgb(64 52 28 / 25%) !important; }
+
+/* Beranda: kartu sapaan diberi sentuhan khas Kucur (cahaya hijau lembut + motif daun samar di pojok). */
+.home-hero { border-color: transparent !important; box-shadow: var(--shadow-soft) !important; }
+.home-hero::before { content: ""; position: absolute; inset: 0; z-index: -1; background: radial-gradient(120% 90% at 100% 0%, color-mix(in srgb, var(--kucur-green) 16%, transparent) 0%, transparent 55%), radial-gradient(80% 60% at 0% 100%, color-mix(in srgb, #e9b44c 10%, transparent) 0%, transparent 60%); }
+.home-hero::after { content: ""; position: absolute; top: -10px; right: -18px; z-index: -1; width: 92px; height: 92px; opacity: .1; background: var(--kucur-green-ink); -webkit-mask: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='black' stroke-width='1.4' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='M5 19c0-8 5-14 15-15-1 10-7 15-15 15Zm0 0 8-8'/%3E%3C/svg%3E") center / contain no-repeat; mask: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='black' stroke-width='1.4' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='M5 19c0-8 5-14 15-15-1 10-7 15-15 15Zm0 0 8-8'/%3E%3C/svg%3E") center / contain no-repeat; transform: rotate(-12deg); }
