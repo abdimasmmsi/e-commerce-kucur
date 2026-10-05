@@ -97,7 +97,7 @@ Catatan desain: gambar/opsi produk disimpan JSON; reservasi stok di `CommerceOrd
 
 ## 9. Status terakhir
 
-- Backend tests 87/87, final repository 22/22, router 21/21, Prisma validate/generate pass, Playwright e2e **53/53** (dicek ulang 2026-10-04), lint dan build pass. Warning bundle Vite >500 kB (±697 kB) non-blocking.
+- Backend tests 87/87, final repository 26/26, router 21/21, Prisma validate/generate pass, Playwright e2e **59/59** (2026-10-05), lint dan build pass. Warning bundle Vite >500 kB (±697 kB) non-blocking.
 - Integritas DB: 20 tabel, 40 FK, 0 orphan, 0 pelanggaran XOR.
 - **Feature freeze diberlakukan**: hanya boleh perbaikan blocking bug; tidak ada fitur baru, perubahan schema, atau refactor besar.
 - Polish halaman detail dan modal **selesai** (dicek 2026-10-04): komponen bersama `DetailSection`, `StatusTimeline`, `ActionDialog` di `frontend/src/components/ui/`, dicover `e2e/detail-polish.spec.js`.
@@ -106,6 +106,8 @@ Catatan desain: gambar/opsi produk disimpan JSON; reservasi stok di `CommerceOrd
 - **Database demo terpisah `kucur_demo`** (untuk screenshot jurnal & demo TA; `kucur` tetap untuk e2e). Isi via `prisma/seed-demo.js` (5 lapak aktif + 1 pengajuan pending, 17 produk tanpa foto, ~33 order 4 minggu terakhir lewat service asli, batch harian, ulasan, iuran, chat). Akun sama dengan halaman login (`KucurDev123!`). Perintah backend: `npm run dev:demo` (backend ke kucur_demo) dan `npm run db:demo:reset` (Prisma menolak reset jika dijalankan AI, jadi Steven yang menjalankan).
 - PPN diterapkan di checkout (2026-10-04): `taxAmount = round(productTotal × taxPercent%)` per order, snapshot `taxPercentSnapshot`, masuk ke `grandTotal`/tagihan COD; baris PPN tampil di checkout dan detail order Customer/Merchant/Admin. Halaman kurir menampilkan total COD yang harus ditagih.
 - COD otomatis lunas saat kurir upload bukti antar: order `paymentStatus=PAID`, `PaymentAttempt` COD `PAID` + `paidAt`, `completedAt` diisi (disetujui Steven 2026-10-04).
+- **PlatformSettings + 6 kolom** (migrasi `20261004120000_platform_settings_operational`, disetujui Steven 2026-10-04, setelah jurnal disubmit): toggle cicilan Lunas/3x/6x, `maxDeliveryDistanceKm` (checkout menolak alamat lebih jauh), `adminContactName/Phone` (tampil di halaman Akun). Tetap 20 tabel.
+- Uji coba di HP asli: `npm run dev:phone` di frontend (HTTPS port 5175, proxy ke backend demo 3001). Backend demo harus dijalankan dengan `CORS_ALLOWED_ORIGINS` berisi `https://<IP-laptop>:5175`; IP laptop bisa berubah.
 - **Jurnal sudah disubmit** (dikonfirmasi Steven 2026-10-04): screenshot jurnal, render Mermaid, dan finalisasi sitasi tidak perlu dikerjakan lagi.
 - Sisa tugas: persiapan demo TA (data demo via `npm run db:demo:reset`, dijalankan Steven).
 - Ide masa depan (di luar scope): SMTP/Roundcube untuk notifikasi email, payment gateway Midtrans, kembali ke Tourism/Live In, integrasi SIG.
