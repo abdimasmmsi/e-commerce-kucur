@@ -1,6 +1,8 @@
+const { randomUUID } = require("node:crypto");
 const { errors } = require("../errors/AppError");
 const { createNotificationService, dedupe } = require("./notificationService");
 const { generateCommerceFinance } = require("./financeService");
+const { notifyAdmins, notifySafe } = require("./notifyHelpers");
 
 const ACTIVE_ORDER_STATUSES = ["WAITING_PICKUP", "PICKED_UP", "OUT_FOR_DELIVERY"];
 const TERMINAL_ORDER_STATUSES = ["DELIVERED", "FAILED", "CANCELLED"];
@@ -17,6 +19,14 @@ const deliveryOrderEligible = (order) => ["confirmed", "processing", "ready-for-
 const publicCourier = (profile) => ({ userId: profile.userId, maxActiveDeliveries: profile.maxActiveDeliveries, isActive: profile.isActive, createdAt: profile.createdAt, updatedAt: profile.updatedAt, user: { id: profile.user.id, fullName: profile.user.fullName } });
 const publicOrder = (order) => ({ id: order.id, orderCode: order.orderCode, orderNumber: order.orderNumber, storeId: order.storeId, storeName: order.storeName || order.store?.name, fulfillmentStatus: order.fulfillmentStatus, paymentStatus: order.paymentStatus, paymentMethod: order.paymentMethod, productTotal: order.productTotal, taxAmount: order.taxAmount, deliveryFee: order.deliveryFee, courierTip: order.courierTip, totalAmount: order.totalAmount, recipientName: order.recipientName, recipientPhone: order.recipientPhone, deliveryAddress: order.deliveryAddress, deliveryLocation: order.deliveryLocation, createdAt: order.createdAt, items: order.items });
 const publicBatch = (batch) => batch && ({ id: batch.id, courierUserId: batch.courierUserId, deliveryDate: batch.deliveryDate, cutoffAt: batch.cutoffAt, dispatchAt: batch.dispatchAt, status: batch.status, startedAt: batch.startedAt, completedAt: batch.completedAt, createdAt: batch.createdAt, updatedAt: batch.updatedAt, courier: batch.courier ? { id: batch.courier.id, fullName: batch.courier.fullName } : undefined, orders: (batch.orders || []).map((item) => ({ id: item.id, deliveryBatchId: item.deliveryBatchId, commerceOrderId: item.commerceOrderId, pickupSequence: item.pickupSequence, deliverySequence: item.deliverySequence, status: item.status, createdAt: item.createdAt, updatedAt: item.updatedAt, commerceOrder: item.commerceOrder ? publicOrder(item.commerceOrder) : undefined })) });
+
+const jsonList = (value) => { if (Array.isArray(value)) return value; if (typeof value === "string") { try { const parsed = JSON.parse(value); return Array.isArray(parsed) ? parsed : []; } catch { return []; } } return []; };
+const normalizeLeave = (item) => ({ ...item, status: item.status || "approved" });
+const newestLeaveFirst = (a, b) => new Date(b.requestedAt || b.startAt) - new Date(a.requestedAt || a.startAt);
+const blocksNewLeave = (item) => ["pending", "approved"].includes(item.status) && !(item.status === "approved" && item.endAt && new Date(item.endAt) <= new Date());
+const leaveDateText = (value) => new Intl.DateTimeFormat("id-ID", { timeZone: "Asia/Jakarta", day: "numeric", month: "short", hour: "2-digit", minute: "2-digit" }).format(new Date(value));
+// Status di profil mengikuti cuti approved yang sedang berjalan saat ini.
+const leaveProfileFields = (history, now) => { const current = history.find((item) => item.status === "approved" && new Date(item.startAt) <= now && (!item.endAt || new Date(item.endAt) > now)); return current ? { availabilityStatus: "UNAVAILABLE", unavailableStartAt: new Date(current.startAt), unavailableEndAt: current.endAt ? new Date(current.endAt) : null, unavailableReason: current.reason || null } : { availabilityStatus: "AVAILABLE", unavailableStartAt: null, unavailableEndAt: null, unavailableReason: null }; };
 
 function createDeliveryService(repository) {
   const settings = () => repository.settings.get();
@@ -36,9 +46,56 @@ function createDeliveryService(repository) {
   return {
     resolveDeliveryDate,
     async profile(actor) { const row = await repository.delivery.profile(actor.id); if (!row) throw errors.notFound("Profil Courier belum tersedia."); return publicCourier(row); },
-    availability: (actor) => repository.delivery.availability(actor.id),
-    async createAvailability(input, actor) { const startAt = new Date(input.startAt), endAt = input.endAt ? new Date(input.endAt) : null; if (!Number.isFinite(startAt.getTime()) || (endAt && endAt <= startAt)) throw errors.validation({ availability: "Rentang availability tidak valid." }); if (await repository.delivery.overlappingAvailability(actor.id, startAt, endAt)) throw errors.conflict("Periode tidak tersedia bertumpang tindih."); return repository.delivery.createAvailability({ courierUserId: actor.id, startAt, endAt, reason: String(input.reason || "").trim().slice(0, 255) || null }); },
-    async endAvailability(id, actor) { const result = await repository.delivery.endAvailability(id, actor.id, new Date()); if (!result.count) throw errors.notFound("Periode availability aktif tidak ditemukan."); return { ended: true }; },
+    // Cuti kurir: diajukan kurir (pending) lalu disetujui/ditolak admin. Hanya cuti "approved" yang memblokir penugasan.
+    // Riwayat disimpan di CourierProfile.availabilityHistory (JSON); entri lama tanpa status dianggap approved.
+    async availability(actor) { return (await repository.delivery.availability(actor.id)).map(normalizeLeave).sort(newestLeaveFirst); },
+    async createAvailability(input, actor) {
+      const startAt = new Date(input.startAt), endAt = input.endAt ? new Date(input.endAt) : null;
+      if (!Number.isFinite(startAt.getTime()) || (endAt && (!Number.isFinite(endAt.getTime()) || endAt <= startAt))) throw errors.validation({ availability: "Rentang cuti tidak valid." });
+      if (startAt.getTime() < Date.now() - 86400000) throw errors.validation({ startAt: "Tanggal mulai cuti tidak boleh lebih dari 1 hari yang lalu." });
+      const reason = String(input.reason || "").trim().slice(0, 255);
+      const history = (await repository.delivery.availability(actor.id)).map(normalizeLeave);
+      if (history.some((item) => blocksNewLeave(item) && availabilityOverlaps(item.startAt, item.endAt, startAt, endAt))) throw errors.conflict("Periode cuti bertumpang tindih dengan pengajuan lain.");
+      if (!reason) throw errors.validation({ reason: "Alasan cuti wajib diisi." });
+      const entry = { id: randomUUID(), courierUserId: actor.id, startAt: startAt.toISOString(), endAt: endAt ? endAt.toISOString() : null, reason, status: "pending", requestedAt: new Date().toISOString() };
+      await repository.delivery.upsertProfile(actor.id, { availabilityHistory: [...history, entry] });
+      await notifyAdmins(repository, { type: "COURIER_LEAVE_REQUESTED", title: "Pengajuan cuti kurir", body: `${actor.fullName || "Kurir"} mengajukan cuti mulai ${leaveDateText(entry.startAt)}${entry.endAt ? ` sampai ${leaveDateText(entry.endAt)}` : ""}. Alasan: ${reason}`, entityType: "COURIER_LEAVE", entityId: entry.id, dedupeKey: `courier-leave-requested:${entry.id}` });
+      return entry;
+    },
+    async endAvailability(id, actor) {
+      const history = (await repository.delivery.availability(actor.id)).map(normalizeLeave); const entry = history.find((item) => item.id === id); const now = new Date();
+      if (!entry || !(entry.status === "pending" || (entry.status === "approved" && (!entry.endAt || new Date(entry.endAt) > now)))) throw errors.notFound("Cuti aktif atau pengajuan tidak ditemukan.");
+      const cancel = entry.status === "pending" || new Date(entry.startAt) > now;
+      const next = history.map((item) => item.id === id ? (cancel ? { ...item, status: "cancelled", cancelledAt: now.toISOString() } : { ...item, endAt: now.toISOString() }) : item);
+      await repository.delivery.upsertProfile(actor.id, { availabilityHistory: next, ...leaveProfileFields(next, now) });
+      if (entry.status === "approved") await notifyAdmins(repository, { type: "COURIER_LEAVE_CANCELLED", title: cancel ? "Cuti kurir dibatalkan" : "Kurir kembali bertugas", body: `${actor.fullName || "Kurir"} ${cancel ? "membatalkan cuti yang sudah disetujui" : "mengakhiri cuti lebih awal"}.`, entityType: "COURIER_LEAVE", entityId: id, dedupeKey: `courier-leave-ended:${id}` });
+      return { ended: true };
+    },
+    async leaveRequests() {
+      const couriers = await repository.delivery.listCouriers(); const rows = [];
+      for (const courier of couriers) for (const item of jsonList(courier.availabilityHistory).map(normalizeLeave)) rows.push({ ...item, courierUserId: courier.userId, courier: { id: courier.userId, fullName: courier.user?.fullName, phone: courier.user?.phone } });
+      for (const row of rows.filter((item) => item.status === "pending")) {
+        const batches = await repository.delivery.listBatches({ courierUserId: row.courierUserId });
+        row.plannedBatchCount = batches.filter((batch) => ["PLANNED", "READY", "IN_PROGRESS"].includes(batch.status) && availabilityOverlaps(row.startAt, row.endAt, new Date(`${dateOnly(batch.deliveryDate)}T00:00:00+07:00`), new Date(`${dateOnly(batch.deliveryDate)}T23:59:59+07:00`))).length;
+      }
+      return rows.sort((a, b) => (a.status === "pending") === (b.status === "pending") ? newestLeaveFirst(a, b) : a.status === "pending" ? -1 : 1);
+    },
+    async reviewLeave(courierUserId, id, input, actor) {
+      const decision = input.decision === "approve" ? "approved" : input.decision === "reject" ? "rejected" : null;
+      if (!decision) throw errors.validation({ decision: "Pilih setujui atau tolak." });
+      const note = String(input.reason || "").trim().slice(0, 255);
+      if (decision === "rejected" && !note) throw errors.validation({ reason: "Alasan penolakan wajib diisi." });
+      const history = (await repository.delivery.availability(courierUserId)).map(normalizeLeave); const entry = history.find((item) => item.id === id);
+      if (!entry) throw errors.notFound("Pengajuan cuti tidak ditemukan.");
+      if (entry.status !== "pending") throw errors.conflict("Pengajuan cuti ini sudah diproses.");
+      const now = new Date(); const next = history.map((item) => item.id === id ? { ...item, status: decision, reviewedAt: now.toISOString(), reviewedByUserId: actor.id, ...(decision === "rejected" ? { rejectionReason: note } : {}) } : item);
+      await repository.delivery.upsertProfile(courierUserId, { availabilityHistory: next, ...leaveProfileFields(next, now) });
+      const period = `${leaveDateText(entry.startAt)}${entry.endAt ? ` – ${leaveDateText(entry.endAt)}` : ""}`;
+      await notifySafe(repository, [decision === "approved"
+        ? { userId: courierUserId, type: "COURIER_LEAVE_APPROVED", title: "Cuti disetujui", body: `Cuti ${period} disetujui Admin. Kamu tidak akan mendapat pengiriman selama cuti.`, entityType: "COURIER_LEAVE", entityId: id, dedupeKey: `courier-leave-approved:${id}` }
+        : { userId: courierUserId, type: "COURIER_LEAVE_REJECTED", title: "Cuti ditolak", body: `Cuti ${period} ditolak Admin. Alasan: ${note}`, entityType: "COURIER_LEAVE", entityId: id, dedupeKey: `courier-leave-rejected:${id}` }]);
+      return next.find((item) => item.id === id);
+    },
     async eligible(query) { const config = await settings(); const target = query.deliveryDate || resolveDeliveryDate(new Date(), config.deliveryOrderCutoffTime); return { deliveryDate: target, items: await eligible(target) }; },
     async couriers() { return (await repository.delivery.listCouriers()).map(publicCourier); },
     async merchantOrders(actor) { return (await repository.delivery.merchantAssignments(actor.id)).map((item) => ({ id: item.id, status: item.status, pickupSequence: item.pickupSequence, deliverySequence: item.deliverySequence, commerceOrder: publicOrder(item.commerceOrder), batch: publicBatch(item.batch) })); },

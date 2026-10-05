@@ -15,11 +15,12 @@ export const ACTIVE_PRODUCT_ORDER_STATUSES = [
 
 /** Build the Admin dashboard exclusively from persisted API resources. */
 export async function getAdminDashboardMetrics() {
-  const [applications, orders, couriers, eligible] = await Promise.all([
+  const [applications, orders, couriers, eligible, leaves] = await Promise.all([
     storeService.applications(),
     orderService.list({ scope: "admin" }),
     deliveryApi.couriers(),
     deliveryApi.eligible(),
+    deliveryApi.leaveRequests().catch(() => []),
   ]);
 
   return {
@@ -29,5 +30,6 @@ export async function getAdminDashboardMetrics() {
     availableCouriers: couriers.filter((courier) => courier.isActive).length,
     activeOrders: orders.filter((order) => ACTIVE_PRODUCT_ORDER_STATUSES.includes(order.status)).length,
     waitingCourier: Array.isArray(eligible?.items) ? eligible.items.length : 0,
+    pendingLeaves: leaves.filter((row) => row.status === "pending").length,
   };
 }

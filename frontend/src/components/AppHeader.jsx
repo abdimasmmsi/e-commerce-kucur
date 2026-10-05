@@ -85,6 +85,11 @@ function AppHeader({ accountMode = false, workspaceRole = "" }) {
 
   // Halaman Masuk/Daftar: tanpa kolom cari dan tombol Masuk di header (sudah ada formnya).
   const isAuthPage = pathname === "/login" || pathname === "/register";
+  // Admin: shortcut ke chat bantuan (balas pesan warga) di sebelah notifikasi.
+  const supportChatButton = isAuthenticated && (resolvedWorkspaceRole || activeRole) === "admin" && <Link className="notification-button header-chat-shortcut" to="/admin/support-chats" onClick={closeMenus} title={t("header.supportChats")} aria-label={t("header.supportChats")}>
+    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.9" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true"><path d="M4 5h16v11H9l-5 4V5Z"/><path d="M8 9.5h8M8 12.5h5"/></svg>
+    <ChatUnreadBadge adminMode />
+  </Link>;
   const notificationButton = isAuthenticated && <div className="customer-notification-wrap" ref={notificationRef}>
     <button className="notification-button" type="button" title={t("header.notificationsLabel")} onClick={() => { setNotificationOpen((value) => !value); setProfileOpen(false); }} aria-label={`${t("header.notificationsLabel")}${unreadCount ? `, ${t("header.unreadNotifications", { count: unreadCount })}` : ""}`} aria-expanded={notificationOpen} aria-haspopup="dialog">
       <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.9" aria-hidden="true"><path strokeLinecap="round" strokeLinejoin="round" d="M18 8a6 6 0 0 0-12 0c0 7-3 7-3 9h18c0-2-3-2-3-9M10 20h4"/></svg>
@@ -102,6 +107,7 @@ function AppHeader({ accountMode = false, workspaceRole = "" }) {
       {!accountMode && <SearchForm className="customer-desktop-search" onSearch={submitSearch} query={search} setQuery={setSearch} t={t} />}
       <div className="customer-nav-utilities">
         {!isAuthenticated && <PreferenceControls compact onLanguageChange={changeLanguage} onThemeChange={changeTheme} />}
+        {supportChatButton}
         {notificationButton}
         {isAuthenticated && !accountMode && <CartShortcut label={t("header.cart")} />}
         {initialized && !isAuthenticated && !isAuthPage && <div className="guest-auth-actions"><Link to="/login">{t("header.login")}</Link><Link className="register-link" to="/register">{t("header.register")}</Link></div>}

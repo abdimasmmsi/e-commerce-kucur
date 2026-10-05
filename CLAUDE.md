@@ -41,7 +41,7 @@ Satu **User** bisa punya banyak role (multi-role via `UserRole`): Customer, Merc
 - **Merchant**: punya satu atau lebih **Store (lapak)**; ada store switcher. Store aktif hanya bertipe `product`. Daftar → status pending → Admin approve/reject (alasan reject wajib tampil) → baru bisa publish.
 - **Courier**: kurir milik desa (bukan JNE dll.), status Available / Out of Office.
 - **Admin**: approval, monitoring transaksi/delivery/finance, moderasi review, platform settings. Admin bisa melihat **action history** transaksi (mis. reassign berkali-kali).
-- Semua role selain Admin bisa live chat ke Admin (support); Customer bisa chat ke Merchant.
+- Semua role selain Admin bisa live chat ke Admin (support); Customer bisa chat ke Merchant. Admin punya ikon chat di header (sebelah notifikasi) ke `/admin/support-chats` dengan badge belum dibaca.
 
 ## 5. Aturan bisnis yang sudah dikunci
 
@@ -61,6 +61,7 @@ Satu **User** bisa punya banyak role (multi-role via `UserRole`): Customer, Merc
 - Ada **maksimum pengiriman harian**; overflow geser ke batch berikutnya dan customer diberi tahu sejak checkout.
 - Kurir menerima assignment dengan **accept window** (default 10 menit, configurable). Kurir wajib menerima kecuali sedang OOO. Kurir yang reject tidak boleh langsung mendapat order yang sama lagi sampai sempat dire-assign ke orang lain. Admin bisa set batas jumlah delivery aktif per kurir.
 - Pickup window berisi lokasi ambil dan daftar barang. Merchant mencentang barang di tempat pickup; kalau semua tercentang, kurir bisa klik mulai antar dan status order berubah di merchant dan customer. Order yang tidak siap saat pickup di-roll over ke besok.
+- **Cuti kurir wajib persetujuan Admin** (2026-10-06): kurir mengajukan di Menu → Cuti (`/courier/availability`, alasan wajib) → status `pending` → Admin menyetujui/menolak (alasan tolak wajib) di **Kurir** (`/admin/couriers`, bagian Pengajuan cuti; juga di Beranda Admin "Perlu Tindakan"). Hanya cuti `approved` yang memblokir penugasan batch. Data di `CourierProfile.availabilityHistory` (JSON, tanpa kolom baru; entri lama tanpa status = approved). Notifikasi `COURIER_LEAVE_REQUESTED/APPROVED/REJECTED/CANCELLED`. Kurir bisa batalkan pengajuan atau akhiri cuti lebih awal.
 - Bukti pengiriman: foto + kontak customer terlihat oleh kurir. Ada rebatch dan histori delivery (`DeliveryBatch`, `DeliveryBatchOrder`).
 
 **Keuangan Merchant (per lapak)**
@@ -123,7 +124,7 @@ Catatan desain: gambar/opsi produk disimpan JSON; reservasi stok di `CommerceOrd
 
 ## Status test terbaru
 
-- 2026-10-06: backend `npm test` 87/87 (termasuk rateLimit), `test:final-repository` 30/30, lint (encoding + FAQ check + ESLint) dan build lolos, Playwright e2e 67 test (hijau setelah perbaikan penjaga tap ganda; jalankan ulang penuh sebelum demo).
+- 2026-10-06: backend `npm test` 87/87 (termasuk rateLimit), `test:final-repository` 30/30, lint (encoding + FAQ check + ESLint) dan build lolos, Playwright e2e 68 test (termasuk `courier-leave.spec.js`) (hijau setelah perbaikan penjaga tap ganda; jalankan ulang penuh sebelum demo).
 - Ide masa depan (di luar scope): SMTP/Roundcube untuk notifikasi email, payment gateway Midtrans, kembali ke Tourism/Live In, integrasi SIG.
 
 ## 10. Jurnal dan dokumen

@@ -11,6 +11,9 @@ async function main() {
   await prisma.targetUser.updateMany({ where: { email: { endsWith: "@kucur.test" } }, data: { language: "id", theme: "light" } });
   // Test commerce membeli produk QA B setiap run; isi ulang stok supaya e2e bisa diulang.
   await prisma.targetProduct.update({ where: { id: "20000000-0000-4000-8000-000000000003" }, data: { stock: 20 } });
+  // Test cuti kurir menambah pengajuan; kosongkan riwayat cuti kurir QA.
+  const courier = await prisma.targetUser.findFirst({ where: { email: "courier@kucur.test" } });
+  if (courier) await prisma.targetCourierProfile.updateMany({ where: { userId: courier.id }, data: { availabilityHistory: [], availabilityStatus: "AVAILABLE", unavailableStartAt: null, unavailableEndAt: null, unavailableReason: null } });
   const store = await prisma.targetStore.update({ where: { id: storeId }, data: { status: "PENDING", reviewedByUserId: null, reviewedAt: null, rejectionReason: null } });
   let notification = await prisma.targetNotification.findFirst({ where: { userId: customerUserId }, orderBy: { createdAt: "desc" } });
   if (!notification) {
