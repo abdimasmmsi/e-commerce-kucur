@@ -97,9 +97,9 @@ label>span:first-child, .field-group label { color: #39483c; }
 
 .customer-bottom-nav { border-color: var(--kucur-border)!important; background: var(--kucur-surface)!important; box-shadow: 0 -3px 16px rgb(17 32 15 / 8%)!important; }
 .customer-bottom-nav a { color: #39443b!important; }
-.customer-bottom-nav a.active { color: var(--kucur-green-hover)!important; }
+.customer-bottom-nav a.active { color: var(--kucur-green-ink)!important; }
 .customer-bottom-nav a.active::before { background: var(--kucur-green)!important; }
-.home-hero-highlight { color: var(--kucur-green); font-style: normal; }
+.home-hero-highlight { color: var(--kucur-green-ink); font-style: normal; }
 .customer-home-hero .primary-button { border-color: var(--kucur-green); background: var(--kucur-green); color: var(--kucur-navy); }
 .customer-home-hero .primary-button:hover { border-color: var(--kucur-green-hover); background: var(--kucur-green-hover); }
 .customer-home-hero .secondary-button { border-color: rgb(255 255 255 / 42%); background: transparent; color: #fff; }
@@ -432,3 +432,12 @@ label>span:first-child, .field-group label { color: #39483c; }
 .dark .account-role-list strong{border-color:var(--kucur-border-strong);background:transparent;color:var(--kucur-text)}
 .dark .account-role-list strong.active{border-color:var(--kucur-green);background:color-mix(in srgb,var(--kucur-green) 18%,transparent);color:var(--kucur-green)}
 .dark .review-summary i{background:var(--kucur-surface-muted)}
+/* Audit aksesibilitas (Okt 2026): kontras teks dark mode + target sentuh minimal di HP. */
+.dark label,.dark label>span:first-child,.dark .field-group label{color:var(--kucur-text)}
+.dark .auth-heading p{color:var(--kucur-text-muted)}
+.auth-switch-copy a{color:var(--kucur-green-ink)!important;font-weight:700}
+.dark :is(.admin-count-pill,.merchant-review-toolbar button.is-active,.store-switcher-status){color:var(--kucur-text)}
+:is(.merchant-close-button,.courier-close-button,.admin-close-button){min-width:44px;min-height:44px;display:inline-grid;place-items:center}
+@media(max-width:767px){.language-slider{height:40px;grid-template-columns:repeat(2,36px)}.language-slider i{width:36px;height:34px}.language-slider i.is-en{transform:translateX(36px)}.account-avatar-mobile-trigger{min-width:40px;min-height:40px}}
+.auth-eyebrow,.account-profile-heading>div>span:first-child{color:var(--kucur-green-ink)!important}
+.dark .register-page label,.dark .register-form label,.dark .auth-form label{color:var(--kucur-text)}

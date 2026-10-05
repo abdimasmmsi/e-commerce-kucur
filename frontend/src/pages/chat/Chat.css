@@ -47,3 +47,7 @@
   .chat-room-page .chat-room-header>div>div{min-width:0}
   .chat-room-page .chat-composer textarea{min-height:48px!important;padding:12px}
 }
+/* HP sempit: wadah halaman memakai padding 12px, jadi tepi ruang chat ikut 12px (bukan 16px). */
+@media(max-width:390px){
+  .chat-room-page .chat-room-header,.chat-room-page .chat-room{margin-inline:-12px}
+}

@@ -64,7 +64,7 @@ function Login() {
       {error && <p className="auth-error">{error}</p>}
       <button className="primary-button" type="submit" disabled={submitting}>{submitting ? t("auth.processing") : t("auth.loginButton")}</button>
     </form>
-    {import.meta.env.DEV && <DevelopmentQaAccounts onSelect={fillQaAccount} />}
+    {(import.meta.env.DEV || import.meta.env.VITE_SHOW_DEMO_ACCOUNTS === "true") && <DevelopmentQaAccounts onSelect={fillQaAccount} />}
     <p className="auth-switch-copy">{t("auth.noAccount")} <Link to="/register">{t("auth.registerCustomer")}</Link></p>
   </section></div>;
 }

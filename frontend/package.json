@@ -11,7 +11,8 @@
     "preview": "vite preview",
     "test:e2e": "npm run db:seed --prefix ../backend && playwright test",
     "test:e2e:report": "playwright show-report",
-    "dev:phone": "vite --config vite.phone.config.js"
+    "dev:phone": "vite --config vite.phone.config.js",
+    "phone": "vite build --config vite.phone.config.js && vite preview --config vite.phone.config.js"
   },
   "dependencies": {
     "leaflet": "^1.9.4",

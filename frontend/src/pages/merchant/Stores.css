@@ -67,7 +67,7 @@
   background-size: 18px 18px, auto;
 }
 .store-card-image img { display:block; width:100%; height:100%; object-fit:cover; object-position:center; }
-.store-card-fallback { display:grid; width:44px; height:44px; place-items:center; border:1px solid var(--kucur-border); border-radius:12px; background:var(--kucur-surface); color:var(--kucur-green-hover); box-shadow:0 4px 14px rgb(15 23 42 / 7%); }
+.store-card-fallback { display:grid; width:44px; height:44px; place-items:center; border:1px solid var(--kucur-border); border-radius:12px; background:var(--kucur-surface); color:var(--kucur-green-ink); box-shadow:0 4px 14px rgb(15 23 42 / 7%); }
 .store-card-fallback svg { width:23px; height:23px; }
 .store-card-body { display: grid; align-content:start; gap: 11px; min-width: 0; padding: 16px; }
 .store-card-header {

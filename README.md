@@ -155,6 +155,20 @@ npm run db:demo:reset
 ```
 > Matikan dulu semua backend yang sedang jalan. Kalau tidak, Prisma gagal dengan error `EPERM` karena file-nya sedang dipakai.
 
+**Backup dan restore data demo.** Simpan "foto" isi `kucur_demo`, lalu kembalikan dalam hitungan detik kalau datanya berantakan saat latihan atau demo. Hanya database `kucur_demo` yang disentuh; `kucur` (test) aman.
+```bash
+cd backend
+npm run db:demo:backup                 # simpan ke backend/backups/kucur_demo-YYYYMMDD-HHmm.sql
+npm run db:demo:backup -- siap-demo    # sama, dengan nama: kucur_demo-YYYYMMDD-HHmm-siap-demo.sql
+npm run db:demo:backups                # daftar backup (ukuran dan tanggal)
+npm run db:demo:restore                # kembalikan dari backup terbaru
+npm run db:demo:restore -- kucur_demo-20261005-2243-siap-demo.sql   # dari file tertentu
+```
+- Waktu yang pas: buat backup **sehari sebelum demo**, tepat setelah `db:demo:reset`. Saat demo, kalau ada pesanan/data yang terlanjur berubah, cukup `db:demo:restore`.
+- Sebaiknya matikan backend demo (port 3001) sebelum restore, lalu jalankan lagi. Backup boleh sambil backend menyala.
+- Butuh Docker dengan container `kucur-mysql-dev` menyala (nama lain bisa lewat env `MYSQL_CONTAINER`). File backup tidak ikut ke git.
+- Tanggal pesanan di backup tidak ikut bergeser. Kalau backup sudah lama dan data terasa "kedaluwarsa", lebih baik `db:demo:reset` lalu backup ulang.
+
 **Menjalankan versi demo dan membukanya dari HP.** HP dan laptop harus satu Wi-Fi atau hotspot.
 
 1. Cari IP laptop: `ipconfig` (Windows), lihat *IPv4 Address*, misalnya `192.168.1.28`.
@@ -256,6 +270,7 @@ Tombol robot di kanan bawah membuka chatbot bantuan. Chatbot ini berjalan sepenu
 | Peringatan "koneksi tidak aman" di HP | Normal untuk sertifikat lokal. Pilih *Advanced → Proceed*. |
 | Produk di laptop sedikit, di HP banyak | Laptop di `localhost:5173` memakai database QA (`kucur`). Buka `https://localhost:5175` untuk data demo. |
 | Bahasa/tema akun berubah sendiri | Preferensi tersimpan per akun dan ikut saat login. Test otomatis bisa mengubah akun QA di database `kucur`; jalankan `prepareFinalModeE2EFixtures.js` untuk mengembalikannya. |
+| Data demo berantakan setelah latihan | Kembalikan dari backup: `npm run db:demo:restore` di folder `backend` (lihat [bagian 6](#6-data-demo-dan-uji-coba-di-hp)). Kalau gagal, cek container `kucur-mysql-dev` menyala (`npm run db:status`). |
 | `prisma migrate reset` ditolak | Prisma menolak reset yang dijalankan otomatis oleh AI. Jalankan sendiri dari terminal. |
 
 ## 12. Dokumen lain

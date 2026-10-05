@@ -48,9 +48,12 @@ function createApp(options = {}) {
   const repository = finalRepository ? createRepositoryReadRouter(writeRepository, finalRepository, { allowFinal: allowFinalReads, ...(options.readRouter || {}), shadowSynchronizer }) : legacyRepository;
   const authService = options.authService || createAuthService(repository);
   const authMiddleware = createAuthMiddleware(authService);
-  const notificationService = createNotificationService(repository); const dependencies = { repository, authService, authMiddleware, notificationService, chatService: createChatService(repository), deliveryService: createDeliveryService(repository), storeService: createStoreService(repository), productService: createProductService(repository), cartService: createCartService(repository), commerceService: createCommerceService(repository), financeService: createFinanceService(repository), reviewService: createReviewService(repository, notificationService), settingsService: createSettingsService(repository), userService: createUserService(repository) };
+  const notificationService = createNotificationService(repository); const dependencies = { repository, authService, authMiddleware, authRateLimits: options.authRateLimits, notificationService, chatService: createChatService(repository), deliveryService: createDeliveryService(repository), storeService: createStoreService(repository), productService: createProductService(repository), cartService: createCartService(repository), commerceService: createCommerceService(repository), financeService: createFinanceService(repository), reviewService: createReviewService(repository, notificationService), settingsService: createSettingsService(repository), userService: createUserService(repository) };
   const app = express();
   app.disable("x-powered-by");
+  // Proxy Vite (dev:phone) berjalan di laptop yang sama, jadi hanya proxy loopback yang dipercaya:
+  // req.ip diambil dari X-Forwarded-For hanya bila koneksi datang dari 127.0.0.1/::1 (dipakai rate limit auth).
+  app.set("trust proxy", "loopback");
   app.use(cors({ origin(origin, callback) { if (!origin || env.allowedOrigins.includes(origin)) return callback(null, true); return callback(null, false); }, credentials: false }));
   app.use(express.json({ limit: "1mb" }));
   app.use("/uploads", express.static(path.resolve(__dirname, "uploads"), { immutable: true, maxAge: "7d", fallthrough: true }));

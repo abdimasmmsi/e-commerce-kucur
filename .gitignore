@@ -13,6 +13,7 @@ dist-ssr/
 # Runtime data
 backend/uploads/
 backend/.data/
+backend/backups/
 .tmp/
 artifacts/
 

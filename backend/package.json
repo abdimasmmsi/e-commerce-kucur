@@ -6,7 +6,7 @@
   "scripts": {
     "dev": "nodemon server.js",
     "start": "node server.js",
-    "test": "node --test foundation.test.js product.test.js commerce.test.js finance.test.js review.test.js notification.test.js chat.test.js realtime.test.js delivery.test.js storeAvailability.test.js midtransService.test.js tests/testDatabaseGuard.test.js",
+    "test": "node --test foundation.test.js product.test.js commerce.test.js finance.test.js review.test.js notification.test.js chat.test.js realtime.test.js delivery.test.js storeAvailability.test.js midtransService.test.js rateLimit.test.js tests/testDatabaseGuard.test.js",
     "test:integration": "node tests/runIntegration.js",
     "test:final-repository": "node --test tests/finalRepository.test.js tests/finalRepositoryAuthApi.test.js tests/finalFinanceRepository.test.js tests/finalCommerceService.test.js tests/finalDeliveryService.test.js tests/finalDomainServices.test.js",
     "test:canary-router": "node --test tests/repositoryReadRouter.test.js",
@@ -22,6 +22,9 @@
     "db:stop": "docker compose stop mysql",
     "db:status": "docker compose ps mysql",
     "db:demo:reset": "node scripts/demo.js reset",
+    "db:demo:backup": "node scripts/demo.js backup",
+    "db:demo:restore": "node scripts/demo.js restore",
+    "db:demo:backups": "node scripts/demo.js backups",
     "dev:demo": "node scripts/demo.js dev"
   },
   "prisma": {

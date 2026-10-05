@@ -9,6 +9,7 @@ import { calculateCoordinateDistanceKm } from "../../services/deliveryFeeService
 import { getDrivingDistanceKm, isOpenRouteServiceConfigured } from "../../services/openRouteService";
 import { productService } from "../../services/productService";
 import { clearCheckoutDraft, readCheckoutDraft, saveCheckoutDraft } from "../../utils/address";
+import { getPreciseLocation } from "../../utils/geolocation";
 import { shortOrderCode } from "../../utils/orderCode";
 
 const makeKey = () => globalThis.crypto?.randomUUID?.() ?? `checkout-${Date.now()}-${Math.random().toString(36).slice(2)}`;
@@ -58,14 +59,12 @@ export default function Checkout() {
     return () => { active = false; };
   }, [directInput]);
 
+  // Hanya lokasi tepat (±100 m) yang dipakai; lokasi perkiraan ditolak supaya kurir tidak salah antar.
   const locate = useCallback(() => {
-    if (!navigator.geolocation) { setLocation({ status: "missing", latitude: null, longitude: null }); return; }
     setLocation((current) => ({ ...current, status: "locating" }));
-    navigator.geolocation.getCurrentPosition(
-      ({ coords }) => setLocation({ status: "found", latitude: coords.latitude, longitude: coords.longitude }),
-      () => setLocation({ status: "missing", latitude: null, longitude: null }),
-      { enableHighAccuracy: true, timeout: 8000, maximumAge: 60000 },
-    );
+    getPreciseLocation()
+      .then(({ latitude, longitude }) => setLocation({ status: "found", latitude, longitude }))
+      .catch((error) => setLocation({ status: error.reason === "imprecise" ? "imprecise" : "missing", latitude: null, longitude: null, accuracy: error.accuracy }));
   }, []);
   useEffect(() => { if (addressChoice === "current" && location.status === "idle") queueMicrotask(locate); }, [addressChoice, locate, location.status]);
   const saved = savedAddresses.find((row) => row.id === addressChoice) ?? null;
@@ -167,7 +166,7 @@ export default function Checkout() {
           </div>
           <label className="grid min-w-0 gap-1.5 text-[15px] font-semibold">{t("checkout.address")}<textarea className={fieldClass} rows="3" placeholder={t("checkout.addressPlaceholder")} value={address} onChange={(event) => { setAddress(event.target.value); resetPreview(); }}/></label>
           <div className={`flex flex-wrap items-center justify-between gap-3 rounded-xl p-3 ${location.status === "found" ? "bg-[var(--kucur-green-soft)]" : "bg-amber-50 dark:bg-amber-950/50"}`} role="status">
-            <div className="flex min-w-0 items-start gap-2"><svg className={`mt-0.5 size-5 shrink-0 ${location.status === "found" ? "text-[var(--kucur-green-ink)]" : "text-amber-700 dark:text-amber-300"}`} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true"><path d="M12 21s-7-6.2-7-11.5a7 7 0 0 1 14 0C19 14.8 12 21 12 21Z"/><circle cx="12" cy="9.5" r="2.5"/></svg><div className="min-w-0"><strong className="block text-[15px]">{t("checkout.locationTitle")}</strong><span className="text-sm text-[var(--kucur-text-muted)]">{location.status === "found" ? t("checkout.locationFound") : ["locating", "idle"].includes(location.status) ? t("checkout.locationLocating") : t("checkout.locationMissing")}</span></div></div>
+            <div className="flex min-w-0 items-start gap-2"><svg className={`mt-0.5 size-5 shrink-0 ${location.status === "found" ? "text-[var(--kucur-green-ink)]" : "text-amber-700 dark:text-amber-300"}`} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true"><path d="M12 21s-7-6.2-7-11.5a7 7 0 0 1 14 0C19 14.8 12 21 12 21Z"/><circle cx="12" cy="9.5" r="2.5"/></svg><div className="min-w-0"><strong className="block text-[15px]">{t("checkout.locationTitle")}</strong><span className="text-sm text-[var(--kucur-text-muted)]">{location.status === "found" ? t("checkout.locationFound") : ["locating", "idle"].includes(location.status) ? t("checkout.locationLocating") : location.status === "imprecise" ? t("checkout.locationImprecise", { meters: Math.round(location.accuracy ?? 0) }) : t("checkout.locationMissing")}</span></div></div>
             {location.status !== "found" && <button className="min-h-11 rounded-xl border border-[var(--kucur-border-strong)] bg-[var(--kucur-surface)] px-4 text-sm font-bold disabled:opacity-50" type="button" disabled={["locating", "idle"].includes(location.status)} onClick={locate}>{t("checkout.useLocation")}</button>}
           </div>
           </>}

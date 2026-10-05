@@ -1,6 +1,7 @@
 import { useState } from "react";
 import LeafletMap from "./LeafletMap";
 import { normalizeLocation, validateLocationCoordinates } from "../../utils/location";
+import { getPreciseLocation } from "../../utils/geolocation";
 import { usePreferences } from "../../context/PreferencesContext";
 
 export default function LocationPicker({ value, onChange, labelTitle = "Nama lokasi", addressTitle = "Alamat / deskripsi lokasi" }) {
@@ -10,10 +11,12 @@ export default function LocationPicker({ value, onChange, labelTitle = "Nama lok
   const coordinateError = validateLocationCoordinates(location);
   const update = (changes) => onChange({ ...location, ...changes });
   const selectPoint = ({ latitude, longitude }) => { update({ latitude: Number(latitude.toFixed(6)), longitude: Number(longitude.toFixed(6)) }); setGeoMessage(""); };
+  // Hanya lokasi tepat (±100 m) yang diterima; lokasi perkiraan HP ditolak supaya titik alamat tidak meleset.
   const useMyLocation = () => {
-    if (!navigator.geolocation) return setGeoMessage(t("locationPicker.unsupported"));
     setGeoMessage(t("locationPicker.locating"));
-    navigator.geolocation.getCurrentPosition((position) => { selectPoint(position.coords); setGeoMessage(t("locationPicker.applied")); }, () => setGeoMessage(t("locationPicker.unavailable")), { enableHighAccuracy: true, timeout: 10000 });
+    getPreciseLocation()
+      .then((coords) => { selectPoint(coords); setGeoMessage(t("locationPicker.applied")); })
+      .catch((error) => setGeoMessage(error.reason === "unsupported" ? t("locationPicker.unsupported") : error.reason === "imprecise" ? t("locationPicker.imprecise", { meters: Math.round(error.accuracy ?? 0) }) : t("locationPicker.unavailable")));
   };
   const parsedLatitude = Number(location.latitude); const parsedLongitude = Number(location.longitude);
   const mapLatitude = Number.isFinite(parsedLatitude) && parsedLatitude >= -90 && parsedLatitude <= 90 && location.latitude != null && location.latitude !== "" ? parsedLatitude : null;
