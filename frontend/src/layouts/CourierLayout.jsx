@@ -3,14 +3,17 @@ import { NavLink, Outlet } from "react-router-dom";
 import AppHeader from "../components/AppHeader";
 import WorkspaceNavIcon from "../components/WorkspaceNavIcon";
 import { usePreferences } from "../context/PreferencesContext";
+import WorkspaceSidebarControls, { WorkspaceSidebarResizer } from "../components/WorkspaceSidebarControls";
+import { useWorkspaceSidebar } from "../utils/useWorkspaceSidebar";
 import "./CourierLayout.css";
 import "../components/CustomerBottomNav.css";
 import "../styles/workspace-shell.css";
 
 function CourierLayout() {
   const { language, t } = usePreferences();
-  const tabCopy = language === "id" ? { home: "Beranda", deliver: "Antar", history: "Riwayat", menu: "Menu" } : { home: "Home", deliver: "Deliver", history: "History", menu: "Menu" };
+  const tabCopy = language === "id" ? { home: "Beranda", deliver: "Pengiriman", history: "Riwayat", menu: "Menu" } : { home: "Home", deliver: "Delivery", history: "History", menu: "Menu" };
   const [sidebarOpen, setSidebarOpen] = useState(false);
+  const sidebar = useWorkspaceSidebar("courier");
 
   const closeSidebar = () => setSidebarOpen(false);
 
@@ -44,7 +47,9 @@ function CourierLayout() {
         className={`courier-sidebar ${
           sidebarOpen ? "open" : ""
         }`}
+        {...sidebar.sidebarProps}
       >
+        <WorkspaceSidebarControls sidebar={sidebar} />
         <div className="courier-sidebar-header">
           <h2>{t("workspace.courier")}</h2>
 
@@ -80,6 +85,7 @@ function CourierLayout() {
           </section>
         </nav>
       </aside>
+      <WorkspaceSidebarResizer sidebar={sidebar} />
 
       <main className="courier-main">
         <div className="courier-mobile-header">

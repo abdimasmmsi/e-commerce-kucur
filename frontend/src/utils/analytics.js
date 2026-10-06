@@ -123,7 +123,14 @@ export function computeWidget(widget, data, { from, to, storeId = "", category =
   const prevTo = new Date(new Date(`${from}T12:00:00Z`).getTime() - DAY).toISOString().slice(0, 10);
   const prevFrom = new Date(new Date(`${prevTo}T12:00:00Z`).getTime() - (length - 1) * DAY).toISOString().slice(0, 10);
   const previous = aggregate(widget.metric, all.filter((entry) => inPeriod(entry.date, prevFrom, prevTo)).map((entry) => entry.value));
-  if (widget.group === "total") return { rows: [], total, previous };
+  if (widget.group === "total") {
+    // Tren mini untuk kartu angka: per hari (<= 31 hari), per minggu (<= 6 bulan), atau per bulan.
+    const grain = length <= 31 ? "day" : length <= 186 ? "week" : "month";
+    const buckets = new Map();
+    for (const entry of current) { const key = bucketKey(grain, jakartaDay(entry.date)); buckets.set(key, [...(buckets.get(key) ?? []), entry.value]); }
+    const trend = length > 1 ? timeBuckets(grain, from, to).map((key) => aggregate(widget.metric, buckets.get(key) ?? [])) : [];
+    return { rows: [], total, previous, trend };
+  }
   const groups = new Map();
   for (const entry of current) {
     const key = isTimeGroup(widget.group) ? bucketKey(widget.group, jakartaDay(entry.date)) : widget.group === "status" ? (STATUS_LABEL[language] ?? STATUS_LABEL.id)[entry.row.status] ?? entry.row.status : entry.row[widget.group] || (language === "en" ? "Not set" : "Belum ada");
@@ -131,7 +138,17 @@ export function computeWidget(widget, data, { from, to, storeId = "", category =
   }
   let rows;
   if (isTimeGroup(widget.group)) rows = timeBuckets(widget.group, from, to).map((key) => ({ key, label: bucketLabel(widget.group, key, language), value: aggregate(widget.metric, groups.get(key) ?? []) }));
-  else rows = [...groups.entries()].map(([key, values]) => ({ key, label: key, value: aggregate(widget.metric, values) })).sort((a, b) => b.value - a.value).slice(0, widget.limit || (widget.view === "share" ? 8 : 10));
+  else {
+    const sorted = [...groups.entries()].map(([key, values]) => ({ key, label: key, value: aggregate(widget.metric, values), values })).sort((a, b) => b.value - a.value);
+    if (widget.view === "share") {
+      // Grafik tumpuk memakai maks. 6 warna; sisanya digabung jadi "Lainnya" (hanya untuk angka yang bisa dijumlah).
+      const summable = !["avgOrder", "avgRating", "cancelRate"].includes(widget.metric);
+      const head = sorted.slice(0, sorted.length > 6 && summable ? 5 : 6);
+      const rest = sorted.slice(head.length);
+      rows = rest.length && summable ? [...head, { key: "__other", label: language === "en" ? "Other" : "Lainnya", value: aggregate(widget.metric, rest.flatMap((row) => row.values)), other: true }] : head;
+    } else rows = sorted.slice(0, widget.limit || 10);
+    rows = rows.map(({ values, ...row }) => row); // eslint-disable-line no-unused-vars
+  }
   return { rows, total, previous };
 }
 
@@ -165,3 +182,20 @@ export const reportName = (report, language) => (typeof report.name === "string"
 // Judul widget: teks admin (string) atau judul bawaan dua bahasa.
 export const widgetTitle = (widget, language) => (typeof widget.title === "string" ? widget.title : widget.title?.[language] ?? widget.title?.id ?? "");
 export const newWidgetId = () => `w-${Date.now().toString(36)}${Math.random().toString(36).slice(2, 5)}`;
+
+// Tick sumbu Y yang "bersih" (0, 5.000, 10.000, ...).
+export function niceTicks(max, count = 4) {
+  if (!(max > 0)) return [0, 1];
+  const raw = max / count;
+  const power = 10 ** Math.floor(Math.log10(raw));
+  const step = [1, 2, 2.5, 5, 10].map((factor) => factor * power).find((candidate) => candidate >= raw) ?? raw;
+  const ticks = [];
+  for (let value = 0; value <= max + step * 0.001; value += step) ticks.push(value);
+  if (ticks.at(-1) < max) ticks.push(ticks.at(-1) + step);
+  return ticks;
+}
+
+// Angka ringkas untuk sumbu: 12 rb, 1,2 jt (ID) / 12K, 1.2M (EN).
+export function compactNumber(value, language) {
+  return new Intl.NumberFormat(language === "en" ? "en-US" : "id-ID", { notation: "compact", maximumFractionDigits: 1 }).format(value);
+}

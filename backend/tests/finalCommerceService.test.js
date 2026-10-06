@@ -84,6 +84,35 @@ test("customer cannot cancel once the store starts packing, but the store still 
   assert.equal((await service.cancel(second.id, "Stok rusak", merchant)).fulfillmentStatus, "cancelled");
 }));
 
+test("final fulfillment PATCH only advances store steps for the store owner and never cancels", async () => withRollback(async (repo, tx) => {
+  const fixture = await commerceFixture(tx); const service = createCommerceService(repo);
+  const store = await tx.targetStore.findUnique({ where: { id: fixture.products[0].storeId } });
+  const owner = { id: store.merchantUserId, roles: ["merchant"] };
+  // Pembeli yang juga punya lapak lain tidak boleh menerima pesanannya sendiri.
+  const buyerWithStore = { ...fixture.actor, roles: ["customer", "merchant"] };
+  const { orders: [order] } = await service.create(inputFor([fixture.products[0]]), buyerWithStore, `qa-${randomUUID()}`);
+  await assert.rejects(service.transition(order.id, "confirmed", buyerWithStore), (error) => error.code === "FORBIDDEN");
+  await service.transition(order.id, "confirmed", owner); await service.transition(order.id, "processing", owner);
+  await assert.rejects(service.transition(order.id, "cancelled", buyerWithStore), (error) => error.code === "VALIDATION_ERROR");
+  await assert.rejects(service.transition(order.id, "cancelled", owner), (error) => error.code === "VALIDATION_ERROR");
+  assert.equal((await tx.targetProduct.findUnique({ where: { id: fixture.products[0].id } })).stock, 1, "stok tetap direservasi");
+  await service.transition(order.id, "ready-for-pickup", owner);
+  await assert.rejects(service.transition(order.id, "picked-up", owner), (error) => error.code === "FORBIDDEN");
+  const stored = await tx.targetCommerceOrder.findUnique({ where: { id: order.id } });
+  assert.equal(stored.fulfillmentStatus, "READY_FOR_PICKUP");
+}));
+
+test("final store cancellation needs a reason and cancels the pending COD attempt", async () => withRollback(async (repo, tx) => {
+  const fixture = await commerceFixture(tx); const service = createCommerceService(repo);
+  const store = await tx.targetStore.findUnique({ where: { id: fixture.products[0].storeId } });
+  const owner = { id: store.merchantUserId, roles: ["merchant"] };
+  const { orders: [order] } = await service.create(inputFor([fixture.products[0]]), fixture.actor, `qa-${randomUUID()}`);
+  await assert.rejects(service.cancel(order.id, "", owner), (error) => Boolean(error?.details?.reason));
+  await service.cancel(order.id, "Stok habis", owner);
+  const attempt = await tx.targetPaymentAttempt.findFirst({ where: { commerceOrderId: order.id } });
+  assert.equal(attempt.status, "CANCELLED");
+}));
+
 test("store owner is notified when an application is approved or rejected", async () => withRollback(async (repo, tx) => {
   const { createStoreService } = require("../services/storeService");
   const service = createStoreService(repo);

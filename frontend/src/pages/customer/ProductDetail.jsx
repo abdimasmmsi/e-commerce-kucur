@@ -8,6 +8,7 @@ import { useChat } from "../../context/ChatContext";
 import { cartService } from "../../services/commerceService";
 import { getProductDisplayPrice, productService } from "../../services/productService";
 import { addViewed } from "../../utils/browsingHistory";
+import { discountInfo } from "../../utils/discount";
 import { getAverageRating, reviewService } from "../../services/reviewService";
 import ProductImage from "../../components/ProductImage";
 import { getPrimaryProductImage } from "../../services/productImageStorage";
@@ -32,16 +33,34 @@ function ProductDetail() {
   const [selectedOptions, setSelectedOptions] = useState({});
   const [reviews, setReviews] = useState(null);
   const [moreProducts, setMoreProducts] = useState([]);
+  const [restockWatching, setRestockWatching] = useState(false);
 
   useEffect(() => {
     let active = true;
     // Produk yang dibuka masuk "Terakhir dilihat" di panel cari (maks 5 tampil).
-    productService.get(productId).then((row) => { if (!active) return; setProduct(row); if (row?.status === "active") addViewed({ ...row, price: getProductDisplayPrice(row) }); }).catch((error) => {
+    productService.get(productId).then((row) => {
+      if (!active) return;
+      setProduct(row);
+      if (row?.status !== "active") return;
+      addViewed({ ...row, price: getProductDisplayPrice(row) });
+      // Statistik "dilihat" untuk lapak: satu kali per produk per sesi supaya refresh tidak menggelembungkan angka.
+      const viewKey = `kucur:viewed-product:${row.id}`;
+      try { if (!sessionStorage.getItem(viewKey)) { sessionStorage.setItem(viewKey, "1"); void productService.recordView(row.id); } } catch { void productService.recordView(row.id); }
+    }).catch((error) => {
       if (active) setLoadError(error.message);
     }).finally(() => { if (active) setLoading(false); });
     reviewService.publicForTarget("product", productId).then((result) => { if (active) setReviews((result.items || []).filter((review) => !review.isHidden)); }).catch(() => { if (active) setReviews([]); });
     return () => { active = false; };
   }, [productId]);
+
+  // Status "Ingatkan saya" hanya relevan untuk customer yang login.
+  const canWatchRestock = isAuthenticated && activeRole === "customer";
+  useEffect(() => {
+    if (!canWatchRestock) return undefined;
+    let active = true;
+    productService.restockStatus(productId).then((watching) => { if (active) setRestockWatching(watching); }).catch(() => {});
+    return () => { active = false; };
+  }, [canWatchRestock, productId]);
 
   // "Produk lain dari lapak ini": terlaris dulu, tanpa produk yang sedang dibuka.
   const productStoreId = product?.storeId;
@@ -82,6 +101,7 @@ function ProductDetail() {
     : product.hasVariants && activePrices.length > 1
       ? `${formatCurrency(activePrices[0])} - ${formatCurrency(activePrices.at(-1))}`
       : formatCurrency(product.hasVariants ? activePrices[0] ?? 0 : product.price);
+  const discount = product.hasVariants && !selectedVariant ? discountInfo(product) : discountInfo(product, selectedVariant ?? null);
   const selectedStock = product.hasVariants ? Number(selectedVariant?.stock ?? 0) : availableStock;
   const selectionComplete = !product.hasVariants || Boolean(selectedVariant);
   const purchaseDisabled = availableStock <= 0 || !selectionComplete;
@@ -101,6 +121,20 @@ function ProductDetail() {
     const variantQuery = selectedVariant ? `&variantId=${encodeURIComponent(selectedVariant.id)}` : "";
     navigate(`/checkout?productId=${encodeURIComponent(product.id)}&quantity=${quantity}${variantQuery}`);
   };
+  const toggleRestock = async () => {
+    if (!isAuthenticated) return navigate("/login");
+    if (activeRole !== "customer") return navigate("/unauthorized");
+    try { const watching = await productService.setRestockWatch(product.id, !restockWatching); setRestockWatching(watching); setMessage(watching ? copy.restockOn : copy.restockOff); }
+    catch (error) { setMessage(error.message); }
+  };
+  // Bagikan ke WhatsApp: pakai menu bagikan bawaan HP kalau ada, kalau tidak buka wa.me.
+  const shareProduct = async () => {
+    const url = window.location.href;
+    const text = `${product.name} - ${priceLabel}`;
+    if (navigator.share) { try { await navigator.share({ title: product.name, text, url }); return; } catch (error) { if (error?.name === "AbortError") return; } }
+    window.open(`https://wa.me/?text=${encodeURIComponent(`${text}
+${url}`)}`, "_blank", "noopener");
+  };
   const handleSellerChat = async () => {
     if (!isAuthenticated) return navigate("/login");
     if (activeRole !== "customer") return navigate("/unauthorized");
@@ -112,10 +146,10 @@ function ProductDetail() {
   const optionAvailable = (group, option) => (product.variants ?? []).some((variant) => variant.status === "active" && Number(variant.stock) > 0 && variant.options?.[group.name] === option && (product.variantGroups ?? []).every((otherGroup) => otherGroup.id === group.id || !selectedOptions[otherGroup.name] || variant.options?.[otherGroup.name] === selectedOptions[otherGroup.name]));
   const variantSelectors = product.hasVariants && <div className="grid gap-4">{(product.variantGroups ?? []).map((group) => <fieldset className="min-w-0" key={group.id}><legend className="mb-2 text-[15px] font-bold">{group.name}</legend><div className="flex flex-wrap gap-2">{group.options.map((option) => { const active = selectedOptions[group.name] === option; return <button className={`min-h-11 rounded-xl border px-4 text-[15px] font-semibold transition disabled:cursor-not-allowed disabled:opacity-40 disabled:line-through ${active ? "border-[var(--kucur-green)] bg-[var(--kucur-green-soft)] text-[var(--kucur-green-ink)]" : "border-[var(--kucur-border-strong)] bg-[var(--kucur-surface)] text-[var(--kucur-text)] hover:border-[var(--kucur-green)]"}`} type="button" key={option} aria-pressed={active} disabled={!optionAvailable(group, option)} onClick={() => { setSelectedOptions((current) => ({ ...current, [group.name]: option })); setSelectedImageId(null); setQuantity(1); setMessage(""); }}>{option}</button>; })}</div></fieldset>)}</div>;
   const actionClass = "inline-flex min-h-12 min-w-0 items-center justify-center whitespace-nowrap rounded-xl border px-2.5 text-[15px] font-bold transition disabled:cursor-not-allowed disabled:opacity-45 sm:px-3";
-  const purchaseActions = <div className="grid grid-cols-[auto_minmax(0,1fr)_minmax(0,1.25fr)] gap-2"><button className={`${actionClass} border-[var(--kucur-border-strong)] bg-[var(--kucur-surface)] text-[var(--kucur-text)]`} type="button" onClick={handleSellerChat}>{t("commerce.chat")}</button><button className={`${actionClass} border-[var(--kucur-green)] bg-[var(--kucur-surface)] text-[var(--kucur-green-ink)]`} type="button" onClick={handleAdd} disabled={purchaseDisabled}>{t("commerce.addCart")}</button><button className={`${actionClass} border-[var(--kucur-green)] bg-[var(--kucur-green)] text-[var(--kucur-on-green)]`} type="button" onClick={handleBuyNow} disabled={purchaseDisabled}>{t("commerce.buyNow")}</button></div>;
+  const purchaseActions = <div className="grid grid-cols-[auto_minmax(0,1fr)_minmax(0,1.25fr)] gap-2"><button className={`${actionClass} border-[var(--kucur-border-strong)] bg-[var(--kucur-surface)] text-[var(--kucur-text)]`} type="button" onClick={handleSellerChat}>{t("commerce.chat")}</button>{availableStock <= 0 && (!isAuthenticated || activeRole === "customer") ? <button className={`${actionClass} col-span-2 whitespace-normal ${restockWatching ? "border-[var(--kucur-border-strong)] bg-[var(--kucur-surface)] text-[var(--kucur-text)]" : "border-[var(--kucur-green)] bg-[var(--kucur-green)] text-[var(--kucur-on-green)]"}`} type="button" aria-pressed={restockWatching} onClick={toggleRestock}>{restockWatching ? copy.restockActive : copy.restock}</button> : <><button className={`${actionClass} border-[var(--kucur-green)] bg-[var(--kucur-surface)] text-[var(--kucur-green-ink)]`} type="button" onClick={handleAdd} disabled={purchaseDisabled}>{t("commerce.addCart")}</button><button className={`${actionClass} border-[var(--kucur-green)] bg-[var(--kucur-green)] text-[var(--kucur-on-green)]`} type="button" onClick={handleBuyNow} disabled={purchaseDisabled}>{t("commerce.buyNow")}</button></>}</div>;
   const copy = language === "id"
-    ? { quantity: "Jumlah", remaining: "Sisa {count}", choose: "Pilih varian dulu", safe: "Bayar tunai saat barang sampai. Jangan transfer langsung ke penjual.", description: "Deskripsi", information: "Info produk", category: "Kategori", sellerLocation: "Lokasi lapak", sold: "{count} terjual", visitStore: "Kunjungi lapak", moreFromStore: "Produk lain dari {store}", seeStore: "Lihat lapak", reviews: "Ulasan pembeli", noReviews: "Belum ada ulasan", decrease: "Kurangi jumlah", increase: "Tambah jumlah" }
-    : { quantity: "Quantity", remaining: "{count} left", choose: "Choose a variant first", safe: "Pay cash when your order arrives. Never transfer directly to the seller.", description: "Description", information: "Product info", category: "Category", sellerLocation: "Store location", sold: "{count} sold", visitStore: "Visit store", moreFromStore: "More from {store}", seeStore: "View store", reviews: "Customer reviews", noReviews: "No reviews yet", decrease: "Decrease quantity", increase: "Increase quantity" };
+    ? { quantity: "Jumlah", remaining: "Sisa {count}", choose: "Pilih varian dulu", safe: "Bayar tunai saat barang sampai. Jangan transfer langsung ke penjual.", description: "Deskripsi", information: "Info produk", category: "Kategori", sellerLocation: "Lokasi lapak", sold: "{count} terjual", visitStore: "Kunjungi lapak", moreFromStore: "Produk lain dari {store}", seeStore: "Lihat lapak", reviews: "Ulasan pembeli", noReviews: "Belum ada ulasan", decrease: "Kurangi jumlah", increase: "Tambah jumlah", share: "Bagikan", shareLabel: "Bagikan produk ke WhatsApp", discount: "Hemat {percent}%", restock: "Ingatkan saya saat stok ada", restockActive: "Batal ingatkan", restockOn: "Siap! Kamu akan dapat notifikasi saat stok tersedia lagi.", restockOff: "Pengingat stok dibatalkan." }
+    : { quantity: "Quantity", remaining: "{count} left", choose: "Choose a variant first", safe: "Pay cash when your order arrives. Never transfer directly to the seller.", description: "Description", information: "Product info", category: "Category", sellerLocation: "Store location", sold: "{count} sold", visitStore: "Visit store", moreFromStore: "More from {store}", seeStore: "View store", reviews: "Customer reviews", noReviews: "No reviews yet", decrease: "Decrease quantity", increase: "Increase quantity", share: "Share", shareLabel: "Share product on WhatsApp", discount: "Save {percent}%", restock: "Remind me when back in stock", restockActive: "Cancel reminder", restockOn: "Done! You will be notified when it is back in stock.", restockOff: "Stock reminder cancelled." };
   const average = reviews?.length ? getAverageRating(reviews) : null;
   const stockText = availableStock <= 0 ? t("commerce.outOfStock") : selectionComplete ? copy.remaining.replace("{count}", selectedStock) : copy.choose;
 
@@ -131,7 +165,7 @@ function ProductDetail() {
       </section>
       <div className="grid min-w-0 content-start gap-2 lg:gap-0 lg:self-start lg:overflow-hidden lg:rounded-xl lg:border lg:border-[var(--kucur-border)] lg:bg-[var(--kucur-surface)] lg:[&>*]:px-6 lg:[&>*]:py-4 lg:[&>*+*]:border-t lg:[&>*+*]:border-[var(--kucur-border)]">
         <div className={`${sheet} grid gap-1 lg:!pt-6`}>
-          <strong className="break-words text-2xl font-extrabold tracking-[-0.02em] text-[var(--kucur-text)] sm:text-[28px]">{priceLabel}</strong>
+          <div className="flex min-w-0 items-start justify-between gap-3"><div className="grid min-w-0 gap-1"><strong className="break-words text-2xl font-extrabold tracking-[-0.02em] text-[var(--kucur-text)] sm:text-[28px]">{priceLabel}</strong>{discount && <span className="flex flex-wrap items-center gap-2 text-sm"><s className="text-[var(--kucur-text-muted)]">{formatCurrency(discount.compareAt)}</s><span className="rounded-md bg-rose-50 px-1.5 py-0.5 font-bold text-rose-700 dark:bg-rose-950 dark:text-rose-200">{copy.discount.replace("{percent}", discount.percent)}</span></span>}</div><button className="inline-flex min-h-11 shrink-0 items-center gap-1.5 rounded-xl border border-[var(--kucur-border-strong)] px-3 text-sm font-bold text-[var(--kucur-text)] hover:border-[var(--kucur-green)]" type="button" data-no-busy aria-label={copy.shareLabel} onClick={shareProduct}><svg className="size-[18px]" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true"><circle cx="18" cy="5" r="3"/><circle cx="6" cy="12" r="3"/><circle cx="18" cy="19" r="3"/><path d="m8.6 13.5 6.8 4M15.4 6.5l-6.8 4"/></svg>{copy.share}</button></div>
           <h1 className="break-words text-lg font-bold leading-snug text-[var(--kucur-text)] sm:text-xl">{product.name}</h1>
           <a className="flex w-fit flex-wrap items-center gap-x-1 text-sm text-[var(--kucur-text-muted)] hover:underline" href="#product-reviews">{average ? <><svg className="size-4 text-[var(--kucur-amber)]" viewBox="0 0 24 24" fill="currentColor" aria-hidden="true"><path d="m12 2.8 2.8 5.8 6.3.9-4.6 4.4 1.1 6.3L12 17.2l-5.6 3 1.1-6.3L2.9 9.5l6.3-.9L12 2.8Z"/></svg><span className="font-bold text-[var(--kucur-text)]">{Number(average).toLocaleString(language === "id" ? "id-ID" : "en-US", { minimumFractionDigits: 1, maximumFractionDigits: 1 })}</span> ({t("commerce.reviewCount", { count: reviews.length })})</> : copy.noReviews}{product.soldCount > 0 && <> · {copy.sold.replace("{count}", product.soldCount.toLocaleString(language === "id" ? "id-ID" : "en-US"))}</>}</a>
         </div>

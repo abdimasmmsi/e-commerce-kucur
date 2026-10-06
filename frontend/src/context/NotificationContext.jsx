@@ -1,12 +1,14 @@
 import { createContext, useCallback, useContext, useEffect, useMemo, useState } from "react";
 import { useAuth } from "./AuthContext";
-import { notificationService, resolveNotificationRoute } from "../services/notificationService";
+import { NOTIFICATIONS_REFRESH_EVENT, notificationService, resolveNotificationRoute } from "../services/notificationService";
 import { requestNotificationPermission } from "../services/browserNotificationService";
 const NotificationContext = createContext(null); const PAGE_SIZE = 20;
 export function NotificationProvider({ children }) {
   const { activeRole, user } = useAuth(); const [notifications,setNotifications]=useState([]); const [unreadCount,setUnreadCount]=useState(0); const [page,setPage]=useState(1); const [total,setTotal]=useState(0); const [loading,setLoading]=useState(false); const [error,setError]=useState("");
   const normalize=useCallback((items)=>(items||[]).map((item)=>({...item,link:resolveNotificationRoute(item,activeRole)})),[activeRole]);
   const refreshNotifications=useCallback(async()=>{if(!user?.id){setNotifications([]);setUnreadCount(0);setTotal(0);return;}setLoading(true);try{const result=await notificationService.list({page:1,limit:PAGE_SIZE});setNotifications(normalize(result.items));setUnreadCount(result.unreadCount||0);setTotal(result.pagination?.total||0);setPage(1);setError("");}catch(cause){setError(cause.message);}finally{setLoading(false);}},[normalize,user?.id]);
+  // Notifikasi yang ditandai terbaca dari tempat lain (mis. membuka chat) → muat ulang lonceng.
+  useEffect(()=>{const refresh=()=>{void refreshNotifications();};window.addEventListener(NOTIFICATIONS_REFRESH_EVENT,refresh);return()=>window.removeEventListener(NOTIFICATIONS_REFRESH_EVENT,refresh);},[refreshNotifications]);
   useEffect(()=>{const timer=window.setTimeout(()=>{void refreshNotifications();},0);return()=>window.clearTimeout(timer);},[refreshNotifications]);
   useEffect(()=>{if(!user?.id||!("Notification" in window)||Notification.permission!=="default")return;const timer=window.setTimeout(()=>{void requestNotificationPermission();},400);return()=>window.clearTimeout(timer);},[user?.id]);
   const loadMore=useCallback(async()=>{if(loading||notifications.length>=total)return;setLoading(true);try{const next=page+1;const result=await notificationService.list({page:next,limit:PAGE_SIZE});setNotifications((rows)=>[...rows,...normalize(result.items)]);setUnreadCount(result.unreadCount||0);setPage(next);setError("");}catch(cause){setError(cause.message);}finally{setLoading(false);}},[loading,normalize,notifications.length,page,total]);

@@ -43,3 +43,25 @@ test("Failed multi-item checkout rolls back stock and checkout transaction", asy
   await assert.rejects(commerce.create({ ...checkout, items: [{ productId: "PRODUCT-A", quantity: 2 }, { productId: "PRODUCT-V", productVariantId: "VARIANT-V", quantity: 3 }] }, customer, "rollback-key"));
   assert.equal(repository.products.findById("PRODUCT-A").stock, 3); assert.equal(await repository.commerce.findCheckout(customer.id, "rollback-key"), undefined);
 });
+
+test("Parallel checkout with the same idempotency key returns the winning checkout instead of a 409", async () => {
+  let lookups = 0; const winner = { id: "CHECKOUT-W", idempotencyKey: "same", orders: [{ id: "ORDER-W" }] };
+  const repository = { commerce: { findCheckout: async () => (lookups++ === 0 ? null : winner) }, transaction: async () => { const error = new Error("Unique constraint failed"); error.code = "P2002"; throw error; } };
+  const result = await createCommerceService(repository).create(checkout, customer, "same");
+  assert.equal(result, winner);
+});
+
+test("Fulfillment endpoint cannot cancel or skip the courier; only the store owner advances store steps", async () => {
+  const { repository, commerce } = fixture(); const order = (await commerce.create(checkout, customer, "transition-key")).orders[0];
+  await assert.rejects(commerce.transition(order.id, "cancelled", customer), (error) => error.code === "VALIDATION_ERROR");
+  await assert.rejects(commerce.transition(order.id, "confirmed", customer), (error) => error.code === "FORBIDDEN");
+  assert.equal(repository.products.findById("PRODUCT-A").stock, 1, "stok tidak boleh berubah tanpa pembatalan resmi");
+  await assert.rejects(commerce.transition(order.id, "confirmed", merchantB), (error) => error.code === "FORBIDDEN");
+  for (const status of ["confirmed", "processing"]) assert.equal((await commerce.transition(order.id, status, merchantA)).fulfillmentStatus, status);
+});
+
+test("Store or admin cancellation requires a reason for the buyer", async () => {
+  const { commerce } = fixture(); const order = (await commerce.create(checkout, customer, "reason-key")).orders[0];
+  await assert.rejects(commerce.cancel(order.id, "   ", merchantA), (error) => error.code === "VALIDATION_ERROR" && Boolean(error.details?.reason));
+  assert.equal((await commerce.cancel(order.id, "Stok habis", merchantA)).fulfillmentStatus, "cancelled");
+});

@@ -19,6 +19,8 @@ function createMemoryRepository(seed = {}) {
   const hydratedProduct = (product) => product && ({ ...clone(product), store: clone(state.stores.find((store) => store.id === product.storeId)) });
   const hydratedCart = (cart) => cart && ({ ...clone(cart), items: cart.items.map((item) => { const product = hydratedProduct(state.products.find((row) => row.id === item.productId)); return { ...clone(item), product, variant: clone(product?.variants?.find((row) => row.id === item.productVariantId)) || null }; }) });
   const hydratedOrder = (order) => order && ({ ...clone(order), storeName: state.stores.find((store) => store.id === order.storeId)?.name, orderNumber: order.orderCode });
+  // Sama seperti repository final: biaya admin yang sedang diajukan/dibayar diberi settlementItem.
+  const withSettlementItem = (fee) => { const paid = state.settlements.find((row) => row.paymentStatus === "PAID" && row.items.some((item) => item.adminFeeObligationId === fee.id)); const pending = state.settlements.find((row) => row.paymentStatus === "PENDING" && row.items.some((item) => item.adminFeeObligationId === fee.id)); const found = paid || pending; return { ...fee, settlementItem: found ? { settlement: { id: found.id, paymentStatus: found.paymentStatus } } : null }; };
   const repository = {
     users: {
       findById: (userId) => clone(state.users.find((item) => item.id === userId)),
@@ -91,8 +93,9 @@ function createMemoryRepository(seed = {}) {
       findPlatformTransaction: (type, sourceEntityId) => clone(state.platformTransactions.find((row) => row.type === type && row.sourceEntityId === sourceEntityId)),
       createPlatformTransaction: (data) => { if (state.platformTransactions.some((row) => row.sourceEntityId === data.sourceEntityId)) throw new Error("duplicate transaction"); const row = { id: id("TX"), ...clone(data) }; state.platformTransactions.push(row); return clone(row); },
       createAdminFeeObligation: (data) => { if (state.adminFees.some((row) => row.platformTransactionId === data.platformTransactionId)) throw new Error("duplicate admin fee"); const row = { id: id("ADMINFEE"), ...clone(data), createdAt: new Date().toISOString(), paidAt: null }; state.adminFees.push(row); return clone(row); },
-      listAdminFees: (storeId) => clone(state.adminFees.filter((row) => row.storeId === storeId)),
-      findAdminFees: (ids) => clone(state.adminFees.filter((row) => ids.includes(row.id)).map((row) => ({ ...row, store: state.stores.find((item) => item.id === row.storeId) }))),
+      listAdminFees: (storeId) => clone(state.adminFees.filter((row) => row.storeId === storeId).map(withSettlementItem)),
+      findAdminFees: (ids) => clone(state.adminFees.filter((row) => ids.includes(row.id)).map((row) => ({ ...withSettlementItem(row), store: state.stores.find((item) => item.id === row.storeId) }))),
+      cancelPendingPaymentAttempts: (targetId) => { let count = 0; for (const row of state.installmentPayments) if (row.installmentId === targetId && row.paymentStatus === "PENDING") { row.paymentStatus = "CANCELLED"; count += 1; } return { count }; },
       createSettlement: (data, items) => { const row = { id: id("SETTLEMENT"), ...clone(data), items: items.map((item) => ({ id: id("SETTLEMENTITEM"), ...clone(item) })), createdAt: new Date().toISOString(), paidAt: null }; state.settlements.push(row); return clone(row); },
       findSettlement: (settlementId) => { const row = state.settlements.find((item) => item.id === settlementId); return row && clone({ ...row, store: state.stores.find((item) => item.id === row.storeId), items: row.items.map((item) => ({ ...item, obligation: state.adminFees.find((fee) => fee.id === item.adminFeeObligationId) })) }); },
       updateSettlement: (settlementId, data) => { const row = state.settlements.find((item) => item.id === settlementId); Object.assign(row, clone(data)); return clone(row); },
@@ -104,7 +107,7 @@ function createMemoryRepository(seed = {}) {
       createContribution: (data) => { const row = { id: id("CONTRIBUTION"), ...clone(data), createdAt: new Date().toISOString(), paidAt: null }; state.contributions.push(row); return clone(row); },
       findContribution: (contributionId) => clone(state.contributions.find((row) => row.id === contributionId)),
       updateContribution: (contributionId, data) => { const row = state.contributions.find((item) => item.id === contributionId); Object.assign(row, clone(data)); return clone(row); },
-      monitoring: () => clone({ initialFees: state.initialFees, adminFees: state.adminFees, settlements: state.settlements, suspendedStores: state.stores.filter((row) => row.status === "suspended_admin_fee"), contributions: state.contributions }),
+      monitoring: () => clone({ initialFees: state.initialFees.map((fee) => repository.finance.getInitialFee(fee.storeId)), adminFees: state.adminFees.map(withSettlementItem), settlements: state.settlements, suspendedStores: state.stores.filter((row) => row.status === "suspended_admin_fee"), contributions: state.contributions }),
     },
     audits: {
       append: (input) => { const row = Object.freeze({ ...clone(input), id: input.id || id("AUD"), createdAt: input.createdAt || new Date().toISOString() }); state.audits.push(row); return clone(row); },

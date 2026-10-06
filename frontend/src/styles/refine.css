@@ -263,3 +263,46 @@ button[aria-busy="true"]::before { content: ""; display: inline-block; flex: 0 0
   .customer-mobile-search-wrap > .customer-mobile-search { width: 100%; }
 }
 .search-history-panel { max-height: min(70dvh, 520px); overflow-y: auto; animation: kucur-pop .16s ease-out both; }
+
+/* Popup header (menu profil, notifikasi, riwayat cari) selalu di atas kolom cari, isi halaman, menu bawah, dan tombol chatbot. */
+.app-header .profile-menu-wrap, .app-header .customer-notification-wrap { position: relative; z-index: 95; }
+.app-header .customer-nav-search-wrap { z-index: 90; }
+.app-header:has(.profile-dropdown, [data-notification-panel], .search-history-panel) { z-index: 1000 !important; }
+
+/* Ruang chat di HP: header & area pesan selebar layar (sebelumnya terpotong max-width 100% → strip abu-abu di kanan). */
+.chat-room-page > .chat-room-header, .chat-room-page > .chat-room { max-width: none !important; width: auto !important; }
+
+/* Sidebar workspace (Admin/Lapak/Kurir) di laptop: bisa diciutkan jadi ikon dan lebarnya bisa ditarik (180-360px).
+   Lebar dari --workspace-sidebar-width (diatur WorkspaceSidebarControls). Di HP tetap laci menu, kontrol disembunyikan. */
+.workspace-sidebar-toggle, .workspace-sidebar-resizer, .workspace-sidebar-resizer-slot { display: none; }
+@media (min-width: 769px) {
+  :is(.merchant-sidebar, .courier-sidebar, .admin-sidebar) { position: sticky !important; width: var(--workspace-sidebar-width, 220px) !important; max-width: none !important; flex: 0 0 var(--workspace-sidebar-width, 220px) !important; transition: width .18s ease, flex-basis .18s ease, padding .18s ease; }
+  :is(.merchant-sidebar, .courier-sidebar, .admin-sidebar)[data-collapsed="true"] { width: 72px !important; flex-basis: 72px !important; padding-inline: 10px !important; }
+  .workspace-sidebar-resizer-slot { display: block; }
+  .workspace-sidebar-toggle { display: grid; place-items: center; align-self: flex-end; width: 36px; height: 36px; flex: 0 0 auto; margin: -12px 0 8px; border: 1px solid var(--kucur-border); border-radius: 10px; background: var(--kucur-surface); color: var(--kucur-text-muted); cursor: pointer; }
+  .workspace-sidebar-toggle:hover, .workspace-sidebar-toggle:focus-visible { border-color: var(--kucur-green); color: var(--kucur-text); }
+  .workspace-sidebar-toggle svg { width: 18px; height: 18px; }
+  [data-collapsed="true"] > .workspace-sidebar-toggle { align-self: center; margin-top: -8px; }
+  .workspace-sidebar-resizer-slot { position: relative; flex: 0 0 0; width: 0; z-index: 6; }
+  .workspace-sidebar-resizer { display: block; position: sticky; top: 70px; left: 0; width: 8px; height: calc(100vh - 70px); margin-left: -4px; cursor: col-resize; touch-action: none; }
+  .workspace-sidebar-resizer:hover, .workspace-sidebar-resizer:focus-visible, .workspace-sidebar-resizer.is-dragging { background: var(--kucur-green); opacity: .55; outline: none; }
+  body.workspace-sidebar-resizing { cursor: col-resize; user-select: none; }
+  body.workspace-sidebar-resizing :is(.merchant-sidebar, .courier-sidebar, .admin-sidebar) { transition: none; }
+  /* Mode ikon: judul kelompok, teks menu, pemilih lapak, dan sesi disembunyikan; nama menu jadi tooltip. */
+  [data-collapsed="true"] :is(nav h3, .merchant-store-switcher-wrap, .layout-session-controls) { display: none !important; }
+  [data-collapsed="true"] nav a { position: relative; justify-content: center !important; gap: 0 !important; padding-inline: 0 !important; }
+  [data-collapsed="true"] nav a > span:not([class]) { position: absolute !important; width: 1px !important; height: 1px !important; overflow: hidden !important; clip: rect(0 0 0 0) !important; white-space: nowrap !important; }
+  [data-collapsed="true"] nav a::after { display: none !important; }
+  [data-collapsed="true"] nav section + section { margin-top: 10px !important; padding-top: 10px; border-top: 1px solid var(--kucur-border); }
+}
+
+/* Warna grafik Analitik (6 slot kategori + "Lainnya"), divalidasi untuk buta warna & kontras di terang/gelap.
+   Urutan tetap (jangan diputar); kategori ke-7 dst. digabung jadi "Lainnya". */
+:root {
+  --chart-1: #23803a; --chart-2: #2a78d6; --chart-3: #eb6834; --chart-4: #4a3aa7; --chart-5: #eda100; --chart-6: #e87ba4;
+  --chart-other: #9aa39c; --chart-muted: #a9c4ae; --chart-grid: #e7eae4; --chart-axis: #c5ccc2;
+}
+[data-theme="dark"], .dark {
+  --chart-1: #3c9a52; --chart-2: #3987e5; --chart-3: #d95926; --chart-4: #9085e9; --chart-5: #c98500; --chart-6: #d55181;
+  --chart-other: #5f6a62; --chart-muted: #4d6a55; --chart-grid: #243029; --chart-axis: #3a473e;
+}

@@ -25,6 +25,8 @@ async function imageFixture(page, { height, mimeType, name, transparent = false,
 
 async function uploadAndUse(page, fixture) {
   const renderedAvatar = page.locator(".account-profile-avatar .user-avatar__image");
+  // Halaman Profil dimuat lazy; tunggu input foto ada sebelum mengisi file.
+  await page.locator('input[type="file"][aria-label]').waitFor({ state: "attached" });
   const previousSource = await renderedAvatar.count() ? await renderedAvatar.getAttribute("src") : null;
   await page.evaluate(({ base64, mimeType, name }) => {
     const binary = atob(base64);

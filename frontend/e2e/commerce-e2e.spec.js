@@ -118,7 +118,10 @@ test.describe.serial("canonical cross-role commerce", () => {
     // Kurir memotret barang yang diterima; foto diunggah sebagai bukti antar.
     const proofPhoto = await courier.screenshot({ type: "png" });
     await courier.getByLabel(/Foto & selesaikan|Take photo & finish/i).setInputFiles({ name: "bukti-antar.png", mimeType: "image/png", buffer: proofPhoto });
-    await courier.getByRole("button", { name: /Selesaikan dengan Bukti|Complete with Proof/i }).click();
+    await Promise.all([
+      courier.waitForResponse((response) => /\/proof$/.test(response.url()) && response.request().method() !== "GET" && response.ok()),
+      courier.getByRole("button", { name: /Selesaikan dengan Bukti|Complete with Proof/i }).click(),
+    ]);
     await expect(courier.getByText(/DELIVERED|Terkirim/i).first()).toBeVisible();
     await qaScreenshot(courier, "final/courier/id-light", `delivered-${runId}`);
 
@@ -133,11 +136,9 @@ test.describe.serial("canonical cross-role commerce", () => {
     const reviewText = `Review browser ${runId}`;
     await customer.getByLabel(/Ceritakan pengalaman/i).fill(reviewText);
     await customer.getByRole("button", { name: /Kirim Ulasan/i }).click();
-    await expect(customer.getByRole("status")).toContainText(/berhasil/i);
-    await customer.getByRole("button", { name: /Kirim Ulasan/i }).click();
-    const duplicateMessage = customer.getByRole("status");
-    await expect(duplicateMessage).toContainText(/sudah|already|conflict/i);
-    await expect(duplicateMessage).not.toContainText(/prisma|unique constraint|database/i);
+    // Setelah terkirim, form diganti tanda "Sudah diulas" sehingga ulasan tidak bisa dikirim dua kali.
+    await expect(customer.getByText(/Sudah diulas|Reviewed/i).first()).toBeVisible();
+    await expect(customer.getByRole("button", { name: /Kirim Ulasan/i })).toHaveCount(0);
 
     await merchant.goto("/merchant/reviews");
     const reviewCard = merchant.locator("article.merchant-review-card").filter({ hasText: reviewText });

@@ -6,7 +6,7 @@ import PageHeader from "../../components/ui/PageHeader";
 import StatusBadge from "../../components/ui/StatusBadge";
 import { usePreferences } from "../../context/PreferencesContext";
 import { deliveryApi } from "../../services/deliveryApiService";
-import { leavePhase } from "../../utils/courierLeave";
+import { leavePhase, leaveErrorText, toLocalInputValue } from "../../utils/courierLeave";
 
 const copyByLanguage = {
   id: {
@@ -17,6 +17,7 @@ const copyByLanguage = {
     status: { pending: "Menunggu Admin", approved: "Disetujui", running: "Sedang cuti", done: "Selesai", rejected: "Ditolak", cancelled: "Dibatalkan" },
     until: "sampai", open: "belum ditentukan", rejectedReason: "Alasan ditolak", cancel: "Batalkan pengajuan", endNow: "Akhiri cuti sekarang", noReason: "Tanpa alasan",
     current: "Kamu sedang cuti. Kamu tidak akan mendapat pengiriman sampai cuti selesai.", waiting: "Ada pengajuan cuti yang menunggu persetujuan Admin.",
+    startPast: "Tanggal mulai tidak boleh sebelum waktu sekarang. Pilih hari ini atau tanggal berikutnya.", endBeforeStart: "Waktu selesai harus setelah waktu mulai.", byAdmin: "Dicatat Admin",
   },
   en: {
     title: "Leave", description: "Request leave when you cannot deliver. Leave only applies after an Admin approves it.",
@@ -26,6 +27,7 @@ const copyByLanguage = {
     status: { pending: "Waiting for Admin", approved: "Approved", running: "On leave", done: "Finished", rejected: "Rejected", cancelled: "Cancelled" },
     until: "until", open: "not set", rejectedReason: "Rejection reason", cancel: "Cancel request", endNow: "End leave now", noReason: "No reason",
     current: "You are on leave. You will not get deliveries until it ends.", waiting: "A leave request is waiting for Admin approval.",
+    startPast: "The start cannot be earlier than now. Choose today or a later date.", endBeforeStart: "The end must be after the start.", byAdmin: "Recorded by Admin",
   },
 };
 const badgeTone = { pending: "pending", approved: "confirmed", running: "active", done: "completed", rejected: "rejected", cancelled: "inactive" };
@@ -37,6 +39,9 @@ export default function Availability() {
   const [rows, setRows] = useState([]);
   const [form, setForm] = useState({ startAt: "", endAt: "", reason: "" });
   const [state, setState] = useState({ loading: true, busy: false, error: "", notice: "" });
+  // Batas bawah input tanggal; diperbarui saat input disentuh supaya tidak basi kalau halaman lama terbuka.
+  const [minStart, setMinStart] = useState(() => toLocalInputValue());
+  const refreshMin = () => setMinStart(toLocalInputValue());
   const load = useCallback(async () => {
     try { setRows(await deliveryApi.availability()); }
     catch (cause) { setState((value) => ({ ...value, error: cause.message })); }
@@ -45,16 +50,20 @@ export default function Availability() {
   useEffect(() => { void load(); }, [load]);
   const running = useMemo(() => rows.find((row) => leavePhase(row) === "running"), [rows]);
   const pending = useMemo(() => rows.some((row) => row.status === "pending"), [rows]);
+  const startPast = Boolean(form.startAt) && form.startAt < minStart;
+  const endBeforeStart = Boolean(form.endAt) && Boolean(form.startAt) && form.endAt <= form.startAt;
   const when = (value) => formatDate(value, { dateStyle: "medium", timeStyle: "short" });
   const submit = async (event) => {
     event.preventDefault();
+    // Toleransi 10 menit sama dengan backend, supaya waktu "sekarang" yang dipilih tetap diterima.
+    if (new Date(form.startAt).getTime() < Date.now() - 10 * 60 * 1000) { refreshMin(); return; }
     setState((value) => ({ ...value, busy: true, error: "", notice: "" }));
     try {
       await deliveryApi.unavailable({ startAt: new Date(form.startAt).toISOString(), endAt: form.endAt ? new Date(form.endAt).toISOString() : null, reason: form.reason });
       setForm({ startAt: "", endAt: "", reason: "" });
       setState((value) => ({ ...value, notice: copy.sent }));
       await load();
-    } catch (cause) { setState((value) => ({ ...value, error: cause.message })); }
+    } catch (cause) { setState((value) => ({ ...value, error: leaveErrorText(cause) })); }
     finally { setState((value) => ({ ...value, busy: false })); }
   };
   const endPeriod = async (id) => {
@@ -75,17 +84,18 @@ export default function Availability() {
         <h2 className="text-lg font-extrabold">{copy.formTitle}</h2>
         <ol className="grid gap-1.5 text-sm text-[var(--kucur-text-muted)]">{copy.flow.map((step, index) => <li className="flex items-start gap-2.5" key={step}><span className="grid size-6 shrink-0 place-items-center rounded-full bg-[var(--kucur-green-soft)] text-xs font-extrabold text-[var(--kucur-green-ink)]">{index + 1}</span><span className="pt-0.5">{step}</span></li>)}</ol>
         <div className="grid items-start gap-4 sm:grid-cols-2">
-          <label className="grid content-start gap-1.5 text-[15px] font-semibold">{copy.start}<input className={inputClass} type="datetime-local" required value={form.startAt} onChange={(event) => setForm((value) => ({ ...value, startAt: event.target.value }))}/></label>
-          <label className="grid content-start gap-1.5 text-[15px] font-semibold">{copy.end}<input className={inputClass} type="datetime-local" min={form.startAt || undefined} value={form.endAt} onChange={(event) => setForm((value) => ({ ...value, endAt: event.target.value }))}/><span className="text-[13px] font-normal text-[var(--kucur-text-muted)]">{copy.endHint}</span></label>
+          <label className="grid content-start gap-1.5 text-[15px] font-semibold">{copy.start}<input className={inputClass} type="datetime-local" required min={minStart} aria-invalid={startPast || undefined} aria-describedby={startPast ? "leave-start-error" : undefined} value={form.startAt} onFocus={refreshMin} onChange={(event) => setForm((value) => ({ ...value, startAt: event.target.value }))}/>{startPast && <span className="text-[13px] font-semibold text-rose-700 dark:text-rose-300" id="leave-start-error" role="alert">{copy.startPast}</span>}</label>
+          <label className="grid content-start gap-1.5 text-[15px] font-semibold">{copy.end}<input className={inputClass} type="datetime-local" min={form.startAt || minStart} aria-invalid={endBeforeStart || undefined} value={form.endAt} onChange={(event) => setForm((value) => ({ ...value, endAt: event.target.value }))}/>{endBeforeStart ? <span className="text-[13px] font-semibold text-rose-700 dark:text-rose-300" role="alert">{copy.endBeforeStart}</span> : <span className="text-[13px] font-normal text-[var(--kucur-text-muted)]">{copy.endHint}</span>}</label>
         </div>
         <label className="grid content-start gap-1.5 text-[15px] font-semibold">{copy.reason}<textarea className={`${inputClass} min-h-24 resize-y py-3`} required maxLength="255" placeholder={copy.reasonPlaceholder} value={form.reason} onChange={(event) => setForm((value) => ({ ...value, reason: event.target.value }))}/></label>
-        <Button className="w-full sm:w-auto sm:justify-self-start" disabled={state.busy || !form.startAt || !form.reason.trim()} type="submit">{copy.submit}</Button>
+        <Button className="w-full sm:w-auto sm:justify-self-start" disabled={state.busy || !form.startAt || startPast || endBeforeStart || !form.reason.trim()} type="submit">{copy.submit}</Button>
       </form>
       <section className="min-w-0 rounded-xl border border-[var(--kucur-border)] bg-[var(--kucur-surface)]">
         <h2 className="px-4 pb-2 pt-4 text-lg font-extrabold sm:px-5">{copy.history}</h2>
         {rows.length ? <ul>{rows.map((row) => { const phase = leavePhase(row); return <li className="grid min-w-0 gap-2 border-t border-[var(--kucur-border)] px-4 py-3.5 sm:px-5" key={row.id}>
           <div className="flex flex-wrap items-start justify-between gap-2"><strong className="min-w-0 break-words text-[15px]">{when(row.startAt)}</strong><StatusBadge status={badgeTone[phase]}>{copy.status[phase]}</StatusBadge></div>
           <span className="text-sm text-[var(--kucur-text-muted)]">{copy.until} {row.endAt ? when(row.endAt) : copy.open}</span>
+          {row.createdByAdmin && <span className="justify-self-start rounded-md bg-[var(--kucur-surface-elevated)] px-2 py-0.5 text-[13px] font-semibold text-[var(--kucur-text-muted)]">{copy.byAdmin}</span>}
           <p className="break-words text-[15px]">{row.reason || copy.noReason}</p>
           {row.status === "rejected" && row.rejectionReason && <p className="rounded-lg bg-rose-50 px-3 py-2 text-sm text-rose-800 dark:bg-rose-950 dark:text-rose-200"><b>{copy.rejectedReason}:</b> {row.rejectionReason}</p>}
           {(phase === "pending" || phase === "approved") && <Button className="justify-self-start" variant="secondary" disabled={state.busy} onClick={() => void endPeriod(row.id)}>{copy.cancel}</Button>}

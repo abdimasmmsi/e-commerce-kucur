@@ -48,7 +48,8 @@ export default function BatchDetail() {
   const mutate = async (key, action) => {
     setState((value) => ({ ...value, busy: key, error: "" }));
     try { await action(); setFailure({ orderId: "", reason: "" }); await load(); }
-    catch (cause) { setState((value) => ({ ...value, error: cause.message })); }
+    // Gagal (mis. pesanan dibatalkan): tutup dialog supaya pesan terlihat, lalu muat ulang daftar dengan status terbaru.
+    catch (cause) { setFailure({ orderId: "", reason: "" }); await load(); setState((value) => ({ ...value, error: cause.message })); }
     finally { setState((value) => ({ ...value, busy: "" })); }
   };
   const choosePhoto = async (orderId, file) => {

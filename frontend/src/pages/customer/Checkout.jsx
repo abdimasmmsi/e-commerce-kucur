@@ -44,6 +44,11 @@ export default function Checkout() {
   const [location, setLocation] = useState({ status: "idle", latitude: null, longitude: null });
   const [confirmedRequest, setConfirmedRequest] = useState(null);
   const previewRun = useRef(0);
+  // Satu kunci per isi pesanan: kalau koneksi putus lalu pembeli menekan lagi, server mengembalikan pesanan yang sama
+  // (bukan membuat pesanan ganda). Kunci baru hanya dibuat saat isi pesanan berubah atau setelah pesanan berhasil.
+  const checkoutKey = useRef(makeKey());
+  const [retryPreview, setRetryPreview] = useState(0);
+  const [submitError, setSubmitError] = useState("");
   const directInput = useMemo(() => {
     const productId = searchParams.get("productId");
     if (!productId) return null;
@@ -109,16 +114,17 @@ export default function Checkout() {
       finally { if (run === previewRun.current) setCalculating(false); }
     }, 600);
     return () => clearTimeout(timer);
-  }, [destinationAddress, destinationLat, destinationLng, items, ready, request, saved?.label, t]);
+  }, [destinationAddress, destinationLat, destinationLng, items, ready, request, retryPreview, saved?.label, t]);
 
   const submit = async () => {
     if (!preview || !confirmedRequest || submitting || calculating) return;
-    setSubmitting(true); setError("");
-    try { const result = await checkoutApi.create(confirmedRequest, makeKey()); setCreated(result.orders ?? []); if (!selection.direct) void cartService.get().catch(() => null); }
-    catch (caught) { setError(caught.message); setPreview(null); setConfirmedRequest(null); }
+    setSubmitting(true); setError(""); setSubmitError("");
+    try { const result = await checkoutApi.create(confirmedRequest, checkoutKey.current); checkoutKey.current = makeKey(); setCreated(result.orders ?? []); if (!selection.direct) void cartService.get().catch(() => null); }
+    // Gagal (mis. stok berubah): tampilkan alasannya lalu hitung ulang total supaya pembeli bisa langsung mencoba lagi.
+    catch (caught) { setSubmitError(caught.message); setPreview(null); setConfirmedRequest(null); setRetryPreview((value) => value + 1); }
     finally { setSubmitting(false); }
   };
-  const resetPreview = () => { setPreview(null); setConfirmedRequest(null); };
+  const resetPreview = () => { setPreview(null); setConfirmedRequest(null); setSubmitError(""); checkoutKey.current = makeKey(); };
 
   if (created.length) {
     const totalToPay = created.reduce((sum, order) => sum + Number(order.totalAmount ?? order.grandTotal ?? 0), 0);
@@ -146,7 +152,7 @@ export default function Checkout() {
 
   return <PageContainer className="space-y-5 pb-28 lg:pb-0">
     <header><h1 className="text-2xl font-extrabold">{t(selection.direct ? "checkout.directTitle" : "checkout.title")}</h1></header>
-    {error && <p className="rounded-xl border border-rose-300 bg-rose-50 p-4 text-[15px] text-rose-800 dark:border-rose-800 dark:bg-rose-950 dark:text-rose-200" role="alert">{error}</p>}
+    {[submitError, error].filter((message, index, list) => message && list.indexOf(message) === index).map((message) => <p className="rounded-xl border border-rose-300 bg-rose-50 p-4 text-[15px] text-rose-800 dark:border-rose-800 dark:bg-rose-950 dark:text-rose-200" role="alert" key={message}>{message}</p>)}
     {loading ? <div className="rounded-2xl border border-[var(--kucur-border)] bg-[var(--kucur-surface)] p-8 text-center">{t("checkout.loading")}</div> : <div className="grid min-w-0 items-start gap-5 lg:grid-cols-[minmax(0,1.5fr)_minmax(300px,.7fr)]">
       <main className="grid min-w-0 gap-4">
         <section className={cardClass} aria-labelledby="checkout-recipient">

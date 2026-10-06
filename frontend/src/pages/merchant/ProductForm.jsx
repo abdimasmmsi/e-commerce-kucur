@@ -19,12 +19,23 @@ const emptyForm = {
   name: "",
   category: "",
   price: "",
+  compareAtPrice: "",
   stock: "",
   description: "",
   status: "active",
 };
 
-function validateProduct(form, hasVariants = false, t) {
+// Teks harga coret (belum ada di berkas locale bersama, jadi disimpan lokal di sini).
+const compareCopyByLanguage = {
+  id: { label: "Harga coret (sebelum diskon)", optional: "Opsional", help: "Kosongkan jika tidak ada diskon. Pembeli melihat harga ini dicoret.", mustBeHigher: "Harga coret harus lebih besar dari harga jual.", discount: "Diskon {percent}%", variantInvalid: "Harga coret variasi harus lebih besar dari harga jualnya." },
+  en: { label: "Compare-at price (before discount)", optional: "Optional", help: "Leave empty if there is no discount. Buyers see this price struck through.", mustBeHigher: "Compare-at price must be higher than the selling price.", discount: "{percent}% off", variantInvalid: "A variant compare-at price must be higher than its selling price." },
+};
+
+const hasCompareAt = (value) => value !== "" && value !== null && value !== undefined;
+const compareAtInvalid = (compareAt, price) => hasCompareAt(compareAt) && Number(compareAt) <= Number(price);
+const discountPercent = (compareAt, price) => (hasCompareAt(compareAt) && Number(price) > 0 && Number(compareAt) > Number(price) ? Math.round((1 - Number(price) / Number(compareAt)) * 100) : 0);
+
+function validateProduct(form, hasVariants = false, t, compareCopy) {
   const errors = {};
   if (!form.name.trim()) errors.name = t("productForm.validation.name");
   if (!form.category) errors.category = t("productForm.validation.category");
@@ -32,6 +43,7 @@ function validateProduct(form, hasVariants = false, t) {
   else if (!hasVariants && Number(form.price) <= 0) errors.price = t("productForm.validation.pricePositive");
   if (!hasVariants && form.stock === "") errors.stock = t("productForm.validation.stockRequired");
   else if (!hasVariants && Number(form.stock) < 0) errors.stock = t("productForm.validation.stockNonnegative");
+  if (!hasVariants && !errors.price && compareAtInvalid(form.compareAtPrice, form.price)) errors.compareAtPrice = compareCopy.mustBeHigher;
   if (!form.description.trim()) errors.description = t("productForm.validation.description");
   return errors;
 }
@@ -42,6 +54,7 @@ function toFormValues(product) {
     name: product.name,
     category: product.category,
     price: String(product.price),
+    compareAtPrice: product.compareAtPrice == null ? "" : String(product.compareAtPrice),
     stock: String(product.stock),
     description: product.description,
     status: product.status,
@@ -67,7 +80,8 @@ function generateVariantCombinations(groups, currentVariants, defaultPrice = 0) 
 function ProductFormWorkspace({ mode, storeId, productId, routeStore }) {
   const navigate = useNavigate();
   const isEdit = mode === "edit";
-  const { errorMessage, t } = usePreferences();
+  const { errorMessage, language, t } = usePreferences();
+  const compareCopy = compareCopyByLanguage[language] ?? compareCopyByLanguage.id;
   const [existingProduct, setExistingProduct] = useState(null);
   const [loading, setLoading] = useState(isEdit);
   const [saving, setSaving] = useState(false);
@@ -175,7 +189,7 @@ function ProductFormWorkspace({ mode, storeId, productId, routeStore }) {
   };
   const removeVariantOption = (groupId, option) => commitGroups(variantGroups.map((group) => group.id === groupId ? { ...group, options: group.options.filter((item) => item !== option) } : group));
   const removeVariantGroup = (groupId) => commitGroups(variantGroups.filter((group) => group.id !== groupId));
-  const updateVariant = (variantId, field, value) => setVariants((current) => current.map((variant) => variant.id === variantId ? { ...variant, [field]: field === "status" ? value : Math.max(Number(value) || 0, 0) } : variant));
+  const updateVariant = (variantId, field, value) => setVariants((current) => current.map((variant) => variant.id === variantId ? { ...variant, [field]: field === "status" ? value : field === "compareAtPrice" ? (value === "" ? null : Math.max(Number(value) || 0, 0)) : Math.max(Number(value) || 0, 0) } : variant));
   const uploadVariantImage = async (variantId, file) => {
     if (!file) return;
     setProcessingImages(true);
@@ -199,22 +213,23 @@ function ProductFormWorkspace({ mode, storeId, productId, routeStore }) {
 
   const handleChange = (event) => {
     const { name, value } = event.target;
-    const safeValue = (name === "price" || name === "stock") && Number(value) < 0 ? "0" : value;
+    const safeValue = (name === "price" || name === "stock" || name === "compareAtPrice") && Number(value) < 0 ? "0" : value;
     setForm((current) => ({ ...current, [name]: safeValue }));
     if (errors[name]) setErrors((current) => ({ ...current, [name]: "" }));
   };
 
   const handleSubmit = async (event) => {
     event.preventDefault();
-    const nextErrors = validateProduct(form, hasVariants, t);
+    const nextErrors = validateProduct(form, hasVariants, t, compareCopy);
     if (hasVariants) {
       const groupNames = variantGroups.map((group) => group.name.trim().toLowerCase());
       if (!variantGroups.length || variantGroups.some((group) => !group.name.trim() || !group.options.length)) setVariantError(t("productForm.groupRequired"));
       else if (new Set(groupNames).size !== groupNames.length) setVariantError(t("productForm.groupDuplicate"));
       else if (!variants.length || variants.some((variant) => Number(variant.price) <= 0 || Number(variant.stock) < 0)) setVariantError(t("productForm.skuInvalid"));
+      else if (variants.some((variant) => compareAtInvalid(variant.compareAtPrice, variant.price))) setVariantError(compareCopy.variantInvalid);
     }
     const groupNames = variantGroups.map((group) => group.name.trim().toLowerCase());
-    if (Object.keys(nextErrors).length > 0 || (hasVariants && (!variantGroups.length || variantGroups.some((group) => !group.name.trim() || !group.options.length) || new Set(groupNames).size !== groupNames.length || !variants.length || variants.some((variant) => Number(variant.price) <= 0 || Number(variant.stock) < 0)))) {
+    if (Object.keys(nextErrors).length > 0 || (hasVariants && (!variantGroups.length || variantGroups.some((group) => !group.name.trim() || !group.options.length) || new Set(groupNames).size !== groupNames.length || !variants.length || variants.some((variant) => Number(variant.price) <= 0 || Number(variant.stock) < 0 || compareAtInvalid(variant.compareAtPrice, variant.price))))) {
       setErrors(nextErrors);
       return;
     }
@@ -223,6 +238,7 @@ function ProductFormWorkspace({ mode, storeId, productId, routeStore }) {
       name: form.name.trim(),
       category: form.category,
       price: Number(form.price),
+      compareAtPrice: !hasVariants && hasCompareAt(form.compareAtPrice) ? Number(form.compareAtPrice) : null,
       stock: Number(form.stock),
       description: form.description.trim(),
       images,
@@ -230,7 +246,7 @@ function ProductFormWorkspace({ mode, storeId, productId, routeStore }) {
       status: form.status,
       hasVariants,
       variantGroups: hasVariants ? variantGroups : [],
-      variants: hasVariants ? variants : [],
+      variants: hasVariants ? variants.map((variant) => ({ ...variant, compareAtPrice: hasCompareAt(variant.compareAtPrice) ? Number(variant.compareAtPrice) : null })) : [],
     };
 
     setSaving(true); setApiError("");
@@ -310,6 +326,11 @@ function ProductFormWorkspace({ mode, storeId, productId, routeStore }) {
                 {errors.price && <small id="product-price-error">{errors.price}</small>}
               </label>
               <label className="merchant-edit-product__field">
+                <span>{compareCopy.label} <em className="font-medium not-italic text-[var(--kucur-text-muted)]">({compareCopy.optional})</em></span>
+                <span className="merchant-edit-product__currency-input"><span>IDR</span><input name="compareAtPrice" type="number" min="1" value={form.compareAtPrice} onChange={handleChange} placeholder="0" aria-invalid={Boolean(errors.compareAtPrice)} aria-describedby={errors.compareAtPrice ? "product-compare-error" : "product-compare-help"} /></span>
+                {errors.compareAtPrice ? <small id="product-compare-error">{errors.compareAtPrice}</small> : compareAtInvalid(form.compareAtPrice, form.price) && form.price !== "" ? <small id="product-compare-help" role="status">{compareCopy.mustBeHigher}</small> : discountPercent(form.compareAtPrice, form.price) ? <small id="product-compare-help" className="merchant-edit-product__hint" role="status">{compareCopy.discount.replace("{percent}", discountPercent(form.compareAtPrice, form.price))}</small> : <small id="product-compare-help" className="merchant-edit-product__help">{compareCopy.help}</small>}
+              </label>
+              <label className="merchant-edit-product__field">
                 <span>{t("productForm.stock")}</span>
                 <input name="stock" type="number" min="0" step="1" value={form.stock} onChange={handleChange} placeholder="0" aria-invalid={Boolean(errors.stock)} aria-describedby={errors.stock ? "product-stock-error" : undefined} />
                 {errors.stock && <small id="product-stock-error">{errors.stock}</small>}
@@ -361,6 +382,7 @@ function ProductFormWorkspace({ mode, storeId, productId, routeStore }) {
                   <div className="merchant-edit-product__variant-card-fields">
                     <div className="merchant-edit-product__variant-image">{variant.image && <ProductImage image={variant.image} alt={t("productForm.variantPhoto", { variant: variantName })} />}{variant.image ? <button type="button" onClick={() => removeVariantImage(variant.id)}>{t("productForm.removePhoto")}</button> : <><input className="merchant-edit-product__native-file" id={variantInputId} type="file" accept="image/jpeg,image/png,image/webp" onChange={(event) => uploadVariantImage(variant.id, event.target.files[0])} disabled={processingImages} /><label htmlFor={variantInputId}>{t("productForm.chooseVariantPhoto")}</label></>}</div>
                     <label className="merchant-edit-product__field"><span>{t("productForm.price")}</span><input type="number" min="1" value={variant.price} onChange={(event) => updateVariant(variant.id, "price", event.target.value)} /></label>
+                    <label className="merchant-edit-product__field"><span>{compareCopy.label}</span><input type="number" min="1" value={variant.compareAtPrice ?? ""} placeholder={compareCopy.optional} aria-invalid={compareAtInvalid(variant.compareAtPrice, variant.price)} onChange={(event) => updateVariant(variant.id, "compareAtPrice", event.target.value)} />{compareAtInvalid(variant.compareAtPrice, variant.price) ? <small role="status">{compareCopy.mustBeHigher}</small> : discountPercent(variant.compareAtPrice, variant.price) ? <small className="merchant-edit-product__hint" role="status">{compareCopy.discount.replace("{percent}", discountPercent(variant.compareAtPrice, variant.price))}</small> : null}</label>
                     <label className="merchant-edit-product__field"><span>{t("productForm.stock")}</span><input type="number" min="0" value={variant.stock} onChange={(event) => updateVariant(variant.id, "stock", event.target.value)} /></label>
                     <label className="merchant-edit-product__field"><span>{t("productForm.status")}</span><select value={variant.status} onChange={(event) => updateVariant(variant.id, "status", event.target.value)}><option value="active">{t("productForm.active")}</option><option value="inactive">{t("productForm.inactive")}</option></select></label>
                   </div>

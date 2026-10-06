@@ -26,6 +26,8 @@
 .merchant-edit-product input:focus, .merchant-edit-product select:focus, .merchant-edit-product textarea:focus { border-color: var(--edit-accent); box-shadow: 0 0 0 3px color-mix(in srgb, var(--edit-accent) 17%, transparent); }
 .merchant-edit-product [aria-invalid="true"] { border-color: #be3745 !important; }
 .merchant-edit-product__field small, .merchant-edit-product__inline-error { color: #b42335; font-size: .8rem; }
+.merchant-edit-product__field .merchant-edit-product__hint { color: var(--kucur-green-ink); font-size: .8rem; font-weight: 700; }
+.merchant-edit-product__field .merchant-edit-product__help { color: var(--kucur-text-muted); font-size: .8rem; font-weight: 500; }
 .merchant-edit-product__currency-input { display: grid; grid-template-columns: auto 1fr; align-items: center; overflow: hidden; border: 1px solid var(--kucur-border-strong); border-radius: .75rem; background: var(--kucur-surface-elevated, var(--kucur-surface)); }
 .merchant-edit-product__currency-input > span { padding-inline: .8rem; color: var(--edit-muted); font-size: .8rem; font-weight: 800; }
 .merchant-edit-product__currency-input input { border: 0 !important; border-left: 1px solid var(--kucur-border) !important; border-radius: 0 !important; box-shadow: none !important; }
@@ -67,7 +69,7 @@
 .merchant-edit-product__option-list button { min-height: auto; padding: .2rem .45rem; border: 0; background: transparent; color: inherit; }
 .merchant-edit-product__add-group { justify-self: start; color: var(--edit-accent) !important; }
 .merchant-edit-product__variant-card header small { display: block; margin-top: .15rem; color: var(--edit-muted); }
-.merchant-edit-product__variant-card-fields { display: grid; grid-template-columns: minmax(7rem, .7fr) repeat(3, minmax(0, 1fr)); align-items: end; gap: .65rem; margin-top: .75rem; }
+.merchant-edit-product__variant-card-fields { display: grid; grid-template-columns: minmax(7rem, .7fr) repeat(4, minmax(0, 1fr)); align-items: start; gap: .65rem; margin-top: .75rem; }
 .merchant-edit-product__variant-image { display: grid; gap: .35rem; }
 .merchant-edit-product__variant-image img { width: 100%; max-width: 7rem; aspect-ratio: 1; border-radius: .65rem; object-fit: cover; }
 .merchant-edit-product__variant-image label { display: inline-grid; place-items: center; text-align: center; }

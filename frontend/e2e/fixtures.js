@@ -57,7 +57,20 @@ export async function qaScreenshot(page, area, name) {
   await page.screenshot({ path: path.join(folder, `${name}.png`), fullPage: true });
 }
 
+const snoozeBatchReminder = () => { try { sessionStorage.setItem("kucur:batch-reminder-snooze", String(Date.now() + 86400000)); } catch { /* abaikan */ } };
+
 export const test = base.extend({
+  // Pengingat keras batch admin muncul menjelang jam berangkat kurir; di tes ditunda (seperti menekan "Nanti")
+  // supaya hasil tes tidak bergantung pada jam saat dijalankan. Berlaku juga untuk browser.newContext() di spec.
+  browser: [async ({ browser }, provide) => {
+    const newContext = browser.newContext.bind(browser);
+    browser.newContext = async (options) => { const context = await newContext(options); await context.addInitScript(snoozeBatchReminder); return context; };
+    await provide(browser);
+  }, { scope: "worker" }],
+  context: async ({ context }, provide) => {
+    await context.addInitScript(snoozeBatchReminder);
+    await provide(context);
+  },
   qaPage: async ({ page }, provide, testInfo) => {
     const finish = await attachDiagnostics(page, testInfo);
     await provide(page);

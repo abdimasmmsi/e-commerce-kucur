@@ -37,6 +37,8 @@ function adminRoutes({ deliveryService, authMiddleware }) {
   router.get("/drafts", handler((req) => deliveryService.drafts(req.query)));
   router.post("/drafts/approve", handler((req) => deliveryService.approveDrafts(req.body || {}, req.auth.user), 201));
   router.get("/leave-requests", handler(() => deliveryService.leaveRequests()));
+  router.post("/couriers/:courierUserId/leave", handler((req) => deliveryService.recordLeaveByAdmin(req.params.courierUserId, req.body || {}, req.auth.user), 201));
+  router.patch("/leave-requests/:courierUserId/:id/end", handler((req) => deliveryService.endLeaveByAdmin(req.params.courierUserId, req.params.id, req.auth.user)));
   router.patch("/leave-requests/:courierUserId/:id", handler((req) => deliveryService.reviewLeave(req.params.courierUserId, req.params.id, req.body || {}, req.auth.user)));
   router.get("/batches", handler((req) => deliveryService.batches(req.auth.user, req.query)));
   router.post("/batches", handler((req) => deliveryService.createBatch(req.body || {}, req.auth.user), 201));

@@ -1,11 +1,12 @@
 import { useEffect, useMemo, useState } from "react";
-import { Link } from "react-router-dom";
+import { Link, useNavigate } from "react-router-dom";
 import ProductImage from "../../components/ProductImage";
 import PageContainer from "../../components/ui/PageContainer";
 import StatusBadge from "../../components/ui/StatusBadge";
 import { usePreferences } from "../../context/PreferencesContext";
 import { orderService } from "../../services/commerceService";
 import { shortOrderCode } from "../../utils/orderCode";
+import { buyAgain } from "../../utils/buyAgain";
 
 const customerCancellableStatuses = ["pending", "confirmed"];
 const doneStatuses = ["delivered", "completed"];
@@ -31,9 +32,11 @@ function OrderSkeleton() {
 
 function Orders() {
   const { formatCurrency, formatDate, t } = usePreferences();
+  const navigate = useNavigate();
   const [orders, setOrders] = useState([]);
   const [tab, setTab] = useState("active");
   const [cancelling, setCancelling] = useState(null);
+  const [cancelBusy, setCancelBusy] = useState(false);
   const [reason, setReason] = useState("");
   const [error, setError] = useState("");
   const [loading, setLoading] = useState(true);
@@ -51,6 +54,8 @@ function Orders() {
   }, [orders, tab]);
 
   const cancel = async (orderId) => {
+    if (cancelBusy) return;
+    setCancelBusy(true);
     try {
       const result = await orderService.cancel(orderId, reason);
       setOrders((current) => current.map((order) => order.id === orderId ? result : order));
@@ -59,7 +64,16 @@ function Orders() {
       setError("");
     } catch (requestError) {
       setError(requestError.message);
-    }
+      // Status bisa sudah berubah (mis. lapak mulai mengemas); muat ulang supaya tombol batal ikut hilang.
+      orderService.list().then(setOrders).catch(() => null);
+    } finally { setCancelBusy(false); }
+  };
+
+  const reorder = async (order) => {
+    setError("");
+    const result = await buyAgain(order);
+    if (!result.added) return setError(t("customerOrders.buyAgainNone"));
+    navigate("/cart", { state: { buyAgainSkipped: result.skipped } });
   };
 
   return <PageContainer className="space-y-2.5 !pt-0 sm:space-y-4 sm:!pt-8">
@@ -82,6 +96,7 @@ function Orders() {
         const [stepIndex, stepKey] = progress[order.status] ?? [0, "stepPending"];
         const isPaid = order.paymentStatus === "paid";
         const canCancel = customerCancellableStatuses.includes(order.status);
+        const canReorder = doneStatuses.includes(order.status) || order.status === "cancelled";
         const isMoving = ["picked-up", "on-delivery", "courier-assigned", "ready-for-pickup"].includes(order.status);
         return <article className="flex min-w-0 flex-col gap-3 border-[var(--kucur-border)] bg-[var(--kucur-surface)] p-4 max-sm:border-y sm:rounded-xl sm:border" key={order.id}>
           <div className="flex min-w-0 items-start justify-between gap-3">
@@ -97,11 +112,12 @@ function Orders() {
           <div className="flex min-w-0 flex-wrap items-center justify-between gap-3 border-t border-dashed border-[var(--kucur-border-strong)] pt-3">
             <div className="min-w-0 flex-1"><span className="block text-[13px] text-[var(--kucur-text-muted)]">{order.status === "cancelled" ? t("customerOrders.total") : isPaid ? t("customerOrders.paid") : t("customerOrders.payOnArrival")}</span><strong className="block text-lg font-extrabold text-[var(--kucur-text)]">{formatCurrency(order.totalAmount)}</strong></div>
             <div className={`${canCancel ? "grid w-full grid-cols-2" : "flex shrink-0"} gap-2`}>
+              {canReorder && <button className="min-h-11 rounded-xl border border-[var(--kucur-green)] bg-[var(--kucur-green)] px-4 text-sm font-bold text-[var(--kucur-on-green)]" type="button" onClick={() => reorder(order)}>{t("customerOrders.buyAgain")}</button>}
               {canCancel && <button className="min-h-11 rounded-xl border border-rose-300 px-3 text-sm font-bold text-rose-700 hover:bg-rose-50 dark:border-rose-800 dark:text-rose-300 dark:hover:bg-rose-950" type="button" onClick={() => { setCancelling(order.id); setReason(""); setError(""); }}>{t("customerOrders.cancel")}</button>}
               <Link className={`inline-flex min-h-11 items-center justify-center rounded-xl px-4 text-sm font-bold ${isMoving ? "bg-[var(--kucur-green)] text-[var(--kucur-on-green)]" : "border border-[var(--kucur-border-strong)] text-[var(--kucur-text)] hover:border-[var(--kucur-green)]"}`} to={`/orders/${order.id}`} aria-label={`${t("customerOrders.details")} ${shortOrderCode(order.orderCode ?? order.orderNumber)}`}>{isMoving ? t("customerOrders.track") : t("customerOrders.details")}</Link>
             </div>
           </div>
-          {cancelling === order.id && <div className="grid gap-3 rounded-xl border border-rose-300 bg-[var(--kucur-surface-elevated)] p-3 dark:border-rose-800"><label className="grid gap-1.5 text-[15px] font-semibold text-[var(--kucur-text)]"><span>{t("customerOrders.cancellationReason")}</span><textarea className="w-full rounded-xl border border-[var(--kucur-border-strong)] bg-[var(--kucur-surface)] px-3 py-2 text-base text-[var(--kucur-text)]" rows="3" value={reason} onChange={(event) => { setReason(event.target.value); setError(""); }} placeholder={t("customerOrders.cancellationPlaceholder")}/></label>{error && <p className="text-sm text-rose-700 dark:text-rose-300" role="alert">{error}</p>}<div className="grid grid-cols-2 gap-2 sm:flex sm:justify-end"><button className="min-h-11 rounded-xl border border-[var(--kucur-border-strong)] bg-[var(--kucur-surface)] px-3 text-sm font-bold text-[var(--kucur-text)]" type="button" onClick={() => { setCancelling(null); setError(""); }}>{t("customerOrders.back")}</button><button className="min-h-11 rounded-xl bg-rose-600 px-3 text-sm font-bold text-white" type="button" onClick={() => cancel(order.id)}>{t("customerOrders.confirmCancellation")}</button></div></div>}
+          {cancelling === order.id && <div className="grid gap-3 rounded-xl border border-rose-300 bg-[var(--kucur-surface-elevated)] p-3 dark:border-rose-800"><label className="grid gap-1.5 text-[15px] font-semibold text-[var(--kucur-text)]"><span>{t("customerOrders.cancellationReason")}</span><textarea className="w-full rounded-xl border border-[var(--kucur-border-strong)] bg-[var(--kucur-surface)] px-3 py-2 text-base text-[var(--kucur-text)]" rows="3" value={reason} onChange={(event) => { setReason(event.target.value); setError(""); }} placeholder={t("customerOrders.cancellationPlaceholder")}/></label>{error && <p className="text-sm text-rose-700 dark:text-rose-300" role="alert">{error}</p>}<div className="grid grid-cols-2 gap-2 sm:flex sm:justify-end"><button className="min-h-11 rounded-xl border border-[var(--kucur-border-strong)] bg-[var(--kucur-surface)] px-3 text-sm font-bold text-[var(--kucur-text)]" type="button" onClick={() => { setCancelling(null); setError(""); }}>{t("customerOrders.back")}</button><button className="min-h-11 rounded-xl bg-rose-600 px-3 text-sm font-bold text-white disabled:opacity-60" type="button" disabled={cancelBusy} onClick={() => cancel(order.id)}>{t("customerOrders.confirmCancellation")}</button></div></div>}
         </article>;
       })}
     </section>

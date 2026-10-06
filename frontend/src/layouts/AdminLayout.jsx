@@ -5,6 +5,8 @@ import WorkspaceNavIcon from "../components/WorkspaceNavIcon";
 import ChatUnreadBadge from "../components/ChatUnreadBadge";
 import DeliveryApprovalReminder from "../components/admin/DeliveryApprovalReminder";
 import { usePreferences } from "../context/PreferencesContext";
+import WorkspaceSidebarControls, { WorkspaceSidebarResizer } from "../components/WorkspaceSidebarControls";
+import { useWorkspaceSidebar } from "../utils/useWorkspaceSidebar";
 import "./AdminLayout.css";
 import "../components/CustomerBottomNav.css";
 import "../styles/workspace-shell.css";
@@ -20,8 +22,9 @@ const adminNavigation = [
 
 function AdminLayout() {
   const [sidebarOpen, setSidebarOpen] = useState(false);
+  const sidebar = useWorkspaceSidebar("admin");
   const { language, t } = usePreferences();
-  const tabCopy = language === "id" ? { home: "Beranda", orders: "Transaksi", delivery: "Pengiriman", menu: "Menu" } : { home: "Home", orders: "Orders", delivery: "Delivery", menu: "Menu" };
+  const tabCopy = language === "id" ? { home: "Beranda", orders: "Transaksi", delivery: "Pengiriman", menu: "Menu" } : { home: "Home", orders: "Transactions", delivery: "Delivery", menu: "Menu" };
   const closeSidebar = () => setSidebarOpen(false);
 
   useEffect(() => {
@@ -35,7 +38,8 @@ function AdminLayout() {
       <DeliveryApprovalReminder />
       <div className="admin-layout">
       {sidebarOpen && <button className="admin-overlay" type="button" onClick={closeSidebar} aria-label={t("workspace.closeMenu")} />}
-      <aside className={`admin-sidebar ${sidebarOpen ? "open" : ""}`}>
+      <aside className={`admin-sidebar ${sidebarOpen ? "open" : ""}`} {...sidebar.sidebarProps}>
+        <WorkspaceSidebarControls sidebar={sidebar} />
         <div className="admin-sidebar-header">
           <h2>{t("workspace.admin")}</h2>
           <button className="admin-close-button" onClick={closeSidebar} type="button" aria-label={t("workspace.closeMenu")}><span className="workspace-close-icon" aria-hidden="true" /></button>
@@ -51,6 +55,7 @@ function AdminLayout() {
           </section>
         </nav>
       </aside>
+      <WorkspaceSidebarResizer sidebar={sidebar} />
       <main className="admin-main">
         <div className="admin-mobile-header">
           <button className="admin-menu-button" onClick={() => setSidebarOpen(true)} type="button" aria-label={t("workspace.openMenu")}><span className="menu-glyph" aria-hidden="true"><i /><i /><i /></span></button>

@@ -74,7 +74,7 @@ test("final Delivery profile role and availability history use CourierProfile on
   const startAt = new Date(Date.now() + 86400000);
   const unavailable = await service.createAvailability({ startAt, reason: "QA" }, { id: f.courierId });
   assert.equal((await service.availability({ id: f.courierId })).length, 1);
-  await assert.rejects(service.createAvailability({ startAt, endAt: new Date(startAt.getTime() + 7200000) }, { id: f.courierId }), /bertumpang tindih/i);
+  await assert.rejects(service.createAvailability({ startAt, endAt: new Date(startAt.getTime() + 7200000), reason: "QA lagi" }, { id: f.courierId }), /bertumpang tindih/i);
   assert.deepEqual(await service.endAvailability(unavailable.id, { id: f.courierId }), { ended: true });
   assert.equal((await repository.delivery.profile(f.courierId)).availabilityStatus, "AVAILABLE");
 }));
@@ -127,6 +127,54 @@ test("final Delivery failure remains historical and permits controlled rebatch",
   assert.notEqual(result.assignment.id, failed.id);
   assert.equal((await tx.targetDeliveryBatchOrder.count({ where: { commerceOrderId: order.id } })), 2);
   assert.equal((await repository.delivery.activities(order.id)).at(-1).status, "REBATCHED");
+}));
+
+test("final cancelling a batched order removes it from the courier run so it cannot be picked up", async () => rollback(async (service, repository, tx) => {
+  const { createCommerceService } = require("../services/commerceService");
+  const f = await fixture(tx);
+  const order = await createOrder(tx, f, "CONFIRMED", { cod: true });
+  const deliveryDate = service.resolveDeliveryDate(order.createdAt, "23:59");
+  await service.createBatch({ courierUserId: f.courierId, deliveryDate, commerceOrderIds: [order.id] }, { id: f.adminId, roles: ["admin"] });
+  await createCommerceService(repository).cancel(order.id, "Salah pesan", { id: f.customerId, roles: ["customer"] });
+  assert.equal((await repository.delivery.latestAssignment(order.id)).status, "CANCELLED");
+  await assert.rejects(service.pickup(order.id, {}, { id: f.courierId }), /tidak ditugaskan/i);
+  await assert.rejects(service.proof(order.id, { photoUrl: "https://qa.invalid/p.jpg" }, { id: f.courierId }), /tidak ditugaskan/i);
+  const stored = await tx.targetCommerceOrder.findUnique({ where: { id: order.id }, include: { paymentAttempts: true } });
+  assert.equal(stored.fulfillmentStatus, "CANCELLED");
+  assert.equal(stored.paymentAttempts[0].status, "CANCELLED");
+  const notice = await tx.targetNotification.findFirst({ where: { userId: f.courierId, type: "COMMERCE_ORDER_CANCELLED" } });
+  assert.ok(notice, "kurir diberi tahu pesanan batal");
+}));
+
+test("final admin can cancel an order after a failed delivery and stock returns; zero-fee orders still get delivered", async () => rollback(async (service, repository, tx) => {
+  const { createCommerceService } = require("../services/commerceService");
+  const commerce = createCommerceService(repository);
+  const f = await fixture(tx);
+  const order = await createOrder(tx, f, "PROCESSING", { cod: true });
+  await tx.targetCommerceOrder.update({ where: { id: order.id }, data: { deliveryFee: 0 } });
+  const deliveryDate = service.resolveDeliveryDate(order.createdAt, "23:59");
+  await service.createBatch({ courierUserId: f.courierId, deliveryDate, commerceOrderIds: [order.id] }, { id: f.adminId, roles: ["admin"] });
+  await service.pickup(order.id, {}, { id: f.courierId });
+  await service.outForDelivery(order.id, {}, { id: f.courierId });
+  await assert.rejects(commerce.cancel(order.id, "Pembeli menolak", { id: f.adminId, roles: ["admin"] }), (error) => error.code === "VALIDATION_ERROR");
+  await service.failed(order.id, { reason: "Pembeli menolak barang" }, { id: f.courierId });
+  await assert.rejects(commerce.cancel(order.id, "Batal", { id: f.customerId, roles: ["customer"] }));
+  await assert.rejects(commerce.cancel(order.id, "", { id: f.adminId, roles: ["admin"] }), (error) => error.code === "VALIDATION_ERROR" && Boolean(error.details?.reason));
+  await commerce.cancel(order.id, "Pembeli menolak barang", { id: f.adminId, roles: ["admin"] });
+  const stored = await tx.targetCommerceOrder.findUnique({ where: { id: order.id }, include: { paymentAttempts: true } });
+  assert.equal(stored.fulfillmentStatus, "CANCELLED");
+  assert.equal(stored.paymentAttempts[0].status, "CANCELLED");
+}));
+
+test("final order missed on its own day rolls over into a later delivery draft and batch", async () => rollback(async (service, repository, tx) => {
+  const f = await fixture(tx);
+  const order = await createOrder(tx, f, "PROCESSING");
+  await tx.targetCommerceOrder.update({ where: { id: order.id }, data: { createdAt: new Date(Date.now() - 3 * 86400000) } });
+  const today = service.resolveDeliveryDate(new Date(), "23:59");
+  const draft = await service.drafts({ deliveryDate: today });
+  assert.ok([...draft.couriers.flatMap((item) => item.orders), ...draft.unassigned].some((item) => item.id === order.id), "order lama ikut draf hari ini");
+  const batch = await service.createBatch({ courierUserId: f.courierId, deliveryDate: today, commerceOrderIds: [order.id] }, { id: f.adminId, roles: ["admin"] });
+  assert.equal(batch.orders.length, 1);
 }));
 
 test.after(disconnectPrisma);

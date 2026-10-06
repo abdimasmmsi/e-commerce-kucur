@@ -48,6 +48,7 @@ function createApp(options = {}) {
   const repository = finalRepository ? createRepositoryReadRouter(writeRepository, finalRepository, { allowFinal: allowFinalReads, ...(options.readRouter || {}), shadowSynchronizer }) : legacyRepository;
   const authService = options.authService || createAuthService(repository);
   const authMiddleware = createAuthMiddleware(authService);
+  require("./services/pushService").setRepository(repository);
   const notificationService = createNotificationService(repository); const dependencies = { repository, authService, authMiddleware, authRateLimits: options.authRateLimits, notificationService, chatService: createChatService(repository), deliveryService: createDeliveryService(repository), storeService: createStoreService(repository), productService: createProductService(repository), cartService: createCartService(repository), commerceService: createCommerceService(repository), financeService: createFinanceService(repository), reviewService: createReviewService(repository, notificationService), settingsService: createSettingsService(repository), userService: createUserService(repository) };
   const app = express();
   app.disable("x-powered-by");

@@ -13,6 +13,8 @@ import {
 import { canonicalStoreId } from "../services/legacyStoreReferences";
 import "../styles/workspace-shell.css";
 import "../components/ui/LoadingPanel.css";
+import WorkspaceSidebarControls, { WorkspaceSidebarResizer } from "../components/WorkspaceSidebarControls";
+import { useWorkspaceSidebar } from "../utils/useWorkspaceSidebar";
 import "./MerchantLayout.css";
 import "../components/CustomerBottomNav.css";
 
@@ -53,6 +55,7 @@ function MerchantLayout() {
   const tabCopy = language === "id" ? { home: "Beranda", homeLong: "Beranda Lapak", orders: "Pesanan", products: "Produk", menu: "Menu" } : { home: "Home", homeLong: "Store Home", orders: "Orders", products: "Products", menu: "Menu" };
   const mismatchCopy = language === "id" ? { eyebrow: "Workspace tidak cocok", title: "Fitur tidak tersedia untuk jenis lapak ini", body: "{store} adalah lapak {type}. Pilih menu yang sesuai dengan jenis lapak aktif.", back: "Kembali ke Beranda Lapak" } : { eyebrow: "Workspace mismatch", title: "This feature is not available for this store type", body: "{store} is a {type} store. Choose a menu that matches the active store.", back: "Back to Store Home" };
   const [sidebarOpen, setSidebarOpen] = useState(false);
+  const sidebar = useWorkspaceSidebar("merchant");
 
   const storeRouteMatch = location.pathname.match(/^\/merchant\/stores\/([^/]+)(?:\/([^/]+))?/);
   const routeStoreId = storeRouteMatch?.[1];
@@ -141,7 +144,9 @@ function MerchantLayout() {
         className={`merchant-sidebar ${
           sidebarOpen ? "open" : ""
         }`}
+        {...sidebar.sidebarProps}
       >
+        <WorkspaceSidebarControls sidebar={sidebar} />
         <div className="merchant-sidebar-header">
           <h2>{t("workspace.merchant")}</h2>
 
@@ -184,6 +189,7 @@ function MerchantLayout() {
           </section>
         </nav>
       </aside>
+      <WorkspaceSidebarResizer sidebar={sidebar} />
 
       <main className="merchant-main">
         <div className="merchant-mobile-header">

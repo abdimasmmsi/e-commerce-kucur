@@ -81,6 +81,8 @@ export function AuthProvider({ children }) {
     }
   }, [errorMessage, language, theme]);
   const logout = useCallback(async () => {
+    // Perangkat ini berhenti menerima push akun ini sebelum sesi dicabut (HP bisa dipakai bergantian).
+    if (getAuthToken()) await import("../utils/pushClient").then(({ disablePush }) => disablePush()).catch(() => {});
     try { if (getAuthToken()) await authService.logout(); }
     catch { /* Local logout still succeeds if revocation cannot reach the backend. */ }
     finally { clearSession(); }

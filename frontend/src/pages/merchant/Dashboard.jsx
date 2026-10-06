@@ -28,6 +28,7 @@ export default function MerchantDashboard() {
     adminFee: "Tagihan biaya admin", payBefore: "bayar sebelum {date}", initialFee: "Cicilan iuran pokok", dueOn: "jatuh tempo {date}", overdue: "terlambat sejak {date}", pay: "Bayar",
     activeProducts: "Produk aktif", rating: "Rating lapak", noRating: "Belum ada", addProduct: "+ Tambah produk", loading: "Memuat beranda lapak", loadFailed: "Data lapak gagal dimuat.", retry: "Coba lagi",
     selectStore: "Pilih lapak produk", productOnly: "Beranda ini hanya untuk lapak produk.",
+    mostViewed: "Produk paling sering dilihat (7 hari)", viewed: "{count} kali dilihat",
   } : {
     title: "Store Home", allStores: "All stores", periods: { today: "Today", "7d": "7 days", "1m": "30 days", "1y": "1 year" },
     revenue: { today: "Revenue today", "7d": "Revenue, 7 days", "1m": "Revenue, 30 days", "1y": "Revenue, 1 year" }, fromOrders: "from {count} completed orders", revenueHint: "Item prices from orders that reached the buyer.",
@@ -38,9 +39,11 @@ export default function MerchantDashboard() {
     adminFee: "Admin fee bill", payBefore: "pay before {date}", initialFee: "Store fee installment", dueOn: "due {date}", overdue: "overdue since {date}", pay: "Pay",
     activeProducts: "Active products", rating: "Store rating", noRating: "None yet", addProduct: "+ Add product", loading: "Loading store home", loadFailed: "Store data could not be loaded.", retry: "Try again",
     selectStore: "Choose a product store", productOnly: "This page is only for product stores.",
+    mostViewed: "Most viewed products (7 days)", viewed: "{count} views",
   };
   const [data, setData] = useState({ products: [], orders: [], reviews: [], finance: null });
   const [period, setPeriod] = useState("today");
+  const [views, setViews] = useState({});
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState("");
   const isOverview = activeStoreId === "all" || !activeStore;
@@ -60,6 +63,10 @@ export default function MerchantDashboard() {
         isOverview ? Promise.resolve(null) : financeService.summary(activeStore.id).catch(() => null),
       ]);
       setData({ products: products.filter((row) => selectedIds.has(row.storeId)), orders: orders.filter((row) => selectedIds.has(row.storeId)), reviews, finance });
+      // Statistik dilihat bersifat pelengkap: gagal dimuat tidak menggagalkan beranda.
+      Promise.all([...selectedIds].map((id) => productService.storeViews(id).catch(() => ({}))))
+        .then((rows) => setViews(Object.assign({}, ...rows)))
+        .catch(() => setViews({}));
     } catch (caught) {
       setError(caught.message);
     } finally {
@@ -87,6 +94,7 @@ export default function MerchantDashboard() {
   };
   const lowStock = data.products.filter((row) => row.status === "active" && getProductTotalStock(row) <= LOW_STOCK).sort((a, b) => getProductTotalStock(a) - getProductTotalStock(b)).slice(0, 3);
   const rating = getAverageRating(data.reviews);
+  const topViewed = data.products.map((row) => ({ product: row, count: Number(views[row.id]?.last7Days ?? 0) })).filter((row) => row.count > 0).sort((a, b) => b.count - a.count).slice(0, 3);
   const activeProducts = data.products.filter((row) => row.status === "active").length;
   const fill = (text, values) => Object.entries(values).reduce((value, [key, replacement]) => value.replace(`{${key}}`, replacement), text);
   const ordersPath = (status) => `/merchant/orders?status=${status}`;
@@ -145,6 +153,11 @@ export default function MerchantDashboard() {
         {alerts.length > 0 && <section className="grid gap-2" aria-labelledby="merchant-alerts">
           <h2 className="text-lg font-extrabold" id="merchant-alerts">{copy.alerts}</h2>
           {alerts.map((row) => <div className={`flex min-w-0 items-center justify-between gap-3 rounded-2xl border border-dashed p-3 ${row.urgent ? "border-rose-300 bg-rose-50 dark:border-rose-800 dark:bg-rose-950/40" : "border-[var(--kucur-border-strong)] bg-[var(--kucur-surface)]"}`} key={row.key}><div className="min-w-0"><span className="block text-[13px] text-[var(--kucur-text-muted)]">{row.label}</span><strong className={`block break-words text-[15px] ${row.urgent ? "text-rose-700 dark:text-rose-300" : ""}`}>{row.value}</strong></div><Link className={`${actionClass} border border-[var(--kucur-border-strong)]`} to={row.to}>{row.action}</Link></div>)}
+        </section>}
+
+        {topViewed.length > 0 && <section className="grid gap-2" aria-labelledby="merchant-most-viewed">
+          <h2 className="text-lg font-extrabold" id="merchant-most-viewed">{copy.mostViewed}</h2>
+          <ol className="overflow-hidden rounded-2xl border border-[var(--kucur-border)] bg-[var(--kucur-surface)]">{topViewed.map((row, index) => <li className="border-b border-[var(--kucur-border)] last:border-b-0" key={row.product.id}><Link className="grid min-h-12 grid-cols-[28px_minmax(0,1fr)_auto] items-center gap-3 p-3" to={`/merchant/stores/${row.product.storeId}/products/${row.product.id}/edit`}><span className="text-sm font-extrabold text-[var(--kucur-text-muted)]">{index + 1}</span><strong className="truncate text-[15px]">{row.product.name}</strong><span className="text-sm font-bold text-[var(--kucur-green-ink)]">{fill(copy.viewed, { count: row.count.toLocaleString(language === "id" ? "id-ID" : "en-US") })}</span></Link></li>)}</ol>
         </section>}
 
         {!isOverview && <Link className={`${actionClass} min-h-12 w-full border border-[var(--kucur-green)] text-base text-[var(--kucur-green-ink)] sm:hidden`} to={`/merchant/stores/${activeStore.id}/products/add`}>{copy.addProduct}</Link>}

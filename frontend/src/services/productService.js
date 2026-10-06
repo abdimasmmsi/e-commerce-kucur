@@ -11,6 +11,7 @@ const normalizeVariant = (variant) => ({
   ...variant,
   id: String(variant.id),
   price: Number(variant.price),
+  compareAtPrice: variant.compareAtPrice == null || variant.compareAtPrice === "" ? null : Number(variant.compareAtPrice),
   stock: Number(variant.stock),
   options: variant.options ?? {},
 });
@@ -21,6 +22,7 @@ export const normalizeProduct = (product) => ({
   storeId: String(product.storeId ?? product.store?.id),
   merchantUserId: product.merchantUserId ?? product.store?.merchantUserId,
   price: Number(product.price ?? 0),
+  compareAtPrice: product.compareAtPrice == null || product.compareAtPrice === "" ? null : Number(product.compareAtPrice),
   stock: Number(product.stock ?? 0),
   hasVariants: Boolean(product.hasVariants ?? product.type === "variant"),
   images: (product.images ?? []).map(normalizeImage).sort((a, b) => a.position - b.position),
@@ -55,6 +57,12 @@ export const productService = {
     const store = await apiData(`/api/stores/${encodeURIComponent(storeId)}/public`);
     return { ...store, products: (store.products ?? []).map(normalizeProduct) };
   },
+  // Jumlah produk dilihat per produk untuk satu lapak: { [productId]: { last7Days, last30Days, daily } }.
+  storeViews: async (storeId) => (await apiData(`/api/products/store/${encodeURIComponent(storeId)}/views`)) ?? {},
+  // Catat produk dilihat (sekali per sesi browser per produk; gagal diabaikan).
+  recordView: (productId) => apiData(`/api/products/${encodeURIComponent(productId)}/view`, { method: "POST" }).catch(() => null),
+  restockStatus: async (productId) => (await apiData(`/api/products/${encodeURIComponent(productId)}/restock-watch`))?.watching === true,
+  setRestockWatch: async (productId, watching) => (await apiData(`/api/products/${encodeURIComponent(productId)}/restock-watch`, { method: watching ? "POST" : "DELETE" }))?.watching === true,
   update: async (productId, input) => normalizeProduct(await apiData(`/api/products/${encodeURIComponent(productId)}`, { method: "PATCH", body: input })),
 };
 

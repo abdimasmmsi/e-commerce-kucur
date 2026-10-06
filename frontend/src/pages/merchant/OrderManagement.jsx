@@ -87,6 +87,8 @@ function OrderManagementWorkspace({ storeId, routeStore }) {
     } catch (caught) {
       setError(errorMessage(caught.code, t("merchantOrderDetail.processFailed")));
       setPending(null);
+      // Status di daftar bisa basi (mis. pembeli sudah membatalkan); muat ulang supaya kartu sesuai server.
+      orderService.list({ scope: "merchant", storeId }).then(setOrders).catch(() => null);
     } finally { setBusy(false); }
   };
 

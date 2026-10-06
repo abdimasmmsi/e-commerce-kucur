@@ -13,7 +13,9 @@ import StatusTimeline from "../../components/ui/StatusTimeline";
 import { useChat } from "../../context/ChatContext";
 import { usePreferences } from "../../context/PreferencesContext";
 import { orderService } from "../../services/commerceService";
+import { reviewService } from "../../services/reviewService";
 import { shortOrderCode } from "../../utils/orderCode";
+import { buyAgain } from "../../utils/buyAgain";
 
 // Pembeli hanya bisa batal sebelum lapak mulai mengemas.
 const cancellable = ["pending", "confirmed"];
@@ -38,8 +40,8 @@ export default function OrderDetail() {
     recipient: "Dikirim ke",
     proof: "Bukti pengiriman", proofAlt: "Bukti pesanan telah diterima", proofMissing: "Foto bukti tidak dapat ditampilkan.", received: "Diterima", by: "oleh",
     activity: "Riwayat pengiriman", noActivity: "Belum ada aktivitas pengiriman.",
-    reviews: "Beri ulasan", summary: "Pembayaran", payOnArrival: "Bayar tunai saat barang sampai", paid: "Sudah dibayar", productTotal: "Total produk", tax: "PPN", shipping: "Ongkir", tip: "Tip kurir", total: "Total",
-    chat: "Chat penjual", packedNoCancel: "Pesanan sudah dikemas penjual, jadi tidak bisa dibatalkan lagi. Ada masalah? Chat penjual.", cancel: "Batalkan pesanan", cancelTitle: "Batalkan pesanan?", cancelDescription: "Pesanan yang dibatalkan tidak dapat dilanjutkan kembali.", reason: "Alasan pembatalan", reasonPlaceholder: "Jelaskan alasan pembatalan", keep: "Kembali", cancelling: "Membatalkan...",
+    reviews: "Beri ulasan", reviewed: "Sudah diulas", summary: "Pembayaran", payOnArrival: "Bayar tunai saat barang sampai", paid: "Sudah dibayar", productTotal: "Total produk", tax: "PPN", shipping: "Ongkir", tip: "Tip kurir", total: "Total",
+    buyAgain: "Beli lagi", buyAgainNone: "Barang di pesanan ini sudah tidak tersedia.", chat: "Chat penjual", packedNoCancel: "Pesanan sudah dikemas penjual, jadi tidak bisa dibatalkan lagi. Ada masalah? Chat penjual.", cancel: "Batalkan pesanan", cancelTitle: "Batalkan pesanan?", cancelDescription: "Pesanan yang dibatalkan tidak dapat dilanjutkan kembali.", reason: "Alasan pembatalan", reasonPlaceholder: "Jelaskan alasan pembatalan", keep: "Kembali", cancelling: "Membatalkan...",
   } : {
     back: "My Orders", title: "Order {code}",
     loading: "Loading order details", missing: "Order not found", missingDescription: "This order is unavailable or you do not have access.",
@@ -49,8 +51,8 @@ export default function OrderDetail() {
     recipient: "Deliver to",
     proof: "Delivery proof", proofAlt: "Proof that the order was received", proofMissing: "The proof photo cannot be shown.", received: "Received", by: "by",
     activity: "Delivery history", noActivity: "No delivery activity yet.",
-    reviews: "Write a review", summary: "Payment", payOnArrival: "Pay cash when it arrives", paid: "Paid", productTotal: "Product total", tax: "VAT", shipping: "Delivery fee", tip: "Courier tip", total: "Total",
-    chat: "Chat with seller", packedNoCancel: "The seller is already packing this order, so it can no longer be cancelled. Any problem? Chat with the seller.", cancel: "Cancel order", cancelTitle: "Cancel this order?", cancelDescription: "A cancelled order cannot be resumed.", reason: "Cancellation reason", reasonPlaceholder: "Explain why you are cancelling", keep: "Keep order", cancelling: "Cancelling...",
+    reviews: "Write a review", reviewed: "Reviewed", summary: "Payment", payOnArrival: "Pay cash when it arrives", paid: "Paid", productTotal: "Product total", tax: "VAT", shipping: "Delivery fee", tip: "Courier tip", total: "Total",
+    buyAgain: "Buy again", buyAgainNone: "The items in this order are no longer available.", chat: "Chat with seller", packedNoCancel: "The seller is already packing this order, so it can no longer be cancelled. Any problem? Chat with the seller.", cancel: "Cancel order", cancelTitle: "Cancel this order?", cancelDescription: "A cancelled order cannot be resumed.", reason: "Cancellation reason", reasonPlaceholder: "Explain why you are cancelling", keep: "Keep order", cancelling: "Cancelling...",
   };
 
   const [order, setOrder] = useState(null);
@@ -59,6 +61,7 @@ export default function OrderDetail() {
   const [cancelOpen, setCancelOpen] = useState(false);
   const [reason, setReason] = useState("");
   const [error, setError] = useState("");
+  const [reviewedItemIds, setReviewedItemIds] = useState(() => new Set());
 
   useEffect(() => {
     let active = true;
@@ -69,6 +72,14 @@ export default function OrderDetail() {
     return () => { active = false; };
   }, [errorMessage, orderId]);
 
+  // Ulasan unik per barang pesanan: sembunyikan form untuk barang yang sudah diulas.
+  const completed = order?.fulfillmentStatus === "completed";
+  useEffect(() => {
+    if (!completed) return undefined;
+    let active = true;
+    reviewService.mine().then((rows) => { if (active) setReviewedItemIds(new Set((Array.isArray(rows) ? rows : rows?.items ?? []).map((row) => String(row.commerceOrderItemId ?? "")).filter(Boolean))); }).catch(() => null);
+    return () => { active = false; };
+  }, [completed]);
   const assignment = useMemo(() => order?.deliveryBatchOrders?.find((item) => ["WAITING_PICKUP", "PICKED_UP", "OUT_FOR_DELIVERY", "DELIVERED"].includes(item.status)) || order?.deliveryBatchOrders?.[0], [order]);
   const timeline = [copy.created, copy.processing, copy.pickup, copy.deliveryStep, copy.delivered].map((label, index) => ({ key: index, label }));
   const [stageIndex, stageKey] = stages[order?.fulfillmentStatus] ?? [0, "stepPending"];
@@ -82,8 +93,16 @@ export default function OrderDetail() {
       setOrder(await orderService.cancel(order.id, reason));
       setReason(""); setCancelOpen(false);
     } catch (caught) {
-      setError(errorMessage(caught.code, caught.message));
+      // Status bisa sudah berubah (mis. lapak mulai mengemas): tutup dialog supaya pesan terlihat dan muat ulang statusnya.
+      setError(errorMessage(caught.code, caught.message)); setCancelOpen(false);
+      orderService.get(order.id).then(setOrder).catch(() => null);
     } finally { setBusy(false); }
+  };
+  const reorder = async () => {
+    setError("");
+    const result = await buyAgain(order);
+    if (!result.added) return setError(copy.buyAgainNone);
+    navigate("/cart", { state: { buyAgainSkipped: result.skipped } });
   };
   const chat = async () => {
     try {
@@ -118,14 +137,14 @@ export default function OrderDetail() {
             {assignment ? <><div><dt className="text-sm text-[var(--kucur-text-muted)]">{copy.schedule}</dt><dd className="font-semibold">{formatDate(assignment.batch.deliveryDate, { dateStyle: "long" })}</dd></div>{assignment.batch.courier?.fullName && <div><dt className="text-sm text-[var(--kucur-text-muted)]">{copy.courier}</dt><dd className="font-semibold">{assignment.batch.courier.fullName}</dd></div>}</> : <p className="text-sm text-[var(--kucur-text-muted)] sm:col-span-2">{copy.noBatch}</p>}
           </dl>}
           {order.fulfillmentStatus === "processing" && <p className="rounded-xl bg-[var(--kucur-surface-muted)] p-3 text-sm text-[var(--kucur-text-muted)]">{copy.packedNoCancel}</p>}
-          <div className="grid gap-2 sm:flex"><Button variant="secondary" onClick={chat}>{copy.chat}</Button>{cancellable.includes(order.fulfillmentStatus) && <Button variant="ghost" className="!text-rose-700 dark:!text-rose-300" onClick={() => setCancelOpen(true)}>{copy.cancel}</Button>}</div>
+          <div className="grid gap-2 sm:flex">{(finished || exceptional) && <Button onClick={reorder}>{copy.buyAgain}</Button>}<Button variant="secondary" onClick={chat}>{copy.chat}</Button>{cancellable.includes(order.fulfillmentStatus) && <Button variant="ghost" className="!text-rose-700 dark:!text-rose-300" onClick={() => setCancelOpen(true)}>{copy.cancel}</Button>}</div>
         </section>
 
         {order.deliveryProof && <DetailSection title={copy.proof}>
           <div className="grid gap-4 sm:grid-cols-[minmax(180px,280px)_minmax(0,1fr)]">{proofBroken ? <div className="grid aspect-[4/3] w-full place-items-center rounded-xl border border-dashed border-[var(--kucur-border-strong)] bg-[var(--kucur-surface-muted)] p-4 text-center text-sm text-[var(--kucur-text-muted)]">{copy.proofMissing}</div> : <img className="aspect-[4/3] w-full rounded-xl border border-[var(--kucur-border)] object-cover" src={order.deliveryProof.photoUrl} alt={copy.proofAlt} onError={() => setProofBroken(true)}/>}<div className="text-[15px] leading-6 text-[var(--kucur-text-muted)]"><p>{copy.received} {formatDate(order.deliveryProof.deliveredAt, { dateStyle: "medium", timeStyle: "short" })}{order.deliveryProof.recipientName ? ` ${copy.by} ${order.deliveryProof.recipientName}` : ""}.</p>{order.deliveryProof.note && <p className="mt-2 text-[var(--kucur-text)]">{order.deliveryProof.note}</p>}</div></div>
         </DetailSection>}
 
-        {order.fulfillmentStatus === "completed" && <DetailSection><div className="grid gap-4" aria-label={copy.reviews}>{order.items.map((item) => <ReviewForm targetType="product" targetId={item.productId} transactionId={order.id} transactionContext={{ title: item.productName }} key={item.id}/>)}</div></DetailSection>}
+        {order.fulfillmentStatus === "completed" && <DetailSection><div className="grid gap-4" aria-label={copy.reviews}>{order.items.map((item) => reviewedItemIds.has(String(item.id)) ? <p className="flex flex-wrap items-center justify-between gap-2 rounded-xl bg-[var(--kucur-green-soft)] p-3 text-[15px]" key={item.id}><strong className="break-words">{item.productName}</strong><span className="font-semibold text-[var(--kucur-green-ink)]">{copy.reviewed}</span></p> : <ReviewForm targetType="product" targetId={item.id} transactionId={order.id} transactionContext={{ title: item.productName, detail: Object.values(item.selectedOptions ?? {}).join(" · ") }} onSave={() => setReviewedItemIds((current) => new Set([...current, String(item.id)]))} key={item.id}/>)}</div></DetailSection>}
 
         <DetailSection title={copy.items}>
           <div className="divide-y divide-[var(--kucur-border)]">

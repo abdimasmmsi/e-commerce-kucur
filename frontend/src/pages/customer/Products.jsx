@@ -7,6 +7,7 @@ import { usePreferences } from "../../context/PreferencesContext";
 import { getProductDisplayPrice, productService } from "../../services/productService";
 import SearchHistoryPanel from "../../components/SearchHistoryPanel";
 import { addSearch } from "../../utils/browsingHistory";
+import { matchesSearch } from "../../utils/searchMatch";
 
 const controlClass = "min-h-11 w-full rounded-xl border border-[var(--kucur-border-strong)] bg-[var(--kucur-surface)] px-3 text-sm text-[var(--kucur-text)] outline-none transition focus:border-kucur-forest focus:ring-2 focus:ring-kucur-forest/15";
 
@@ -41,9 +42,10 @@ function Products() {
   const maximum = maximumPrice === "" ? null : Number(maximumPrice);
   const invalidPriceRange = minimum !== null && maximum !== null && maximum < minimum;
   const rows = useMemo(() => activeProducts.filter((product) => {
-    const query = search.trim().toLowerCase();
+    const query = search.trim();
     const storeName = storeMap.get(String(product.storeId))?.name ?? "";
-    const matchesQuery = !query || [product.name, product.category, storeName].some((value) => String(value ?? "").toLowerCase().includes(query));
+    // Toleran salah ketik: "kripik" tetap menemukan "Keripik".
+    const matchesQuery = !query || matchesSearch([product.name, product.category, storeName], query);
     const price = getProductDisplayPrice(product);
     return matchesQuery && (!selectedCategories.length || selectedCategories.includes(product.category)) && (storeId === "All" || String(product.storeId) === storeId) && !invalidPriceRange && (minimum === null || price >= minimum) && (maximum === null || price <= maximum);
   }).sort((a, b) => {
@@ -71,7 +73,7 @@ function Products() {
     {!loading && error && <p className="rounded-xl border border-rose-300 bg-rose-50 px-4 py-3 text-[15px] font-semibold text-rose-900 dark:border-rose-800 dark:bg-rose-950 dark:text-rose-100" role="alert">{t("commerce.loadError", { message: error })}</p>}
 
     <form className="grid min-w-0 gap-3 border-[var(--kucur-border)] max-sm:-mx-4 max-sm:!max-w-none max-sm:border-y max-sm:bg-[var(--kucur-surface)] max-sm:px-4 max-sm:py-3 sm:gap-4" role="search" aria-label={t("catalogFilters.title")} onSubmit={(event) => { event.preventDefault(); addSearch(search); setHistoryOpen(false); }}>
-      <div className="relative" onBlur={(event) => { if (!event.currentTarget.contains(event.relatedTarget)) { setHistoryOpen(false); if (rows.length) addSearch(search); } }}><label className="relative block"><span className="sr-only">{t("commerce.search")}</span><svg className="pointer-events-none absolute left-3.5 top-1/2 size-5 -translate-y-1/2 text-[var(--kucur-text-muted)]" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" aria-hidden="true"><circle cx="11" cy="11" r="7"/><path d="m20 20-3.5-3.5"/></svg><input className={`${controlClass} !min-h-12 !pl-11 !text-base`} type="search" autoComplete="off" value={search} onFocus={() => setHistoryOpen(true)} onKeyDown={(event) => { if (event.key === "Escape") setHistoryOpen(false); }} onChange={(event) => { setSearch(event.target.value); setHistoryOpen(true); }} placeholder={t("catalogFilters.searchPlaceholder")}/></label>{historyOpen && <SearchHistoryPanel className="absolute inset-x-0 top-[calc(100%+6px)]" query={search} onNavigate={() => setHistoryOpen(false)} onPick={(item) => { setSearch(item); addSearch(item); setHistoryOpen(false); }} />}</div>
+      <div className="relative" onBlur={(event) => { if (!event.currentTarget.contains(event.relatedTarget)) { setHistoryOpen(false); if (rows.length) addSearch(search); } }}><label className="relative block"><span className="sr-only">{t("commerce.search")}</span><svg className="pointer-events-none absolute left-3.5 top-1/2 size-5 -translate-y-1/2 text-[var(--kucur-text-muted)]" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" aria-hidden="true"><circle cx="11" cy="11" r="7"/><path d="m20 20-3.5-3.5"/></svg><input className={`${controlClass} !min-h-12 !pl-11 !text-base`} type="search" autoComplete="off" value={search} onFocus={() => setHistoryOpen(true)} onKeyDown={(event) => { if (event.key === "Escape") setHistoryOpen(false); }} onChange={(event) => { setSearch(event.target.value); setHistoryOpen(true); }} placeholder={t("catalogFilters.searchPlaceholder")}/></label>{historyOpen && <SearchHistoryPanel className="absolute inset-x-0 top-[calc(100%+6px)]" query={search} products={activeProducts} onNavigate={() => setHistoryOpen(false)} onPick={(item) => { setSearch(item); addSearch(item); setHistoryOpen(false); }} />}</div>
       <div className="-mx-4 flex gap-2 overflow-x-auto px-4 py-1 [scrollbar-width:none] sm:mx-0 sm:flex-wrap sm:px-0 [&::-webkit-scrollbar]:hidden" role="group" aria-label={t("commerce.category")}>
         <button className={chipClass(!selectedCategories.length)} type="button" aria-pressed={!selectedCategories.length} onClick={() => setSelectedCategories([])}>{t("catalogFilters.allCategories")}</button>
         {categories.map((item) => { const on = selectedCategories.includes(item); return <button className={chipClass(on)} type="button" aria-pressed={on} key={item} onClick={() => toggleCategory(item)}>{on && <svg className="-ml-1 mr-1.5 size-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.6" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true"><path d="m5 12.5 4.5 4.5L19 7.5"/></svg>}{item}</button>; })}

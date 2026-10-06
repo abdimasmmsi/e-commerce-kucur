@@ -13,8 +13,14 @@ function client() {
 
 const publicKey = () => process.env.WEB_PUSH_PUBLIC_KEY || null;
 
+// Repository utama (bukan transaksi). Notifikasi sering dibuat di dalam transaksi yang sudah selesai saat push dikirim,
+// jadi pencarian langganan memakai repository ini. Diatur sekali di app.js.
+let rootRepository = null;
+const setRepository = (repository) => { rootRepository = repository; };
+
 // Kirim ke semua perangkat pengguna; langganan yang sudah kedaluwarsa (404/410) dibuang.
-async function sendToUser(repository, userId, payload) {
+async function sendToUser(fallbackRepository, userId, payload) {
+  const repository = rootRepository ?? fallbackRepository;
   const push = client();
   if (!push || !userId) return { sent: 0 };
   try {
@@ -35,4 +41,4 @@ async function sendToUser(repository, userId, payload) {
   }
 }
 
-module.exports = { publicKey, sendToUser, configured };
+module.exports = { publicKey, sendToUser, configured, setRepository };

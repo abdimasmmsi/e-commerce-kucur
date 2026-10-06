@@ -18,14 +18,6 @@
 .account-workspace-switch button span{flex:1}
 @media(max-width:600px){.account-workspace-switch{margin-bottom:8px}}
 
-.account-help-contact{display:grid;gap:4px;margin-top:8px;padding:12px;border:1px solid var(--kucur-border);border-radius:12px;background:var(--kucur-surface)}
-.account-help-contact strong{font-size:15px}
-.account-help-contact span{color:var(--kucur-text-muted);font-size:14px}
-.account-help-contact .account-help-number{color:var(--kucur-text);font-weight:700}
-.account-help-contact div{display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-top:6px}
-.account-help-contact a{display:inline-flex;min-height:44px;align-items:center;justify-content:center;border:1px solid var(--kucur-border-strong);border-radius:10px;font-weight:700;font-size:14px}
-.account-help-contact a:first-child{border-color:var(--kucur-green);background:var(--kucur-green);color:var(--kucur-on-green)}
-@media(max-width:600px){.account-help-contact{grid-column:1/-1}}
 
 /* HP & tablet: hub akun berupa daftar menu berbaris; halaman lain hanya tautan kembali. */
 .account-back-link{display:none}
@@ -43,7 +35,6 @@
   .account-layout .account-layout-sidebar.is-hub .account-nav-logout{border-bottom:0;color:#b42318}
   .account-layout .account-layout-sidebar.is-hub .account-nav-logout svg{color:currentColor}
   .dark .account-layout .account-layout-sidebar.is-hub .account-nav-logout{color:#fca5a5}
-  .account-layout .account-layout-sidebar.is-hub .account-help-contact{margin:0;border:0;border-bottom:1px solid var(--kucur-border);border-radius:0;padding:14px 16px}
   .account-layout .account-workspace-switch{margin-bottom:12px}
   .account-layout .account-layout-main{padding-top:16px}
 }
@@ -59,3 +50,23 @@
 
 /* Desktop: Bantuan (FAQ) sama ukurannya dengan tautan menu lain. */
 @media(min-width:901px){.account-layout-sidebar .account-nav-action.account-nav-logout{min-height:0;padding:10px;color:var(--kucur-text-muted);font-size:.78rem;font-weight:550}.account-layout-sidebar .account-nav-action.account-nav-logout svg{width:16px;height:16px;flex-basis:16px}}
+
+/* Kartu bantuan (2026-10-06): ikon + judul, kontak pengelola, tombol bertumpuk penuh lebar supaya muat di menu samping. */
+.account-help-contact{display:grid!important;gap:12px!important;padding:14px!important;border:1px solid var(--kucur-border)!important;border-radius:14px!important;background:var(--kucur-surface)!important}
+.account-help-head{display:flex;align-items:flex-start;gap:10px}.account-help-head>div{display:grid;gap:2px;min-width:0}
+.account-help-icon{display:grid;width:38px;height:38px;flex:0 0 38px;place-items:center;border-radius:12px;background:var(--kucur-green-soft);color:var(--kucur-green-ink)}.account-help-icon svg{width:20px;height:20px}
+.account-help-contact strong{font-size:15px;font-weight:800;color:var(--kucur-text)}.account-help-head span{color:var(--kucur-text-muted);font-size:13px;line-height:1.4}
+.account-help-person{display:grid;gap:1px;margin:0;padding:8px 10px;border-radius:10px;background:var(--kucur-surface-elevated);font-size:14px}.account-help-person b{color:var(--kucur-text)}.account-help-person span{color:var(--kucur-text-muted);font-variant-numeric:tabular-nums}
+.account-help-actions{display:grid!important;grid-template-columns:1fr!important;gap:8px!important;margin:0!important}
+.account-help-actions>a{display:flex!important;min-height:44px;align-items:center;justify-content:center;gap:8px;padding:0 12px;border:1px solid var(--kucur-border-strong)!important;border-radius:10px;background:transparent!important;color:var(--kucur-text)!important;font-size:14px;font-weight:700;text-align:center;white-space:normal}
+.account-help-actions>a svg{width:18px;height:18px;flex:0 0 18px}
+.account-help-actions>a.is-primary{border-color:var(--kucur-green)!important;background:var(--kucur-green)!important;color:var(--kucur-on-green)!important}
+.account-help-actions>a:hover{border-color:var(--kucur-green)!important}
+@media(max-width:1023px){.account-help-contact{margin:12px 16px!important}.account-help-actions{grid-template-columns:repeat(auto-fit,minmax(150px,1fr))!important}}
+/* Kartu bantuan berada di dalam nav: matikan gaya tautan menu (tinggi 56px, panah ›, garis bawah) untuk tombolnya. */
+.account-layout .account-layout-sidebar .account-help-contact{box-sizing:border-box;max-width:100%}
+.account-layout .account-layout-sidebar .account-help-actions>a{width:auto!important;min-height:44px!important;margin:0!important;padding:0 12px!important;border-radius:10px!important;gap:8px!important;justify-content:center!important}
+.account-layout .account-layout-sidebar .account-help-actions>a::after{content:none!important}
+.account-layout .account-layout-sidebar .account-help-actions>a svg{width:18px!important;height:18px!important;flex:0 0 18px!important;color:currentColor!important}
+.account-help-head>div{display:grid!important;grid-template-columns:minmax(0,1fr)!important;margin:0!important}
+@media(max-width:1023px){.account-layout .account-layout-sidebar.is-hub .account-help-contact{margin:12px 16px!important;width:auto!important}}

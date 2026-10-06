@@ -50,11 +50,14 @@ function OrderDetailWorkspace({ storeId, orderId }) {
     return () => { active = false; };
   }, [orderId, storeId, t]);
 
+  const reload = () => { orderService.get(orderId).then((row) => { if (row.storeId === String(storeId)) setOrder(row); }).catch(() => null); };
+
   const handleTransition = async () => {
     if (!order || !nextStatus) return;
     setTransitioning(true); setError("");
     try { setOrder(await orderService.transitionFulfillment(order.id, nextStatus)); setConfirmationOpen(false); }
-    catch (caught) { setError(caught.message); }
+    // Pesanan bisa sudah berubah (mis. dibatalkan pembeli): tutup dialog supaya pesan terlihat, lalu muat ulang statusnya.
+    catch (caught) { setError(caught.message); setConfirmationOpen(false); reload(); }
     finally { setTransitioning(false); }
   };
 
@@ -63,7 +66,7 @@ function OrderDetailWorkspace({ storeId, orderId }) {
     if (!cancelReason.trim()) { setCancelError(copy.reasonRequired); return; }
     setTransitioning(true); setCancelError("");
     try { setOrder(await orderService.cancel(order.id, cancelReason.trim())); setCancelOpen(false); setCancelReason(""); }
-    catch (caught) { setCancelError(caught.message); }
+    catch (caught) { setCancelError(caught.message); reload(); }
     finally { setTransitioning(false); }
   };
 

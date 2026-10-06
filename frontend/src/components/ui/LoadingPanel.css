@@ -9,11 +9,12 @@
   background: var(--kucur-surface);
 }
 
-/* Normalizes legacy Merchant loaders while pages migrate to LoadingPanel. */
+/* Normalizes legacy Merchant loaders while pages migrate to LoadingPanel.
+   Hanya elemen yang menandai diri sedang memuat (aria-busy); pesan sukses/status biasa tidak boleh jadi skeleton. */
 .merchant-main .finance-loading,
 .merchant-main .store-detail-loading,
 .merchant-main .merchant-review-skeleton,
-.merchant-main [role="status"]:not(.loading-panel):not(.finance-feedback):not(.store-detail-feedback):not(.merchant-review-success):not(.merchant-status-feedback) {
+.merchant-main [role="status"][aria-busy="true"]:not(.loading-panel) {
   min-width: 0;
   padding: clamp(18px, 3vw, 28px);
   overflow: hidden;
@@ -22,7 +23,7 @@
   background: var(--kucur-surface);
 }
 
-.merchant-main [role="status"]:not(.loading-panel):not(.finance-feedback):not(.store-detail-feedback):not(.merchant-review-success):not(.merchant-status-feedback) {
+.merchant-main [role="status"][aria-busy="true"]:not(.loading-panel) {
   display: grid;
   grid-template-columns: minmax(0, 1fr);
   gap: 14px;
@@ -31,8 +32,8 @@
   font-size: 0;
 }
 
-.merchant-main [role="status"]:not(.loading-panel):not(.finance-feedback):not(.store-detail-feedback):not(.merchant-review-success):not(.merchant-status-feedback)::before,
-.merchant-main [role="status"]:not(.loading-panel):not(.finance-feedback):not(.store-detail-feedback):not(.merchant-review-success):not(.merchant-status-feedback)::after {
+.merchant-main [role="status"][aria-busy="true"]:not(.loading-panel)::before,
+.merchant-main [role="status"][aria-busy="true"]:not(.loading-panel)::after {
   display: block;
   width: min(100%, 420px);
   height: 15px;
@@ -48,7 +49,7 @@
   content: "";
 }
 
-.merchant-main [role="status"]:not(.loading-panel):not(.finance-feedback):not(.store-detail-feedback):not(.merchant-review-success):not(.merchant-status-feedback)::before {
+.merchant-main [role="status"][aria-busy="true"]:not(.loading-panel)::before {
   width: min(52%, 240px);
   height: 22px;
 }
@@ -137,6 +138,6 @@
   .merchant-main .store-detail-loading i,
   .merchant-main .merchant-review-skeleton i,
   .merchant-main .review-photo-loading,
-  .merchant-main [role="status"]:not(.loading-panel):not(.finance-feedback):not(.store-detail-feedback):not(.merchant-review-success):not(.merchant-status-feedback)::before,
-  .merchant-main [role="status"]:not(.loading-panel):not(.finance-feedback):not(.store-detail-feedback):not(.merchant-review-success):not(.merchant-status-feedback)::after { animation: none; }
+  .merchant-main [role="status"][aria-busy="true"]:not(.loading-panel)::before,
+  .merchant-main [role="status"][aria-busy="true"]:not(.loading-panel)::after { animation: none; }
 }

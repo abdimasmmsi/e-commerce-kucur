@@ -1,3 +1,4 @@
+import { NOTIFICATIONS_REFRESH_EVENT } from "../services/notificationService";
 import { createContext, useCallback, useContext, useEffect, useMemo, useState } from "react";
 import { useAuth } from "./AuthContext";
 import { chatApiService } from "../services/chatApiService";
@@ -52,6 +53,7 @@ export function ChatProvider({ children }) {
   const markRead = useCallback(async (id) => {
     await chatApiService.read(id);
     setConversations((rows) => rows.map((row) => row.id === id ? { ...row, unreadCount: 0 } : row));
+    window.dispatchEvent(new Event(NOTIFICATIONS_REFRESH_EVENT));
     return refreshChats();
   }, [refreshChats]);
   const closeConversation = useCallback(async (id) => merge(await chatApiService.close(id)), [merge]);

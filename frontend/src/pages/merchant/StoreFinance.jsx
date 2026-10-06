@@ -1,4 +1,4 @@
-import { useCallback, useEffect, useMemo, useState } from "react";
+import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { useParams } from "react-router-dom";
 import EmptyState from "../../components/ui/EmptyState";
 import LoadingPanel from "../../components/ui/LoadingPanel";
@@ -33,6 +33,7 @@ export default function StoreFinance() {
   const [error, setError] = useState("");
   const [feedback, setFeedback] = useState({ type: "", text: "" });
   const [busyAction, setBusyAction] = useState("");
+  const actionLock = useRef(false);
 
   const load = useCallback(async () => {
     setLoading(true); setError("");
@@ -42,11 +43,13 @@ export default function StoreFinance() {
   }, [copy.loadFailed, errorMessage, storeId]);
   useEffect(() => { queueMicrotask(() => void load()); }, [load]);
 
+  // Kunci sinkron supaya ketukan ganda tidak mengirim pembayaran dua kali; data selalu dimuat ulang (berhasil/gagal).
   const act = async (key, work) => {
-    setBusyAction(key); setFeedback({ type: "", text: "" });
-    try { await work(); setFeedback({ type: "success", text: copy.saved }); await load(); }
-    catch (cause) { setFeedback({ type: "error", text: errorMessage(cause.code, copy.failed) }); }
-    finally { setBusyAction(""); }
+    if (actionLock.current) return;
+    actionLock.current = true; setBusyAction(key); setFeedback({ type: "", text: "" });
+    try { await work(); setFeedback({ type: "success", text: copy.saved }); }
+    catch (cause) { setFeedback({ type: "error", text: language === "id" && cause?.message && cause.code !== "API_ERROR" ? cause.message : errorMessage(cause.code, copy.failed) }); }
+    finally { await load(); actionLock.current = false; setBusyAction(""); }
   };
 
   const fee = data?.initialFee;
@@ -57,14 +60,15 @@ export default function StoreFinance() {
   const unpaidFeeTotal = unpaidFees.reduce((sum, row) => sum + Number(row.feeAmount), 0);
   const isPending = (row) => (row.payments ?? []).some((payment) => payment.paymentStatus === "PENDING");
   const nextInstallment = installments.find((row) => row.status !== "PAID" && !isPending(row));
-  const installmentAmount = (row) => Number(row.principalOutstanding) + Number(row.penaltyOutstanding);
+  const installmentAmount = (row) => Math.round((Number(row.principalOutstanding) + Number(row.penaltyOutstanding)) * 100) / 100;
   const months = useMemo(() => {
     const groups = new Map();
     for (const row of obligations) {
       const key = `${row.billingYear}-${String(row.billingMonth).padStart(2, "0")}`;
-      const group = groups.get(key) ?? { key, date: new Date(row.billingYear, row.billingMonth - 1, 1), rows: [], total: 0, unpaid: 0 };
+      const group = groups.get(key) ?? { key, date: new Date(row.billingYear, row.billingMonth - 1, 1), rows: [], total: 0, unpaid: 0, pending: 0 };
       group.rows.push(row); group.total += Number(row.feeAmount);
-      if (row.status === "OUTSTANDING") group.unpaid += Number(row.feeAmount);
+      if (row.status === "OUTSTANDING" && row.settlementItem) group.pending += Number(row.feeAmount);
+      else if (row.status === "OUTSTANDING") group.unpaid += Number(row.feeAmount);
       groups.set(key, group);
     }
     return [...groups.values()].sort((a, b) => b.date - a.date);
@@ -106,7 +110,7 @@ export default function StoreFinance() {
 
         <section className="grid gap-3 rounded-2xl border border-[var(--kucur-border)] bg-[var(--kucur-surface)] p-4 sm:p-5" aria-labelledby="finance-admin">
           <div><h2 className="text-lg font-extrabold" id="finance-admin">{copy.adminFee}</h2>{rate && <p className="text-sm text-[var(--kucur-text-muted)]">{fill(copy.adminHint, { rate })}</p>}</div>
-          {months.length ? <ul className="finance-months grid divide-y divide-[var(--kucur-border)]">{months.map((month) => <li className="flex items-center justify-between gap-3 py-2.5 text-[15px]" key={month.key}><div className="min-w-0"><strong className="block">{formatDate(month.date, { month: "long", year: "numeric" })}</strong><span className="text-sm text-[var(--kucur-text-muted)]">{fill(month.rows.length === 1 ? copy.order : copy.orders, { count: month.rows.length })}</span></div><div className="text-right"><strong className="block">{formatCurrency(month.total)}</strong><span className={`text-sm font-bold ${month.unpaid ? "text-amber-700 dark:text-amber-300" : "text-[var(--kucur-green-ink)]"}`}>{month.unpaid ? copy.unpaid : copy.paid}</span></div></li>)}</ul> : <EmptyState title={copy.noFees} description={copy.noFeesHint} />}
+          {months.length ? <ul className="finance-months grid divide-y divide-[var(--kucur-border)]">{months.map((month) => <li className="flex items-center justify-between gap-3 py-2.5 text-[15px]" key={month.key}><div className="min-w-0"><strong className="block">{formatDate(month.date, { month: "long", year: "numeric" })}</strong><span className="text-sm text-[var(--kucur-text-muted)]">{fill(month.rows.length === 1 ? copy.order : copy.orders, { count: month.rows.length })}</span></div><div className="text-right"><strong className="block">{formatCurrency(month.total)}</strong><span className={`text-sm font-bold ${month.unpaid ? "text-amber-700 dark:text-amber-300" : month.pending ? "text-[var(--kucur-text-muted)]" : "text-[var(--kucur-green-ink)]"}`}>{month.unpaid ? copy.unpaid : month.pending ? copy.pending : copy.paid}</span></div></li>)}</ul> : <EmptyState title={copy.noFees} description={copy.noFeesHint} />}
         </section>
       </div>
     </>}

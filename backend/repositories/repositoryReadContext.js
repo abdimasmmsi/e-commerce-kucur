@@ -10,4 +10,8 @@ const readContextMiddleware = (req, res, next) => {
   storage.run({ requestId, userId: null, path: req.originalUrl || req.path || "" }, next);
 };
 
-module.exports = { currentReadContext, readContextMiddleware, setReadContextUser };
+// Untuk job latar belakang: jalankan pekerjaan seolah-olah datang dari path API tertentu supaya transaksi diarahkan
+// ke repository yang sama dengan request biasa (lihat routeDomain di repositoryWriteRouter).
+const runWithReadContext = (path, work) => storage.run({ requestId: `job:${randomUUID()}`, userId: null, path }, work);
+
+module.exports = { currentReadContext, readContextMiddleware, runWithReadContext, setReadContextUser };

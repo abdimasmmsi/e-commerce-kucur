@@ -1,13 +1,36 @@
-// Riwayat pencarian & produk yang dilihat, disimpan di perangkat (localStorage) per akun.
-// Hanya untuk kenyamanan (seperti Shopee): bukan data otoritatif, aman bila kosong atau tidak tersedia.
+import { apiData } from "../services/apiClient";
+
+// Riwayat pencarian & produk dilihat. HANYA untuk pengguna login (pengunjung tidak disimpan).
+// Disimpan di akun (PUT /api/users/me/history) supaya sama di semua perangkat; salinan lokal per akun
+// dipakai agar panel langsung tampil. Bukan data otoritatif, aman bila kosong.
 export const HISTORY_EVENT = "kucur:history-changed";
 const MAX_STORED = 20;
-let owner = "guest";
+let owner = null;
+let saveTimer = null;
 
-export const setHistoryOwner = (userId) => { owner = userId ? String(userId) : "guest"; window.dispatchEvent(new Event(HISTORY_EVENT)); };
 const key = (kind) => `kucur:${kind}:${owner}`;
-const read = (kind) => { try { const value = JSON.parse(localStorage.getItem(key(kind)) || "[]"); return Array.isArray(value) ? value : []; } catch { return []; } };
-const write = (kind, list) => { try { localStorage.setItem(key(kind), JSON.stringify(list.slice(0, MAX_STORED))); } catch { /* penyimpanan tidak tersedia */ } window.dispatchEvent(new Event(HISTORY_EVENT)); };
+const read = (kind) => { if (!owner) return []; try { const value = JSON.parse(localStorage.getItem(key(kind)) || "[]"); return Array.isArray(value) ? value : []; } catch { return []; } };
+const store = (kind, list) => { try { localStorage.setItem(key(kind), JSON.stringify(list.slice(0, MAX_STORED))); } catch { /* penyimpanan tidak tersedia */ } };
+const notify = () => window.dispatchEvent(new Event(HISTORY_EVENT));
+const syncLater = () => { window.clearTimeout(saveTimer); const current = owner; saveTimer = window.setTimeout(() => { if (owner === current) void apiData("/api/users/me/history", { method: "PUT", body: { searches: getSearches(), viewed: getViewed() } }).catch(() => {}); }, 800); };
+const write = (kind, list) => { if (!owner) return; store(kind, list); notify(); syncLater(); };
+
+// Dipanggil saat login/logout. Riwayat lama pengunjung (versi sebelumnya) dibersihkan.
+export function setHistoryOwner(userId) {
+  owner = userId ? String(userId) : null;
+  try { localStorage.removeItem("kucur:searches:guest"); localStorage.removeItem("kucur:viewed:guest"); } catch { /* abaikan */ }
+  notify();
+  if (!owner) return;
+  const current = owner;
+  apiData("/api/users/me/history").then((history) => {
+    if (owner !== current || !history) return;
+    const merge = (server, local, id) => [...new Map([...(server ?? []), ...local].map((item) => [id(item), item])).values()];
+    store("searches", merge(history.searches, getSearches(), (item) => String(item).toLowerCase()).slice(0, MAX_STORED));
+    store("viewed", merge(history.viewed, getViewed(), (item) => item.id).sort((a, b) => Date.parse(b.viewedAt) - Date.parse(a.viewedAt)).slice(0, MAX_STORED));
+    notify();
+  }).catch(() => {});
+}
+export const historyEnabled = () => Boolean(owner);
 
 export const getSearches = () => read("searches");
 export function addSearch(text) {
@@ -28,6 +51,7 @@ export const removeViewed = (id) => write("viewed", getViewed().filter((item) =>
 export const clearViewed = () => write("viewed", []);
 
 // Rekomendasi "Untuk kamu": produk yang kategorinya sering dilihat atau cocok dengan kata yang pernah dicari.
+// Tanpa riwayat (mis. pengunjung) → urut dari yang paling laris 30 hari terakhir.
 export function personalize(products, { searches = getSearches(), viewed = getViewed() } = {}) {
   const categoryWeight = new Map();
   viewed.forEach((item, index) => { if (item.category) categoryWeight.set(item.category, (categoryWeight.get(item.category) ?? 0) + Math.max(1, 5 - index)); });

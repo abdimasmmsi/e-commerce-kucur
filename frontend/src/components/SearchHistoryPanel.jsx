@@ -3,30 +3,49 @@ import { Link } from "react-router-dom";
 import ProductImage from "./ProductImage";
 import { usePreferences } from "../context/PreferencesContext";
 import { HISTORY_EVENT, clearSearches, clearViewed, getSearches, getViewed, removeSearch } from "../utils/browsingHistory";
+import { getProductDisplayPrice, productService } from "../services/productService";
+import { searchScore } from "../utils/searchMatch";
+
+// Daftar produk untuk saran cari, dimuat sekali lalu disimpan 2 menit (katalog desa kecil).
+let catalogCache = { at: 0, promise: null };
+const loadCatalog = () => {
+  if (!catalogCache.promise || Date.now() - catalogCache.at > 120000) catalogCache = { at: Date.now(), promise: productService.list().catch(() => { catalogCache = { at: 0, promise: null }; return []; }) };
+  return catalogCache.promise;
+};
 
 const LIMIT = 5;
 const copyByLanguage = {
-  id: { searches: "Riwayat pencarian", viewed: "Terakhir dilihat", clear: "Hapus semua", more: "Lihat selengkapnya", less: "Tampilkan lebih sedikit", remove: "Hapus dari riwayat" },
-  en: { searches: "Search history", viewed: "Recently viewed", clear: "Clear all", more: "See all", less: "Show less", remove: "Remove from history" },
+  id: { searches: "Riwayat pencarian", viewed: "Terakhir dilihat", clear: "Hapus semua", more: "Lihat selengkapnya", less: "Tampilkan lebih sedikit", remove: "Hapus dari riwayat", suggestions: "Saran produk" },
+  en: { searches: "Search history", viewed: "Recently viewed", clear: "Clear all", more: "See all", less: "Show less", remove: "Remove from history", suggestions: "Suggested products" },
 };
 
 // Panel di bawah kolom cari: 5 pencarian terakhir (bisa dilihat semua & dihapus) dan 5 produk terakhir dilihat.
-export default function SearchHistoryPanel({ query = "", onPick, onNavigate, className = "" }) {
+// Saat mengetik, panel juga menampilkan maks 5 saran produk yang cocok (toleran salah ketik).
+export default function SearchHistoryPanel({ query = "", products = null, onPick, onNavigate, className = "" }) {
   const { formatCurrency, language } = usePreferences();
   const copy = copyByLanguage[language] ?? copyByLanguage.id;
   const [searches, setSearches] = useState(getSearches);
   const [viewed, setViewed] = useState(getViewed);
   const [expanded, setExpanded] = useState(false);
+  const [catalog, setCatalog] = useState([]);
   useEffect(() => {
     const refresh = () => { setSearches(getSearches()); setViewed(getViewed()); };
     window.addEventListener(HISTORY_EVENT, refresh);
     return () => window.removeEventListener(HISTORY_EVENT, refresh);
   }, []);
   const term = query.trim().toLowerCase();
+  const wantsSuggestions = term.length >= 2 && !products;
+  useEffect(() => {
+    if (!wantsSuggestions) return undefined;
+    let active = true;
+    loadCatalog().then((rows) => { if (active) setCatalog(rows); });
+    return () => { active = false; };
+  }, [wantsSuggestions]);
   const matching = term ? searches.filter((item) => item.toLowerCase().includes(term)) : searches;
   const shownSearches = expanded ? matching : matching.slice(0, LIMIT);
   const shownViewed = term ? [] : viewed.slice(0, LIMIT);
-  if (!shownSearches.length && !shownViewed.length) return null;
+  const suggestions = term.length >= 2 ? (products ?? catalog).filter((product) => product.status === undefined || product.status === "active").map((product) => ({ product, score: searchScore([product.name, product.category], term) })).filter((row) => row.score > 0).sort((a, b) => b.score - a.score).slice(0, LIMIT).map((row) => row.product) : [];
+  if (!shownSearches.length && !shownViewed.length && !suggestions.length) return null;
   // onMouseDown preventDefault: klik di panel tidak membuat kolom cari kehilangan fokus sebelum aksi jalan.
   const keepFocus = (event) => event.preventDefault();
 
@@ -41,6 +60,15 @@ export default function SearchHistoryPanel({ query = "", onPick, onNavigate, cla
         <button className="grid size-10 shrink-0 place-items-center rounded-lg text-[var(--kucur-text-muted)] hover:bg-[var(--kucur-surface-elevated)]" type="button" data-no-busy aria-label={`${copy.remove}: ${item}`} onClick={() => removeSearch(item)}><svg className="size-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.2" strokeLinecap="round" aria-hidden="true"><path d="M6 6l12 12M18 6 6 18"/></svg></button>
       </li>)}</ul>
       {matching.length > LIMIT && <button className="min-h-10 px-2 text-[13px] font-bold text-[var(--kucur-green-ink)]" type="button" data-no-busy onClick={() => setExpanded((value) => !value)}>{expanded ? copy.less : `${copy.more} (${matching.length})`}</button>}
+    </section>}
+    {suggestions.length > 0 && <section aria-label={copy.suggestions}>
+      <h2 className="mb-1 px-2 text-[13px] font-bold text-[var(--kucur-text-muted)]">{copy.suggestions}</h2>
+      <ul className="grid gap-1">{suggestions.map((product) => <li key={product.id}>
+        <Link className="flex min-h-12 items-center gap-3 rounded-lg px-2 py-1.5 hover:bg-[var(--kucur-surface-elevated)]" to={`/products/${product.id}`} onClick={onNavigate}>
+          <span className="block size-10 shrink-0 overflow-hidden rounded-lg [&_img]:h-full [&_img]:w-full [&_img]:object-cover"><ProductImage className="size-10" product={product} alt=""/></span>
+          <span className="grid min-w-0"><span className="truncate text-[15px] font-semibold">{product.name}</span><span className="truncate text-[13px] text-[var(--kucur-text-muted)]">{product.category ? `${product.category} · ` : ""}{formatCurrency(getProductDisplayPrice(product))}</span></span>
+        </Link>
+      </li>)}</ul>
     </section>}
     {shownViewed.length > 0 && <section aria-label={copy.viewed}>
       <div className="mb-1 flex items-center justify-between gap-2"><h2 className="text-[13px] font-bold text-[var(--kucur-text-muted)]">{copy.viewed}</h2><button className="min-h-9 px-2 text-[13px] font-bold text-[var(--kucur-green-ink)]" type="button" data-no-busy onClick={clearViewed}>{copy.clear}</button></div>

@@ -18,10 +18,10 @@ const Cart = lazy(() => import("./pages/customer/Cart"));
 import Login from "./pages/auth/Login";
 const Register = lazy(() => import("./pages/auth/Register"));
 import Unauthorized from "./pages/auth/Unauthorized";
-import Profile from "./pages/auth/Profile";
+const Profile = lazy(() => import("./pages/auth/Profile"));
 const AccountSettings = lazy(() => import("./pages/auth/AccountSettings"));
 const Addresses = lazy(() => import("./pages/auth/Addresses"));
-import ProductDetail from "./pages/customer/ProductDetail";
+const ProductDetail = lazy(() => import("./pages/customer/ProductDetail"));
 const Checkout = lazy(() => import("./pages/customer/Checkout"));
 const StorePage = lazy(() => import("./pages/customer/StorePage"));
 const CustomerOrders = lazy(() => import("./pages/customer/Orders"));
@@ -74,6 +74,7 @@ const AdminOrderDetail = lazy(() => import("./pages/admin/AdminOrderDetail"));
 const CourierDetail = lazy(() => import("./pages/admin/CourierDetail"));
 const AdminDeliveryBatches = lazy(() => import("./pages/admin/DeliveryBatches"));
 const AdminFinance = lazy(() => import("./pages/admin/Finance"));
+const AdminFinanceStore = lazy(() => import("./pages/admin/FinanceStore"));
 const AdminProductMonitoring = lazy(() => import("./pages/admin/ProductMonitoring"));
 
 function App() {
@@ -160,6 +161,7 @@ function App() {
           <Route path="orders/:orderId" element={<AdminOrderDetail />} />
           <Route path="reviews" element={<AdminReviews />} />
           <Route path="finance" element={<AdminFinance />} />
+          <Route path="finance/:storeId" element={<AdminFinanceStore />} />
           <Route path="settings/*" element={<AdminSettings />} />
           <Route path="notifications" element={<CustomerNotifications />} />
           <Route path="faq" element={<AdminFaqManager />} />

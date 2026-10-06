@@ -48,3 +48,69 @@ test("voluntary contribution is Merchant-owned, positive, optional, and Admin-co
   const { service } = fixture(); await assert.rejects(service.createContribution({ amount: 0 }, merchant)); const contribution = await service.createContribution({ amount: 25000 }, merchant); assert.equal(contribution.paymentStatus, "PENDING"); const paid = await service.confirmPayment("contribution", contribution.id, admin, true); assert.equal(paid.paymentStatus, "PAID");
   const disabled = fixture({ voluntaryContributionEnabled: false }); await assert.rejects(disabled.service.createContribution({ amount: 1000 }, merchant));
 });
+
+const fakeNotifications = (repository) => { const rows = []; repository.notifications = { create: async (data) => { if (data.dedupeKey && rows.some((row) => row.dedupeKey === data.dedupeKey)) { const error = new Error("duplicate"); error.code = "P2002"; throw error; } const row = { id: `N${rows.length + 1}`, ...data }; rows.push(row); return row; }, findByDedupeKey: async (key) => rows.find((row) => row.dedupeKey === key) || null }; return rows; };
+const adminFeeFor = async (repository, orderId, completedAt = new Date("2026-01-01T00:00:00Z")) => { await repository.transaction((tx) => generateCommerceFinance(tx, { id: orderId, storeId: "STORE", customerUserId: "CUSTOMER", productTotal: 1000, paymentStatus: "paid" }, completedAt)); return (await repository.finance.listAdminFees("STORE")).find((row) => row.platformTransactionId && !row.settlementItem && row.status === "OUTSTANDING"); };
+
+test("double-clicked admin fee payment reuses the pending settlement, shows up for Admin, and confirms once", async () => {
+  const { repository, service } = fixture({ adminFeeType: "fixed", adminFeeValue: 5000 }); const fee = await adminFeeFor(repository, "ORDER-DBL");
+  const first = await service.createSettlement("STORE", { obligationIds: [fee.id], amount: 5000 }, merchant); const second = await service.createSettlement("STORE", { obligationIds: [fee.id], amount: 5000 }, merchant);
+  assert.equal(second.id, first.id);
+  const listed = await repository.finance.listAdminFees("STORE"); assert.equal(listed[0].settlementItem.settlement.paymentStatus, "PENDING");
+  const monitor = await service.monitoring(admin); assert.equal(monitor.settlements.filter((row) => row.paymentStatus === "PENDING").length, 1);
+  await service.confirmPayment("settlement", first.id, admin, true); assert.equal((await repository.finance.listAdminFees("STORE"))[0].status, "PAID");
+});
+
+test("a new admin fee payment replaces an older pending one so no obligation gets stuck", async () => {
+  const { repository, service } = fixture({ adminFeeType: "fixed", adminFeeValue: 5000 }); const feeA = await adminFeeFor(repository, "ORDER-A"); const old = await service.createSettlement("STORE", { obligationIds: [feeA.id] }, merchant);
+  const feeB = await adminFeeFor(repository, "ORDER-B"); const fresh = await service.createSettlement("STORE", { obligationIds: [feeA.id, feeB.id], amount: 10000 }, merchant);
+  assert.notEqual(fresh.id, old.id); assert.equal((await repository.finance.findSettlement(old.id)).paymentStatus, "REJECTED");
+  await service.confirmPayment("settlement", fresh.id, admin, true); assert.deepEqual((await repository.finance.listAdminFees("STORE")).map((row) => row.status), ["PAID", "PAID"]);
+});
+
+test("double-submitted installment payment is reused and float amounts from the browser are accepted", async () => {
+  const { service } = fixture({ initialStoreFeeAmount: 100000 }); const fee = await service.setupInitialFee("STORE", { planType: "THREE_MONTHS" }, merchant); const installment = fee.installments[0];
+  const amount = Number(installment.principalOutstanding) + 0.000000001;
+  const first = await service.submitInstallmentPayment("STORE", installment.id, { amount }, merchant); const second = await service.submitInstallmentPayment("STORE", installment.id, { amount }, merchant);
+  assert.equal(second.id, first.id); const paid = await service.confirmPayment("installment", first.id, admin, true); assert.equal(paid.paymentStatus, "PAID");
+});
+
+test("penalty added after the merchant paid does not block Admin confirmation and late interest freezes while waiting", async () => {
+  const { repository, service } = fixture({ initialStoreFeeAmount: 100000, installmentLateInterestPercent: 2 }); const fee = await service.setupInitialFee("STORE", { planType: "FULL" }, merchant); const installment = fee.installments[0];
+  const payment = await service.submitInstallmentPayment("STORE", installment.id, { amount: 100000 }, merchant);
+  await repository.finance.updateInstallment(installment.id, { dueAt: new Date(Date.now() - 15 * 86400000) });
+  await service.reconcileInstallments(new Date(), null); assert.equal((await repository.finance.findInstallment(installment.id)).penalties.length, 0);
+  await repository.finance.createPenalty({ installmentId: installment.id, periodNumber: 1, percentageSnapshot: 2, baseOutstandingAmount: "100000.00", penaltyAmount: "2000.00", appliedAt: new Date(Date.now() + 1000) }); await repository.finance.updateInstallment(installment.id, { penaltyOutstanding: "2000.00" });
+  await service.confirmPayment("installment", payment.id, admin, true);
+  assert.equal((await repository.finance.findInstallment(installment.id)).status, "PAID"); assert.equal((await repository.stores.findById("STORE")).status, "active");
+});
+
+test("double-clicked voluntary contribution creates one pending payment", async () => {
+  const { service } = fixture(); const first = await service.createContribution({ amount: 25000 }, merchant); const second = await service.createContribution({ amount: 25000 }, merchant);
+  assert.equal(second.id, first.id); assert.equal((await service.listContributions(merchant)).length, 1);
+});
+
+test("reconcile admin fees runs without an Admin (background job) and reactivates paid-up stores", async () => {
+  const { repository, service } = fixture({ adminFeeType: "fixed", adminFeeValue: 5000 }); fakeNotifications(repository); await repository.stores.update("STORE", { status: "suspended_admin_fee" });
+  const result = await service.reconcileAdminFees(new Date(), null); assert.equal(result.reactivated, 1); assert.equal((await repository.stores.findById("STORE")).status, "active");
+  await adminFeeFor(repository, "ORDER-LATE"); const again = await service.reconcileAdminFees(new Date(), null); assert.equal(again.suspended, 1); assert.equal((await repository.stores.findById("STORE")).status, "suspended_admin_fee");
+  await assert.rejects(service.reconcileAdminFees(new Date(), merchant));
+});
+
+test("remind sends one notification per store with unpaid bills per day and skips paid-up stores", async () => {
+  const repository = createMemoryRepository({ users: [merchant, admin, { id: "M2", roles: ["merchant"] }], stores: [{ id: "STORE", merchantUserId: merchant.id, name: "QA Store", type: "product", status: "active" }, { id: "STORE2", merchantUserId: "M2", name: "Lunas", type: "product", status: "active" }], settings: { adminFeeType: "fixed", adminFeeValue: 5000 } });
+  const service = createFinanceService(repository); const sent = fakeNotifications(repository); await adminFeeFor(repository, "ORDER-R1"); await adminFeeFor(repository, "ORDER-R2", new Date());
+  await assert.rejects(service.remindOutstanding(merchant));
+  const result = await service.remindOutstanding(admin); assert.equal(result.reminded, 1); assert.equal(result.storesWithOutstanding, 1);
+  assert.equal(sent[0].userId, merchant.id); assert.equal(sent[0].type, "MERCHANT_FEE_REMINDER"); assert.equal(sent[0].entityType, "STORE_FINANCE"); assert.equal(sent[0].entityId, "STORE"); assert.match(sent[0].body, /Rp10\.000/); assert.match(sent[0].body, /1 di antaranya sudah lewat jatuh tempo/); assert.match(sent[0].dedupeKey, /^finance-reminder:STORE:\d{4}-\d{2}-\d{2}$/);
+  const again = await service.remindOutstanding(admin); assert.equal(again.reminded, 0); assert.equal(again.alreadyReminded, 1); assert.equal(sent.length, 1);
+  assert.equal((await service.remindOutstanding(admin, { storeId: "STORE2" })).storesWithOutstanding, 0);
+});
+
+test("background reconcile job never throws and runs both reconciliations at startup", async () => {
+  const { startFinanceReconcileJob } = require("./services/financeReconcileJob"); const calls = [];
+  const original = console.warn; console.warn = () => {};
+  try { const stop = startFinanceReconcileJob({}, { intervalMs: 1e9, financeService: { reconcileInstallments: async () => { calls.push("installments"); throw new Error("boom"); }, reconcileAdminFees: async () => { calls.push("admin-fees"); return {}; } } }); await new Promise((resolve) => setTimeout(resolve, 20)); stop(); }
+  finally { console.warn = original; }
+  assert.deepEqual(calls, ["installments", "admin-fees"]);
+});

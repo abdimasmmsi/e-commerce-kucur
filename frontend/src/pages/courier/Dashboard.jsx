@@ -45,7 +45,10 @@ export default function Dashboard() {
   const name = data.todayBatch?.courier?.fullName?.split(" ")[0];
 
   return <PageContainer className="space-y-4 text-[var(--kucur-text)]">
-    <h1 className="text-2xl font-extrabold sm:text-3xl">{name ? fill(copy.hello, { name }) : t("workspace.courier")}</h1>
+    <header>
+      <h1 className="text-2xl font-extrabold sm:text-3xl">{t("workspace.dashboard")}</h1>
+      {name && <p className="mt-1 text-[15px] text-[var(--kucur-text-muted)]">{fill(copy.hello, { name })}</p>}
+    </header>
     {error && <p className="rounded-xl border border-rose-300 bg-rose-50 p-4 text-[15px] text-rose-800 dark:border-rose-800 dark:bg-rose-950 dark:text-rose-200" role="alert">{error}</p>}
     {loading ? <LoadingPanel label={t("courierDelivery.loading")} rows={4} /> : <>
       <section className="grid gap-4 rounded-2xl border border-[var(--kucur-border)] bg-[var(--kucur-surface)] p-4 sm:p-5" aria-labelledby="courier-today">

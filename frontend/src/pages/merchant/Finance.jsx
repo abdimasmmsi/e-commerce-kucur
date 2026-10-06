@@ -1,4 +1,4 @@
-import { useCallback, useEffect, useState } from "react";
+import { useCallback, useEffect, useRef, useState } from "react";
 import EmptyState from "../../components/ui/EmptyState";
 import LoadingPanel from "../../components/ui/LoadingPanel";
 import PageContainer from "../../components/ui/PageContainer";
@@ -18,6 +18,7 @@ export default function MerchantFinance() {
   const [amount, setAmount] = useState("");
   const [loading, setLoading] = useState(true);
   const [submitting, setSubmitting] = useState(false);
+  const submitLock = useRef(false);
   const [error, setError] = useState("");
   const [feedback, setFeedback] = useState({ type: "", text: "" });
   const loadFailed = t("merchantFinancePage.contributionsLoadFailed");
@@ -36,10 +37,11 @@ export default function MerchantFinance() {
   const submit = async (event) => {
     event.preventDefault();
     if (!valid) { setFeedback({ type: "error", text: t("merchantFinancePage.amountRequired") }); return; }
-    setSubmitting(true); setFeedback({ type: "", text: "" });
-    try { await financeService.contribute(value); setAmount(""); setFeedback({ type: "success", text: t("merchantFinancePage.contributionSaved") }); await load(); }
+    if (submitLock.current) return; // ketukan ganda tidak mengirim iuran dua kali
+    submitLock.current = true; setSubmitting(true); setFeedback({ type: "", text: "" });
+    try { await financeService.contribute(value); setAmount(""); setFeedback({ type: "success", text: t("merchantFinancePage.contributionSaved") }); }
     catch (cause) { setFeedback({ type: "error", text: errorMessage(cause.code, t("merchantFinancePage.submissionFailed")) }); }
-    finally { setSubmitting(false); }
+    finally { await load(); submitLock.current = false; setSubmitting(false); }
   };
 
   return <PageContainer className="merchant-standard-page space-y-4">
