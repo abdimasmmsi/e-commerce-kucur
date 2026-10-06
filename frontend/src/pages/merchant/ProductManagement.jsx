@@ -21,7 +21,7 @@ const PAGE_SIZE = 12;
 const copyByLanguage = {
   id: {
     views7: "Dilihat 7 hari: {count}", views30: "30 hari: {count}",
-    excelTitle: "Upload massal (Excel)", excelHint: "Untuk produk tanpa variasi. Foto ditambahkan nanti lewat Ubah.",
+    excelTitle: "Unggah banyak produk (Excel)", excelHint: "Untuk produk tanpa variasi. Foto ditambahkan nanti lewat Ubah.",
     template: "Unduh contoh Excel", export: "Unduh Excel", import: "Impor Excel", reading: "Membaca file...",
     excelFailed: "File Excel gagal dibaca. Pastikan formatnya .xlsx dari file contoh.",
     previewTitle: "Periksa impor produk", previewDescription: "Cek ringkasan di bawah sebelum produk disimpan. Impor tidak menghapus produk.",

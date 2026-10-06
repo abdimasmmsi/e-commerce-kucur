@@ -17,7 +17,7 @@ test("courier information architecture routes always reach a terminal UI state",
     }
   }
   await page.goto("/courier/batches");
-  const firstBatch = page.getByRole("link", { name: /Lihat Batch|View Batch/i }).first();
+  const firstBatch = page.getByRole("link", { name: /Lihat Jadwal|View Schedule/i }).first();
   if (await firstBatch.count()) {
     await firstBatch.click();
     await expect(page).toHaveURL(/\/courier\/batches\/.+/);

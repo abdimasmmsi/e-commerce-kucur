@@ -135,7 +135,7 @@ export default function FaqBot() {
   const go = (to) => { setOpen(false); navigate(to); };
   const chatAdmin = async () => {
     if (!isAuthenticated) { go("/login"); return; }
-    try { const conversation = await startSupportChat("Live Chat Customer Service"); go(`/messages/${conversation.id}`); } catch { go("/messages"); }
+    try { const conversation = await startSupportChat("Chat Bantuan"); go(`/messages/${conversation.id}`); } catch { go("/messages"); }
   };
 
   const chip = "min-h-10 rounded-full border border-[var(--kucur-green)] bg-[var(--kucur-surface)] px-3.5 py-2 text-left text-sm font-semibold text-[var(--kucur-green-ink)] hover:bg-[var(--kucur-green-soft)]";

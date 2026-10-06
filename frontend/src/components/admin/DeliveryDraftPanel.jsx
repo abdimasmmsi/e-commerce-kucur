@@ -8,16 +8,16 @@ import { shortOrderCode } from "../../utils/orderCode";
 
 const copyByLanguage = {
   id: {
-    title: "Draf batch otomatis", hint: "Sistem membagi pesanan siap kirim ke kurir yang tidak cuti, dikelompokkan per lapak. Periksa, pindahkan bila perlu, lalu setujui. Kurir baru menerima batch setelah disetujui.",
-    date: "Tanggal pengiriman", cutoff: "Cutoff", dispatch: "Kurir berangkat", reminder: "Pengingat", beforeCutoff: "Draf sementara: pesanan masih bisa bertambah sampai cutoff pukul {time}.",
-    late: "Kurir berangkat pukul {time}. Setujui sekarang, tanpa persetujuan pesanan ini tidak akan diantar.", empty: "Tidak ada pesanan yang menunggu batch untuk tanggal ini.",
+    title: "Draf jadwal otomatis", hint: "Sistem membagi pesanan siap kirim ke kurir yang tidak cuti, dikelompokkan per lapak. Periksa, pindahkan bila perlu, lalu setujui. Kurir baru menerima jadwal setelah disetujui.",
+    date: "Tanggal pengiriman", cutoff: "Batas pesan", dispatch: "Kurir berangkat", reminder: "Pengingat", beforeCutoff: "Draf sementara: pesanan masih bisa bertambah sampai batas pesan pukul {time}.",
+    late: "Kurir berangkat pukul {time}. Setujui sekarang, tanpa persetujuan pesanan ini tidak akan diantar.", empty: "Tidak ada pesanan yang menunggu jadwal untuk tanggal ini.",
     orders: "{count} pesanan", capacity: "sisa kapasitas {count}", onLeave: "Cuti", unassigned: "Belum dapat kurir", unassignedHint: "Kapasitas kurir penuh atau semua kurir cuti. Pindahkan ke kurir lain atau biarkan bergeser ke jadwal berikutnya.",
-    moveTo: "Kurir", none: "Belum dijadwalkan", over: "Melebihi kapasitas", approve: "Setujui {count} pesanan", approving: "Menyetujui...", confirmTitle: "Setujui draf batch?", confirmText: "Batch dibuat untuk setiap kurir dan kurir mendapat notifikasi. Pesanan yang belum dijadwalkan tetap menunggu.", cancel: "Kembali", done: "Batch disetujui dan dikirim ke kurir.",
+    moveTo: "Kurir", none: "Belum dijadwalkan", over: "Melebihi kapasitas", approve: "Setujui {count} pesanan", approving: "Menyetujui...", confirmTitle: "Setujui draf jadwal?", confirmText: "Jadwal dibuat untuk setiap kurir dan kurir mendapat notifikasi. Pesanan yang belum dijadwalkan tetap menunggu.", cancel: "Kembali", done: "Jadwal disetujui dan dikirim ke kurir.",
   },
   en: {
-    title: "Automatic batch draft", hint: "The system splits ready orders across couriers who are not on leave, grouped by store. Review, move orders if needed, then approve. Couriers only receive a batch after approval.",
-    date: "Delivery date", cutoff: "Cutoff", dispatch: "Couriers leave", reminder: "Reminder", beforeCutoff: "Provisional draft: orders can still come in until the {time} cutoff.",
-    late: "Couriers leave at {time}. Approve now; without approval these orders will not be delivered.", empty: "No orders are waiting for a batch on this date.",
+    title: "Automatic schedule draft", hint: "The system splits ready orders across couriers who are not on leave, grouped by store. Review, move orders if needed, then approve. Couriers only receive a schedule after approval.",
+    date: "Delivery date", cutoff: "Order cutoff", dispatch: "Couriers leave", reminder: "Reminder", beforeCutoff: "Provisional draft: orders can still come in until the {time} cutoff.",
+    late: "Couriers leave at {time}. Approve now; without approval these orders will not be delivered.", empty: "No orders are waiting for a schedule on this date.",
     orders: "{count} orders", capacity: "{count} capacity left", onLeave: "On leave", unassigned: "No courier yet", unassignedHint: "Courier capacity is full or every courier is on leave. Move orders to another courier or let them shift to the next schedule.",
     moveTo: "Courier", none: "Not scheduled", over: "Over capacity", approve: "Approve {count} orders", approving: "Approving...", confirmTitle: "Approve the batch draft?", confirmText: "A batch is created for each courier and couriers are notified. Unscheduled orders keep waiting.", cancel: "Back", done: "Batches approved and sent to couriers.",
   },

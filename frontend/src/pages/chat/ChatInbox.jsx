@@ -34,7 +34,7 @@ function ChatInbox({ adminMode = false }) {
     }), [adminMode, conversations, filter, search, user.id]);
 
   const openSupport = async () => {
-    const conversation = await startSupportChat("Live Chat Customer Service");
+    const conversation = await startSupportChat("Chat Bantuan");
     navigate(`/messages/${conversation.id}`);
   };
   const routePrefix = adminMode ? "/admin/support-chats" : "/messages";

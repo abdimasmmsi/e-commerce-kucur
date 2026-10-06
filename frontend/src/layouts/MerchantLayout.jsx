@@ -53,7 +53,7 @@ function MerchantLayout() {
   const { activeStore, activeStoreId, loading: storesLoading, setActiveStore, stores: merchantStores } = useStore();
   const { language, t } = usePreferences();
   const tabCopy = language === "id" ? { home: "Beranda", homeLong: "Beranda Lapak", orders: "Pesanan", products: "Produk", menu: "Menu" } : { home: "Home", homeLong: "Store Home", orders: "Orders", products: "Products", menu: "Menu" };
-  const mismatchCopy = language === "id" ? { eyebrow: "Workspace tidak cocok", title: "Fitur tidak tersedia untuk jenis lapak ini", body: "{store} adalah lapak {type}. Pilih menu yang sesuai dengan jenis lapak aktif.", back: "Kembali ke Beranda Lapak" } : { eyebrow: "Workspace mismatch", title: "This feature is not available for this store type", body: "{store} is a {type} store. Choose a menu that matches the active store.", back: "Back to Store Home" };
+  const mismatchCopy = language === "id" ? { eyebrow: "Panel tidak cocok", title: "Fitur tidak tersedia untuk jenis lapak ini", body: "{store} adalah lapak {type}. Pilih menu yang sesuai dengan jenis lapak aktif.", back: "Kembali ke Beranda Lapak" } : { eyebrow: "Panel mismatch", title: "This feature is not available for this store type", body: "{store} is a {type} store. Choose a menu that matches the active store.", back: "Back to Store Home" };
   const [sidebarOpen, setSidebarOpen] = useState(false);
   const sidebar = useWorkspaceSidebar("merchant");
 

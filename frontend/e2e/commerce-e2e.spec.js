@@ -73,11 +73,11 @@ test.describe.serial("canonical cross-role commerce", () => {
     await admin.goto("/admin/delivery-batches");
     // Batch dari draf otomatis: cari pesanan ini (hari ini atau besok, tergantung cutoff), jadwalkan ke kurir QA,
     // keluarkan pesanan lain dari draf supaya tes hanya menyetujui pesanan ini.
-    const draftPanel = admin.locator("section", { has: admin.getByRole("heading", { name: /Draf batch otomatis|Automatic batch draft/ }) });
+    const draftPanel = admin.locator("section", { has: admin.getByRole("heading", { name: /Draf jadwal otomatis|Automatic schedule draft/ }) });
     const shortCode = `#${orderCode.replace(/[^a-z0-9]/gi, "").slice(-4).toUpperCase()}`;
     const draftOrder = draftPanel.locator("li", { hasText: shortCode });
     const dateInput = draftPanel.getByLabel(/Tanggal pengiriman|Delivery date/);
-    await expect(draftPanel.getByText(/^Cutoff$/)).toBeVisible();
+    await expect(draftPanel.getByText(/^(Batas pesan|Order cutoff)$/)).toBeVisible();
     const foundToday = await draftOrder.waitFor({ state: "visible", timeout: 8000 }).then(() => true).catch(() => false);
     if (!foundToday) {
       const current = await dateInput.inputValue();
@@ -111,7 +111,7 @@ test.describe.serial("canonical cross-role commerce", () => {
     await expect(courier.getByText(orderCode).first()).toBeVisible();
     const start = courier.getByRole("button", { name: /Mulai pengiriman|Start delivery|Mulai Batch|Start Batch/i }).first();
     if (await start.isVisible()) await start.click();
-    await courier.getByRole("button", { name: /Konfirmasi Pickup|Confirm Pickup/i }).click();
+    await courier.getByRole("button", { name: /Konfirmasi Ambil Barang|Confirm Pickup/i }).click();
     await expect(courier.getByText(/PICKED_UP|Picked Up|Sudah diambil/i).first()).toBeVisible();
     await courier.getByRole("button", { name: /Mulai Antar|Start Delivery/i }).click();
     await expect(courier.getByText(/OUT_FOR_DELIVERY|Out for Delivery|Sedang diantar/i).first()).toBeVisible();

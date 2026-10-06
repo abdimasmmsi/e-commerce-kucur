@@ -61,8 +61,8 @@ export default function AdminDeliveryBatches() {
   const activeGroups = useMemo(() => groupByDate(batches.filter((batch) => !FINISHED_BATCH.has(batch.status))), [batches]);
   const finishedGroups = useMemo(() => groupByDate(batches.filter((batch) => FINISHED_BATCH.has(batch.status))), [batches]);
   const finishedCount = batches.filter((batch) => FINISHED_BATCH.has(batch.status)).length;
-  const historyLabel = language === "id" ? `Riwayat batch selesai (${finishedCount})` : `Finished batch history (${finishedCount})`;
-  const noActive = language === "id" ? "Tidak ada batch yang sedang berjalan." : "No batches are in progress.";
+  const historyLabel = language === "id" ? `Riwayat jadwal selesai (${finishedCount})` : `Finished schedule history (${finishedCount})`;
+  const noActive = language === "id" ? "Tidak ada jadwal yang sedang berjalan." : "No schedules are in progress.";
 
   return <><div className="page-container admin-delivery-page min-w-0">
     <PageHeader eyebrow={t("adminDelivery.eyebrow")} title={t("adminDelivery.title")} description={t("adminDelivery.subtitle")} />

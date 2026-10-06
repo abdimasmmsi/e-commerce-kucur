@@ -10,8 +10,8 @@ const SNOOZE_KEY = "kucur:batch-reminder-snooze";
 // Pita yang ditutup (×) disembunyikan sampai keadaannya berubah: jumlah pesanan berubah atau berubah jadi merah.
 const DISMISS_KEY = "kucur:batch-reminder-dismissed";
 const copyByLanguage = {
-  id: { ready: "{count} pesanan hari ini menunggu persetujuan batch.", late: "Segera setujui batch: {count} pesanan belum dijadwalkan, kurir berangkat pukul {time}.", open: "Buka draf batch", title: "Batch pengiriman belum disetujui", text: "{count} pesanan untuk hari ini belum masuk batch. Tanpa persetujuan, pesanan tidak akan diantar kurir pukul {time}.", snooze: "Ingatkan 10 menit lagi", dismiss: "Tutup pengingat" },
-  en: { ready: "{count} orders today are waiting for batch approval.", late: "Approve batches now: {count} orders are unscheduled and couriers leave at {time}.", open: "Open batch draft", title: "Delivery batches not approved", text: "{count} orders for today are not in a batch yet. Without approval they will not be delivered at {time}.", snooze: "Remind me in 10 minutes", dismiss: "Close reminder" },
+  id: { ready: "{count} pesanan hari ini menunggu persetujuan jadwal.", late: "Segera setujui jadwal: {count} pesanan belum dijadwalkan, kurir berangkat pukul {time}.", open: "Buka draf jadwal", title: "Jadwal pengiriman belum disetujui", text: "{count} pesanan untuk hari ini belum masuk jadwal. Tanpa persetujuan, pesanan tidak akan diantar kurir pukul {time}.", snooze: "Ingatkan 10 menit lagi", dismiss: "Tutup pengingat" },
+  en: { ready: "{count} orders today are waiting for schedule approval.", late: "Approve schedules now: {count} orders are unscheduled and couriers leave at {time}.", open: "Open schedule draft", title: "Delivery schedules not approved", text: "{count} orders for today are not in a schedule yet. Without approval they will not be delivered at {time}.", snooze: "Remind me in 10 minutes", dismiss: "Close reminder" },
 };
 
 export default function DeliveryApprovalReminder() {

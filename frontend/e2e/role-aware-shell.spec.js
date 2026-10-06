@@ -64,31 +64,31 @@ test("merchant account routes preserve the active workspace shell and allow swit
   await loginThroughUi(page, "merchant");
   await expect(page).toHaveURL(/\/merchant/);
   await expect(page.locator(".app-brand")).toContainText("Kucur Local Market");
-  await expect(page.locator(".app-workspace-context")).toContainText(/Merchant|Workspace Merchant/i);
+  await expect(page.locator(".app-workspace-context")).toContainText(/Panel Penjual|Seller Panel/i);
   await expect(page.locator(".app-header .app-nav-links")).toHaveCount(0);
 
   for (const route of sharedAccountRoutes) {
     await page.goto(route);
-    await expect(page.locator(".app-workspace-context")).toContainText(/Merchant|Workspace Merchant/i);
+    await expect(page.locator(".app-workspace-context")).toContainText(/Panel Penjual|Seller Panel/i);
     await expect(page.locator(".app-header .app-nav-links")).toHaveCount(0);
   }
 
   await page.getByRole("button", { name: /Account|Akun/i }).click();
   const workspaceSummary = page.locator(".profile-workspace-summary");
-  await expect(workspaceSummary).toContainText(/Merchant/);
-  await expect(workspaceSummary).toContainText(/Customer|Pelanggan/);
-  await expect(workspaceSummary.getByRole("button", { name: /Merchant/i })).toHaveAttribute("aria-pressed", "true");
-  await workspaceSummary.getByRole("button", { name: /Customer|Pelanggan/i }).click();
+  await expect(workspaceSummary).toContainText(/Penjual|Seller|Merchant/);
+  await expect(workspaceSummary).toContainText(/Customer|Pelanggan|Pembeli/);
+  await expect(workspaceSummary.getByRole("button", { name: /Penjual|Seller|Merchant/i })).toHaveAttribute("aria-pressed", "true");
+  await workspaceSummary.getByRole("button", { name: /Customer|Pelanggan|Pembeli/i }).click();
   await expect(page).toHaveURL(/\/$/);
   await expect(workspaceSummary).toHaveCount(0);
   await expect(page.locator(".app-nav-links")).toContainText(/Home|Beranda/);
 
   await page.getByRole("button", { name: /Account|Akun/i }).click();
-  await expect(page.locator(".profile-workspace-summary").getByRole("button", { name: /Customer|Pelanggan/i })).toHaveAttribute("aria-pressed", "true");
-  await page.locator(".profile-workspace-summary").getByRole("button", { name: /Merchant/i }).click();
+  await expect(page.locator(".profile-workspace-summary").getByRole("button", { name: /Customer|Pelanggan|Pembeli/i })).toHaveAttribute("aria-pressed", "true");
+  await page.locator(".profile-workspace-summary").getByRole("button", { name: /Penjual|Seller|Merchant/i }).click();
   await expect(page).toHaveURL(/\/merchant$/);
   await expect(page.locator(".profile-workspace-summary")).toHaveCount(0);
-  await expect(page.locator(".app-workspace-context")).toContainText(/Merchant|Workspace Merchant/i);
+  await expect(page.locator(".app-workspace-context")).toContainText(/Panel Penjual|Seller Panel/i);
 });
 
 test("customer storefront always reconciles a stale merchant workspace role", async ({ qaPage: page }) => {
@@ -97,13 +97,13 @@ test("customer storefront always reconciles a stale merchant workspace role", as
 
   await page.goto("/");
   await expect(page.locator(".app-nav-links")).toContainText(/Home|Beranda/);
-  await expect(page.locator(".profile-trigger-copy small")).toHaveText(/Customer|Pelanggan/i);
+  await expect(page.locator(".profile-trigger-copy small")).toHaveText(/Customer|Pelanggan|Pembeli/i);
 
   await page.getByRole("button", { name: /Account|Akun/i }).click();
-  await expect(page.locator(".profile-workspace-summary").getByRole("button", { name: /Customer|Pelanggan/i })).toHaveAttribute("aria-pressed", "true");
+  await expect(page.locator(".profile-workspace-summary").getByRole("button", { name: /Customer|Pelanggan|Pembeli/i })).toHaveAttribute("aria-pressed", "true");
 
   await page.reload();
-  await expect(page.locator(".profile-trigger-copy small")).toHaveText(/Customer|Pelanggan/i);
+  await expect(page.locator(".profile-trigger-copy small")).toHaveText(/Customer|Pelanggan|Pembeli/i);
 });
 
 test("store finance shows what to pay and admin fees grouped by month", async ({ qaPage: page }) => {
@@ -150,7 +150,7 @@ test("a single-role account shows a non-interactive current-role badge", async (
   const workspaceSummary = page.locator(".profile-workspace-summary");
   await expect(workspaceSummary).toBeVisible();
   await expect(workspaceSummary.locator("button[aria-pressed]")).toHaveCount(0);
-  await expect(workspaceSummary.locator("span.active")).toContainText(/Customer|Pelanggan/i);
+  await expect(workspaceSummary.locator("span.active")).toContainText(/Customer|Pelanggan|Pembeli/i);
 });
 
 test("role-aware account header remains usable at supported compact widths", async ({ qaPage: page }) => {
@@ -194,7 +194,7 @@ test("all refined merchant and shared-account routes retain the merchant shell",
     await page.goto(route);
     await expect(page).not.toHaveURL(/\/login/);
     await expect(page.locator(".app-brand")).toContainText("Kucur Local Market");
-    await expect(page.locator(".app-workspace-context")).toContainText(/Merchant|Workspace Merchant/i);
+    await expect(page.locator(".app-workspace-context")).toContainText(/Panel Penjual|Seller Panel/i);
     await expect(page.locator("main").first()).toBeVisible();
     await expect(page.locator(".loading-panel")).toHaveCount(0, { timeout: 10_000 });
     await assertNoHorizontalOverflow(page);
@@ -210,7 +210,7 @@ test("multi-role account can switch workspaces from the Account page on a phone"
   await expect(page).toHaveURL(/\/$/);
   await expect(page.locator(".customer-bottom-nav").first()).toBeVisible();
   await page.goto("/profile");
-  await page.getByRole("button", { name: /Buka Lapak Saya|Open My Store/i }).click();
+  await page.getByRole("button", { name: /Buka Panel Penjual|Open Seller Panel/i }).click();
   await expect(page).toHaveURL(/\/merchant$/);
   await expect(page.locator(".merchant-bottom-nav")).toBeVisible();
 });

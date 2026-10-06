@@ -16,7 +16,7 @@ const adminNavigation = [
   { label: "workspaceNav.commerce", items: [["merchantApproval", "/admin/merchant-approval", "stores"], ["transactions", "/admin/transactions", "transactions"], ["productMonitoring", "/admin/products", "products"], ["deliveryMonitoring", "/admin/delivery-batches", "delivery"], ["reviews", "/admin/reviews", "reviews"]] },
   { label: "workspaceNav.people", items: [["users", "/admin/users", "users"], ["couriers", "/admin/couriers", "delivery"]] },
   { label: "workspaceNav.finance", items: [["financeMonitoring", "/admin/finance", "finance"]] },
-  { label: "workspaceNav.system", items: [["settings", "/admin/settings", "settings"]] },
+  { label: "workspaceNav.system", items: [["platformSettings", "/admin/settings", "settings"]] },
   { label: "workspaceNav.communication", items: [["supportChat", "/admin/support-chats", "chat"], ["faqManager", "/admin/faq", "help"], ["notifications", "/admin/notifications", "notifications"]] },
 ];
 

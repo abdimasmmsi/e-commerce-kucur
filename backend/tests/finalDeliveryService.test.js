@@ -86,14 +86,14 @@ test("final Delivery service completes readiness, pickup, proof, history, and ba
   const batch = await service.createBatch({ courierUserId: f.courierId, deliveryDate, commerceOrderIds: [order.id] }, { id: f.adminId, roles: ["admin"] });
   assert.equal(batch.orders.length, 1);
   await assert.rejects(service.createBatch({ courierUserId: f.courierId, deliveryDate, commerceOrderIds: [order.id] }, { id: f.adminId, roles: ["admin"] }), /sudah memiliki assignment/i);
-  await assert.rejects(service.confirmReady(order.id, { isReady: true }, { id: f.otherMerchantId }), /bukan milik Merchant/i);
+  await assert.rejects(service.confirmReady(order.id, { isReady: true }, { id: f.otherMerchantId }), /bukan milik penjual/i);
   const ready = await service.confirmReady(order.id, { isReady: true, note: "Siap" }, { id: f.merchantId });
   assert.equal(ready.note, "Siap");
   await assert.rejects(service.pickup(order.id, {}, { id: f.otherCourierId }), /tidak ditugaskan/i);
   const picked = await service.pickup(order.id, { note: "Picked" }, { id: f.courierId });
   assert.equal(picked.status, "PICKED_UP");
   assert.ok(picked.pickedUpAt);
-  await assert.rejects(service.pickup(order.id, {}, { id: f.courierId }), /Status pickup tidak valid/i);
+  await assert.rejects(service.pickup(order.id, {}, { id: f.courierId }), /Status ambil barang tidak valid/i);
   const traveling = await service.outForDelivery(order.id, {}, { id: f.courierId });
   assert.equal(traveling.status, "OUT_FOR_DELIVERY");
   assert.ok(traveling.outForDeliveryAt);

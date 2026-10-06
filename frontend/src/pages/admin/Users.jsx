@@ -19,7 +19,7 @@ const securityState = (user, t) => {
 
 export default function Users() {
   const { formatDate, language, statusLabel, t } = usePreferences();
-  const roleNames = language === "id" ? { customer: "Pembeli", merchant: "Merchant", courier: "Kurir", admin: "Admin" } : { customer: "Customer", merchant: "Merchant", courier: "Courier", admin: "Admin" };
+  const roleNames = language === "id" ? { customer: "Pembeli", merchant: "Penjual", courier: "Kurir", admin: "Admin" } : { customer: "Customer", merchant: "Merchant", courier: "Courier", admin: "Admin" };
   const roleLabel = (role) => roleNames[String(role).toLowerCase()] ?? statusLabel(role);
   const [users, setUsers] = useState([]); const [query, setQuery] = useState(""); const [loading, setLoading] = useState(true); const [error, setError] = useState(false);
   const [page, setPage] = useState(1);

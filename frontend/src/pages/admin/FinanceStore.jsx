@@ -22,7 +22,7 @@ const COPY = {
     initialFee: "Iuran pokok", noPlan: "Lapak belum memilih skema iuran pokok.", plan: "Skema", plans: { FULL: "Lunas sekali", THREE_MONTHS: "Cicil 3 kali", SIX_MONTHS: "Cicil 6 kali" }, total: "Total", lateInterest: "Denda telat {percent}% per 7 hari dari sisa tagihan",
     installment: "Cicilan ke-{number}", installmentCol: "Cicilan", due: "Jatuh tempo", amount: "Jumlah", penalty: "Denda", status: "Status", paidOn: "Dibayar",
     adminFees: "Biaya admin per bulan", adminFeesHint: "Ditagih per bulan; batas bayar tanggal 1 bulan berikutnya.", noAdminFees: "Belum ada biaya admin", noAdminFeesHint: "Biaya admin muncul setelah ada pesanan selesai.", month: "Bulan", orders: "Pesanan", cutoff: "Batas bayar",
-    contributions: "Iuran sukarela", contributionsHint: "Sukarela, per akun merchant, tidak memengaruhi status lapak.", noContributions: "Belum ada iuran sukarela.",
+    contributions: "Iuran sukarela", contributionsHint: "Sukarela, per akun penjual, tidak memengaruhi status lapak.", noContributions: "Belum ada iuran sukarela.",
     states: { paid: "Lunas", pending: "Menunggu konfirmasi", overdue: "Lewat jatuh tempo {days} hari", overdueToday: "Lewat jatuh tempo hari ini", dueSoon: "Jatuh tempo ≤7 hari", upcoming: "Belum jatuh tempo", cancelled: "Dibatalkan" },
     contributionStates: { PAID: "Dikonfirmasi", PENDING: "Menunggu konfirmasi", CANCELLED: "Ditolak", FAILED: "Ditolak" },
     notFound: "Lapak tidak ditemukan di data keuangan", notFoundHint: "Lapak ini belum punya tagihan, iuran, atau pembayaran.", loading: "Memuat rincian keuangan lapak", loadFailed: "Data keuangan gagal dimuat.", retry: "Coba lagi", done: "Berhasil diproses.", actionFailed: "Aksi gagal diproses. Coba lagi.", unknownStore: "Lapak tanpa nama",

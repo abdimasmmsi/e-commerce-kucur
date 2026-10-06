@@ -40,7 +40,7 @@ function AccountLayout() {
   const contactCopy = language === "id" ? { title: "Butuh bantuan?", body: "Pengelola desa siap membantu", whatsapp: "Chat WhatsApp", call: "Telepon", chat: "Chat Admin" } : { title: "Need help?", body: "The village managers are here to help", whatsapp: "Chat on WhatsApp", call: "Call", chat: "Chat Admin" };
   const workspaceRoles = (user?.roles ?? []).filter((role) => role !== activeRole);
   const openWorkspace = async (role) => { const result = await Promise.resolve(switchRole(role)); if (result?.success !== false) navigate(roleHomePaths[role] ?? "/"); };
-  const workspaceCopy = language === "id" ? { customer: "Belanja sebagai pembeli", merchant: "Buka Lapak Saya", courier: "Buka Halaman Kurir", admin: "Buka Halaman Admin", hint: "Pindah ke halaman kerja" } : { customer: "Shop as a buyer", merchant: "Open My Store", courier: "Open Courier Workspace", admin: "Open Admin Workspace", hint: "Switch to your workspace" };
+  const workspaceCopy = language === "id" ? { customer: "Belanja sebagai pembeli", merchant: "Buka Panel Penjual", courier: "Buka Panel Kurir", admin: "Buka Panel Admin", hint: "Pindah ke panel" } : { customer: "Shop as a buyer", merchant: "Open Seller Panel", courier: "Open Courier Panel", admin: "Open Admin Panel", hint: "Switch to your panel" };
   const handleLogout = async () => { await logout(); window.location.replace("/"); };
 
   const groups = [

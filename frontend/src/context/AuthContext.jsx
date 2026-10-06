@@ -89,7 +89,7 @@ export function AuthProvider({ children }) {
   }, [clearSession]);
   const hasRole = useCallback((role) => Boolean(session.user?.roles.includes(role)), [session.user]);
   const switchRole = useCallback((role) => {
-    if (!session.user?.roles.includes(role)) return { success: false, message: "Role tidak tersedia untuk akun ini." };
+    if (!session.user?.roles.includes(role)) return { success: false, message: "Peran ini tidak tersedia untuk akun ini." };
     setActiveRole(session.user.id, role);
     setSession((current) => ({ ...current, activeRole: role }));
     return { success: true, activeRole: role };

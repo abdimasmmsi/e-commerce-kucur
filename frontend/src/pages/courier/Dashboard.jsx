@@ -15,8 +15,8 @@ const sameDay = (a, b) => a.getFullYear() === b.getFullYear() && a.getMonth() ==
 export default function Dashboard() {
   const { formatCurrency, formatDate, language, t } = usePreferences();
   const copy = language === "id" ? {
-    hello: "Halo, {name}", today: "Pengiriman hari ini", none: "Belum ada pengiriman hari ini", noneHint: "Batch dari pengelola akan muncul di sini.", depart: "Berangkat {time}",
-    stops: "Stop", left: "Belum selesai", cod: "COD ditagih", open: "Buka pengiriman", next: "Jadwal berikutnya", nextNone: "Belum ada jadwal berikutnya", orders: "{count} pesanan",
+    hello: "Halo, {name}", today: "Pengiriman hari ini", none: "Belum ada pengiriman hari ini", noneHint: "Jadwal dari pengelola akan muncul di sini.", depart: "Berangkat {time}",
+    stops: "Tujuan", left: "Belum selesai", cod: "COD ditagih", open: "Buka pengiriman", next: "Jadwal berikutnya", nextNone: "Belum ada jadwal berikutnya", orders: "{count} pesanan",
     available: "Kamu siap menerima pengiriman", unavailable: "Kamu sedang cuti", pendingLeave: "Pengajuan cuti menunggu persetujuan Admin", change: "Cuti", all: "Semua pengiriman",
   } : {
     hello: "Hi, {name}", today: "Today's delivery", none: "No deliveries today", noneHint: "Batches from the manager will appear here.", depart: "Leaves {time}",

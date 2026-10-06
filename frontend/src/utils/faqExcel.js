@@ -42,7 +42,7 @@ const GUIDE = [
   ["Status", "Ya", "Tampil atau Sembunyi."],
   ["Peran", "Ya", "Pisahkan dengan koma: pengunjung, pembeli, lapak, kurir, admin."],
   ["Pertanyaan (Indonesia) / (Inggris)", "Ya", "Maksimal 200 karakter. Kedua bahasa wajib diisi."],
-  ["Jawaban (Indonesia) / (Inggris)", "Ya", "Satu langkah per baris (Alt+Enter di Excel), maksimal 8 langkah. **teks** = huruf tebal. Angka dari Admin Settings: {cutoff}, {dispatch}, {rate}, {tax}, {adminFee}, {contact}."],
+  ["Jawaban (Indonesia) / (Inggris)", "Ya", "Satu langkah per baris (Alt+Enter di Excel), maksimal 8 langkah. **teks** = huruf tebal. Angka dari Pengaturan Platform: {cutoff}, {dispatch}, {rate}, {tax}, {adminFee}, {contact}."],
   ["Kata kunci", "Tidak", "Pisahkan dengan koma, mis. wifi, internet. Membantu chatbot mengenali pertanyaan."],
   ["Tautan", "Tidak", `Halaman tujuan tombol pintasan. Pilihan: ${FAQ_LINKS.map((link) => link.to).join(", ")}`],
   ["Topik awal", "Tidak", "Ya atau Tidak. Ya = tampil di pilihan awal chatbot."],

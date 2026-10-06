@@ -22,13 +22,13 @@ function Unauthorized() {
         <span className="unauthorized-eyebrow">403 · Forbidden</span>
         <h1>Akses Tidak Diizinkan</h1>
         <p>
-          Akun Anda tidak memiliki role yang diperlukan untuk membuka halaman ini.
+          Akun Anda tidak memiliki peran yang diperlukan untuk membuka halaman ini.
           {location.state?.from && <small>Route: {location.state.from}</small>}
         </p>
 
         {requestedRoles.length > 0 && (
           <div className="required-role-notice">
-            Role yang diizinkan: <strong>{requestedRoles.join(", ")}</strong>
+            Peran yang diizinkan: <strong>{requestedRoles.join(", ")}</strong>
           </div>
         )}
 
@@ -39,7 +39,7 @@ function Unauthorized() {
 
         {isAuthenticated && availableRoles.length > 1 && (
           <div className="role-switch-options">
-            <strong>Buka dashboard role lain</strong>
+            <strong>Buka panel peran lain</strong>
             <div>
               {availableRoles.map((role) => (
                 <button
@@ -48,7 +48,7 @@ function Unauthorized() {
                   type="button"
                   onClick={() => openDashboard(role)}
                 >
-                  Workspace {roleLabels[role] ?? role}
+                  Panel {roleLabels[role] ?? role}
                 </button>
               ))}
             </div>

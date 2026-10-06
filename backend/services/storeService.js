@@ -52,12 +52,12 @@ function createStoreService(repository) {
     async setAvailability(store, input, actor) {
       if (typeof input.acceptingOrders !== "boolean") throw errors.validation({ acceptingOrders: "Status penerimaan pesanan wajib dipilih." });
       const currentStatus = String(store.status || "").toLowerCase();
-      if (!["active", "inactive"].includes(currentStatus)) throw errors.conflict("Status lapak sedang dikendalikan oleh proses persetujuan atau keuangan dan tidak dapat diubah Merchant.");
+      if (!["active", "inactive"].includes(currentStatus)) throw errors.conflict("Status lapak sedang dikendalikan oleh proses persetujuan atau keuangan dan tidak dapat diubah penjual.");
       const nextStatus = input.acceptingOrders ? "active" : "inactive";
       if (nextStatus === currentStatus) return store;
       return repository.transaction(async (tx) => {
         const updated = await tx.stores.update(store.id, { status: nextStatus, updatedAt: new Date().toISOString() });
-        if (tx.finance) await tx.finance.createStatusHistory({ storeId: store.id, oldStatus: currentStatus, newStatus: nextStatus, reason: input.acceptingOrders ? "Merchant kembali menerima pesanan." : "Merchant meliburkan lapak sementara.", changedByUserId: actor.id, metadata: { process: "merchant-availability" } });
+        if (tx.finance) await tx.finance.createStatusHistory({ storeId: store.id, oldStatus: currentStatus, newStatus: nextStatus, reason: input.acceptingOrders ? "Penjual kembali menerima pesanan." : "Penjual meliburkan lapak sementara.", changedByUserId: actor.id, metadata: { process: "merchant-availability" } });
         await tx.audits.append({ entityType: "store", entityId: store.id, actorId: actor.id, actorRole: "merchant", activityType: input.acceptingOrders ? "STORE_REOPENED" : "STORE_TEMPORARILY_CLOSED", previousStatus: currentStatus, nextStatus, description: input.acceptingOrders ? `Lapak ${store.name} kembali menerima pesanan.` : `Lapak ${store.name} diliburkan sementara.`, reason: null, isSystem: false });
         return updated;
       });

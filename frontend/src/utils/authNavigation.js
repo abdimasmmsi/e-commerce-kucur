@@ -6,9 +6,9 @@ export const roleHomePaths = {
 };
 
 export const roleLabels = {
-  customer: "Customer",
-  merchant: "Merchant",
-  courier: "Courier",
+  customer: "Pembeli",
+  merchant: "Penjual",
+  courier: "Kurir",
   admin: "Admin",
 };
 

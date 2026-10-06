@@ -35,7 +35,7 @@ function Register() {
     if (Object.values(form).some((value) => !value.trim())) return setError("Semua field wajib diisi.");
     if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(form.email)) return setError("Format email tidak valid.");
     if (form.password.length < 8) return setError("Password minimal 8 karakter.");
-    if (form.password !== form.confirmPassword) return setError("Konfirmasi password tidak sama.");
+    if (form.password !== form.confirmPassword) return setError("Konfirmasi kata sandi tidak sama.");
     const delivery = { ...address, recipientName: address.recipientName.trim() || form.fullName.trim(), phone: address.phone.trim() || form.phone.trim() };
     const problem = addressProblem(delivery, language);
     if (problem) return setError(problem);

@@ -27,10 +27,10 @@ const COPY = {
     storeStatus: { active: "Aktif", suspended_admin_fee: "Ditangguhkan (biaya admin)", pending_initial_payment: "Menunggu iuran pertama", suspended: "Ditangguhkan", closed: "Tutup sementara", inactive: "Nonaktif" },
     download: "Unduh CSV", csv: { store: "Lapak", status: "Status lapak", unpaid: "Belum dibayar", overdue: "Tagihan lewat jatuh tempo", oldest: "Terlambat (hari)", nearest: "Jatuh tempo terdekat", paid: "Sudah dibayar" },
     automation: "Pembaruan status tagihan", automationHint: "Berjalan otomatis setiap jam. Tombol di bawah untuk menjalankannya sekarang juga.", runNow: "Jalankan sekarang",
-    installmentsTitle: "Hitung denda cicilan", installmentsHelp: "Menandai cicilan iuran pokok yang lewat jatuh tempo dan menambahkan denda keterlambatan setiap 7 hari sesuai Admin Settings. Aman dijalankan berkali-kali: denda tiap periode hanya dihitung sekali.",
-    feesTitle: "Cek batas bayar biaya admin", feesHelp: "Menangguhkan lapak aktif yang biaya adminnya belum lunas melewati batas bayar (tanggal 1, sampai jam grace), dan mengaktifkan lagi lapak yang sudah tidak punya tunggakan. Aman dijalankan berkali-kali.",
+    installmentsTitle: "Hitung denda cicilan", installmentsHelp: "Menandai cicilan iuran pokok yang lewat jatuh tempo dan menambahkan denda keterlambatan setiap 7 hari sesuai Pengaturan Platform. Aman dijalankan berkali-kali: denda tiap periode hanya dihitung sekali.",
+    feesTitle: "Cek batas bayar biaya admin", feesHelp: "Menangguhkan lapak aktif yang biaya adminnya belum lunas melewati batas bayar (tanggal 1, sampai jam akhir masa tenggang), dan mengaktifkan lagi lapak yang sudah tidak punya tunggakan. Aman dijalankan berkali-kali.",
     installmentsDone: "Selesai: {count} cicilan diperiksa, {penalties} denda baru.", feesDone: "Selesai: {suspended} lapak ditangguhkan, {reactivated} lapak diaktifkan lagi.",
-    loading: "Memuat monitoring keuangan", loadFailed: "Data keuangan gagal dimuat.", actionFailed: "Aksi gagal diproses. Coba lagi.", retry: "Coba lagi", done: "Berhasil diproses.",
+    loading: "Memuat keuangan", loadFailed: "Data keuangan gagal dimuat.", actionFailed: "Aksi gagal diproses. Coba lagi.", retry: "Coba lagi", done: "Berhasil diproses.",
   },
   en: {
     eyebrow: "Village Admin", title: "Finance", subtitle: "See every store's bills: which are overdue, which are due soon, and incoming payments to confirm.",
