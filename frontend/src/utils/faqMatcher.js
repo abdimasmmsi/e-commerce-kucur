@@ -109,11 +109,11 @@ export function buildFaqList(entries = []) {
   for (const faq of FAQS) {
     const override = overrides.get(faq.id);
     if (!override) { merged.push(faq); continue; }
-    if (override.hidden) continue;
+    if (override.hidden || override.deletedAt) continue;
     const keywords = (override.keywords ?? []).map(keywordConcept);
     merged.push({ ...faq, roles: override.roles ?? faq.roles, q: override.q ?? faq.q, a: override.a ?? faq.a, link: override.link === undefined ? faq.link : override.link, keywords: override.keywords ?? [], pinned: override.pinned, alt: [...(faq.alt ?? []), ...keywords.map((concept) => [concept])], extra: [...(faq.extra ?? []), ...keywords], edited: true });
   }
-  for (const entry of list.filter((item) => !item.builtin && !item.hidden && item.q && item.a)) {
+  for (const entry of list.filter((item) => !item.builtin && !item.hidden && !item.deletedAt && item.q && item.a)) {
     const keywords = (entry.keywords ?? []).map(keywordConcept);
     const variants = [detectConcepts(entry.q.id).concepts, detectConcepts(entry.q.en).concepts, ...keywords.map((concept) => [concept])].filter((variant) => variant.length);
     merged.push({ ...entry, custom: true, concepts: variants[0] ?? [keywordConcept(entry.q.id)], alt: variants.slice(1), extra: keywords });

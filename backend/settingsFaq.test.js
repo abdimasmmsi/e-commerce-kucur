@@ -31,3 +31,14 @@ test("admin analytics reports keep only known metrics, groups, and views", async
   await assert.rejects(service.update({ analyticsReports: [{ ...report, widgets: [{ ...report.widgets[0], metric: "dropTables" }] }] }, admin), (error) => error.code === "VALIDATION_ERROR");
   await assert.rejects(service.update({ analyticsReports: [{ ...report, widgets: [] }] }, admin), (error) => error.code === "VALIDATION_ERROR");
 });
+
+test("deleted FAQs stay in the trash for 30 days, then custom ones disappear and built-in ones stay hidden", async () => {
+  const { purgeFaqEntries } = require("./services/settingsService");
+  const now = Date.now(); const old = new Date(now - 31 * 86400000).toISOString(); const recent = new Date(now - 2 * 86400000).toISOString();
+  const rows = purgeFaqEntries([{ ...entry, deletedAt: old }, { ...entry, id: "custom-recent", deletedAt: recent }, { id: "cancel-order", builtin: true, hidden: true, deletedAt: old }], now);
+  assert.deepEqual(rows.map((row) => row.id), ["custom-recent", "cancel-order"]);
+  assert.equal(rows[1].hidden, true); assert.equal(rows[1].deletedAt, null);
+  const service = createSettingsService(fakeRepository());
+  await service.update({ faqEntries: [{ ...entry, deletedAt: recent }] }, admin);
+  assert.equal((await service.faq())[0].deletedAt, recent);
+});

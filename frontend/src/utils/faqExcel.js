@@ -63,7 +63,7 @@ export async function exportFaqExcel({ faqs, entries, template = false }) {
       { id: "wifi-desa", type: "Buatan admin", status: "Tampil", roles: "pengunjung, pembeli", qId: "Apakah ada wifi di desa?", qEn: "Is there wifi in the village?", aId: "Ada, gratis di **balai desa**.\nKata sandi tanyakan ke petugas.", aEn: "Yes, free at the **village hall**.\nAsk the staff for the password.", keywords: "wifi, internet", link: "", pinned: "Tidak" },
       { ...toRow(FAQS[0]), status: "Sembunyi" },
     ]
-    : [...faqs.map((faq) => toRow(faq, entryById.get(faq.id))), ...(entries ?? []).filter((entry) => entry.builtin && entry.hidden && !faqs.some((faq) => faq.id === entry.id)).map((entry) => ({ ...toRow(BUILTIN.get(entry.id) ?? { id: entry.id }), status: "Sembunyi" }))];
+    : [...faqs.map((faq) => toRow(faq, entryById.get(faq.id))), ...(entries ?? []).filter((entry) => entry.builtin && entry.hidden && !entry.deletedAt && !faqs.some((faq) => faq.id === entry.id)).map((entry) => ({ ...toRow(BUILTIN.get(entry.id) ?? { id: entry.id }), status: "Sembunyi" }))];
   for (const row of rows) sheet.addRow(row);
   sheet.eachRow((row) => { row.alignment = { vertical: "top", wrapText: true }; });
   sheet.dataValidations.add(`C2:C${Math.max(rows.length + 200, 300)}`, { type: "list", allowBlank: false, formulae: ['"Tampil,Sembunyi"'] });

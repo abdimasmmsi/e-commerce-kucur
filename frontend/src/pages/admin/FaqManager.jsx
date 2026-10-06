@@ -22,6 +22,7 @@ const copyByLanguage = {
     rolesLabel: "Tampil untuk", keywords: "Kata kunci tambahan", keywordsHint: "Pisahkan dengan koma. Dipakai chatbot untuk mengenali pertanyaan, mis. wifi, jam buka, parkir.", link: "Tombol pintasan", noLink: "Tanpa tombol", pinnedLabel: "Tampilkan di topik awal chatbot",
     save: "Simpan", saving: "Menyimpan...", cancel: "Batal", saved: "FAQ tersimpan dan langsung dipakai chatbot.", notRecognized: "Chatbot belum bisa mengenali pertanyaan ini dari kata-katanya. Tambahkan kata kunci supaya mudah ditemukan.",
     excelExport: "Unduh Excel", excelTemplate: "Unduh contoh", excelImport: "Impor Excel", excelHint: "Ubah banyak FAQ sekaligus lewat Excel: unduh, ubah, lalu impor. Gunakan contoh untuk melihat format.", importTitle: "Impor FAQ dari Excel", importText: "Isi file menggantikan semua perubahan FAQ sebelumnya. FAQ bawaan yang tidak ada di file kembali ke versi bawaan.", importAdded: "{count} FAQ baru", importChanged: "{count} FAQ bawaan diubah", importHidden: "{count} FAQ disembunyikan", importErrors: "Perbaiki dulu baris berikut di Excel, lalu impor ulang:", importRow: "Baris {row}", importConfirm: "Impor & simpan", importDone: "FAQ dari Excel tersimpan dan langsung dipakai chatbot.", reading: "Membaca file...",
+    trashTab: "Sampah", listTab: "Daftar FAQ", moveToTrash: "Hapus", movedToTrash: "FAQ dipindah ke Sampah. Bisa dipulihkan dalam 30 hari.", restore: "Pulihkan", restored: "FAQ dipulihkan.", purge: "Hapus permanen", deletedOn: "Dihapus {date}", daysLeft: "terhapus permanen dalam {days} hari", trashEmpty: "Sampah kosong.", trashHint: "FAQ di Sampah tidak dipakai chatbot dan terhapus permanen otomatis setelah 30 hari.", purgeTitle: "Hapus permanen?", purgeText: "FAQ buatan admin hilang selamanya. FAQ bawaan tertanam di aplikasi, jadi hanya disembunyikan permanen (masih bisa ditampilkan lagi dari daftar).", purged: "FAQ dihapus permanen.",
     removeTitle: "Hapus FAQ ini?", removeText: "FAQ buatan admin ini akan dihapus dari chatbot.", resetTitle: "Kembalikan ke bawaan?", resetText: "Perubahan admin pada FAQ ini dibuang dan jawaban bawaan dipakai lagi.",
   },
   en: {
@@ -34,6 +35,7 @@ const copyByLanguage = {
     rolesLabel: "Show to", keywords: "Extra keywords", keywordsHint: "Separate with commas. Helps the chatbot recognise the question, e.g. wifi, opening hours, parking.", link: "Shortcut button", noLink: "No button", pinnedLabel: "Show in the chatbot starter topics",
     save: "Save", saving: "Saving...", cancel: "Cancel", saved: "FAQ saved and used by the chatbot right away.", notRecognized: "The chatbot cannot recognise this question from its words yet. Add keywords so users can find it.",
     excelExport: "Download Excel", excelTemplate: "Download example", excelImport: "Import Excel", excelHint: "Change many FAQs at once in Excel: download, edit, then import. Use the example to see the format.", importTitle: "Import FAQs from Excel", importText: "The file replaces all earlier FAQ changes. Built-in FAQs missing from the file go back to their built-in version.", importAdded: "{count} new FAQs", importChanged: "{count} built-in FAQs changed", importHidden: "{count} FAQs hidden", importErrors: "Fix these rows in Excel first, then import again:", importRow: "Row {row}", importConfirm: "Import & save", importDone: "FAQs from Excel saved and used by the chatbot right away.", reading: "Reading file...",
+    trashTab: "Trash", listTab: "FAQ list", moveToTrash: "Delete", movedToTrash: "FAQ moved to Trash. It can be restored within 30 days.", restore: "Restore", restored: "FAQ restored.", purge: "Delete permanently", deletedOn: "Deleted {date}", daysLeft: "permanently deleted in {days} days", trashEmpty: "Trash is empty.", trashHint: "FAQs in Trash are not used by the chatbot and are permanently deleted after 30 days.", purgeTitle: "Delete permanently?", purgeText: "Admin-made FAQs are gone for good. Built-in FAQs are part of the app, so they are only hidden permanently (they can still be shown again from the list).", purged: "FAQ permanently deleted.",
     removeTitle: "Delete this FAQ?", removeText: "This admin-made FAQ will be removed from the chatbot.", resetTitle: "Restore built-in?", resetText: "Admin changes to this FAQ are discarded and the built-in answer is used again.",
   },
 };
@@ -45,7 +47,7 @@ const emptyForm = { id: "", builtin: false, qId: "", qEn: "", aId: "", aEn: "", 
 const newId = () => `custom-${Date.now().toString(36)}-${Math.random().toString(36).slice(2, 6)}`;
 
 export default function FaqManager() {
-  const { language, t } = usePreferences();
+  const { formatDate, language, t } = usePreferences();
   const lang = language === "en" ? "en" : "id";
   const copy = copyByLanguage[lang];
   const [entries, setEntries] = useState([]);
@@ -58,6 +60,8 @@ export default function FaqManager() {
   const [confirm, setConfirm] = useState(null);
   const [test, setTest] = useState({ text: "", role: "customer" });
   const [importing, setImporting] = useState(null);
+  const [view, setView] = useState("list");
+  const [now, setNow] = useState(() => Date.now());
 
   useEffect(() => {
     let active = true;
@@ -70,16 +74,17 @@ export default function FaqManager() {
   // Daftar admin: semua FAQ bawaan (termasuk yang disembunyikan) + FAQ buatan admin.
   const rows = useMemo(() => {
     const visible = new Map(merged.map((faq) => [faq.id, faq]));
-    const builtins = FAQS.map((faq) => { const entry = entryById.get(faq.id); return { ...(visible.get(faq.id) ?? faq), kind: entry ? (entry.hidden ? "hidden" : "edited") : "builtin", entry }; });
+    const builtins = FAQS.map((faq) => { const entry = entryById.get(faq.id); return { ...(visible.get(faq.id) ?? faq), ...(entry?.q ? { q: entry.q } : {}), kind: entry ? (entry.hidden ? "hidden" : entry.q ? "edited" : "builtin") : "builtin", entry }; });
     const customs = entries.filter((entry) => !entry.builtin).map((entry) => ({ ...(visible.get(entry.id) ?? entry), kind: entry.hidden ? "hidden" : "custom", custom: true, entry }));
     const query = search.trim().toLowerCase();
-    return [...customs, ...builtins].filter((faq) => (roleFilter === "all" || faq.roles?.includes(roleFilter)) && (!query || `${faq.q?.id ?? ""} ${faq.q?.en ?? ""}`.toLowerCase().includes(query)));
-  }, [entries, entryById, merged, roleFilter, search]);
+    return [...customs, ...builtins].filter((faq) => (view === "trash" ? Boolean(faq.entry?.deletedAt) : !faq.entry?.deletedAt) && (roleFilter === "all" || faq.roles?.includes(roleFilter)) && (!query || `${faq.q?.id ?? ""} ${faq.q?.en ?? ""}`.toLowerCase().includes(query)));
+  }, [entries, entryById, merged, roleFilter, search, view]);
+  const trashCount = entries.filter((entry) => entry.deletedAt).length;
   const testResult = useMemo(() => (test.text.trim() ? matchFaq(test.text, test.role, "", merged) : null), [merged, test]);
 
   const persist = async (next) => {
     setBusy(true); setMessage({ type: "", text: "" });
-    try { const saved = await faqEntriesService.save(next); setEntries(Array.isArray(saved?.faqEntries) ? saved.faqEntries : next); setMessage({ type: "success", text: copy.saved }); return true; }
+    try { const saved = await faqEntriesService.save(next); setNow((value) => Date.parse(saved?.updatedAt) || value); setEntries(Array.isArray(saved?.faqEntries) ? saved.faqEntries : next); setMessage({ type: "success", text: copy.saved }); return true; }
     catch (caught) { setMessage({ type: "error", text: caught.message }); return false; }
     finally { setBusy(false); }
   };
@@ -104,8 +109,16 @@ export default function FaqManager() {
     catch (caught) { setMessage({ type: "error", text: caught.message }); }
     finally { setBusy(false); }
   };
-  const confirmImport = async () => { if (await persist(importing.entries)) { setImporting(null); setMessage({ type: "success", text: copy.importDone }); } };
-  const runConfirm = async () => { const { faq } = confirm; if (await persist(entries.filter((item) => item.id !== faq.id))) setConfirm(null); };
+  // Impor tidak menyentuh isi Sampah (FAQ yang dihapus tetap bisa dipulihkan).
+  const confirmImport = async () => { const imported = new Set(importing.entries.map((entry) => entry.id)); if (await persist([...importing.entries, ...entries.filter((entry) => entry.deletedAt && !imported.has(entry.id))])) { setImporting(null); setMessage({ type: "success", text: copy.importDone }); } };
+  const moveToTrash = async (faq) => { if (await persist(withEntry({ ...(faq.entry ?? { id: faq.id, builtin: true, hidden: false }), deletedAt: new Date().toISOString() }))) setMessage({ type: "success", text: copy.movedToTrash }); };
+  const restoreFaq = async (faq) => { const entry = { ...faq.entry, deletedAt: null }; const next = faq.custom || entry.q || entry.hidden ? withEntry(entry) : entries.filter((item) => item.id !== faq.id); if (await persist(next)) setMessage({ type: "success", text: copy.restored }); };
+  const daysLeft = (deletedAt) => Math.min(30, Math.max(0, 30 - Math.floor((now - Date.parse(deletedAt)) / 86400000)));
+  const runConfirm = async () => {
+    const { faq, type } = confirm;
+    const next = type === "purge" && !faq.custom ? withEntry({ ...faq.entry, hidden: true, deletedAt: null }) : entries.filter((item) => item.id !== faq.id);
+    if (await persist(next)) { setConfirm(null); if (type === "purge") setMessage({ type: "success", text: copy.purged }); }
+  };
 
   const formValid = form && form.qId.trim() && form.qEn.trim() && form.aId.trim() && form.aEn.trim() && form.roles.length;
   const formRecognized = form && (detectConcepts(form.qId).concepts.length || form.keywords.trim());
@@ -132,6 +145,8 @@ export default function FaqManager() {
 
     <section className="min-w-0 rounded-xl border border-[var(--kucur-border)] bg-[var(--kucur-surface)]">
       <div className="grid gap-3 p-4 sm:p-5">
+        <div className="grid grid-cols-2 rounded-xl border border-[var(--kucur-border)] p-1 sm:max-w-sm" role="tablist">{[["list", copy.listTab], ["trash", `${copy.trashTab}${trashCount ? ` (${trashCount})` : ""}`]].map(([key, label]) => <button className={`min-h-10 rounded-lg px-3 text-sm font-bold ${view === key ? "bg-[var(--kucur-brand)] text-[var(--kucur-on-brand)]" : "text-[var(--kucur-text-muted)]"}`} type="button" role="tab" aria-selected={view === key} key={key} onClick={() => setView(key)}>{label}</button>)}</div>
+        {view === "trash" && <p className="text-sm text-[var(--kucur-text-muted)]">{copy.trashHint}</p>}
         <label><span className="sr-only">{copy.search}</span><input className={inputClass} type="search" value={search} placeholder={copy.search} onChange={(event) => setSearch(event.target.value)} /></label>
         <div className="-mx-4 flex gap-2 overflow-x-auto px-4 [scrollbar-width:none] sm:mx-0 sm:flex-wrap sm:px-0 [&::-webkit-scrollbar]:hidden" role="group">{["all", ...ROLES].map((role) => <button className={`inline-flex min-h-10 shrink-0 items-center rounded-full border px-4 text-sm font-bold ${roleFilter === role ? "border-[var(--kucur-brand)] bg-[var(--kucur-brand)] text-[var(--kucur-on-brand)]" : "border-[var(--kucur-border)] text-[var(--kucur-text)]"}`} type="button" aria-pressed={roleFilter === role} key={role} onClick={() => setRoleFilter(role)}>{copy.roles[role]}</button>)}</div>
         <p className="text-sm text-[var(--kucur-text-muted)]">{copy.count.replace("{count}", rows.length)}</p>
@@ -139,13 +154,19 @@ export default function FaqManager() {
       {loading ? <div className="p-4"><LoadingPanel label={copy.title} rows={4} /></div> : rows.length ? <ul>{rows.map((faq) => <li className={`grid min-w-0 gap-2 border-t border-[var(--kucur-border)] px-4 py-3.5 sm:px-5 ${faq.kind === "hidden" ? "opacity-70" : ""}`} key={faq.id}>
         <div className="flex flex-wrap items-start justify-between gap-2"><strong className="min-w-0 flex-1 break-words text-[15px]">{faq.q?.[lang] ?? faq.id}</strong><div className="flex flex-wrap gap-1.5">{badge(faq.kind)}{faq.pinned && faq.kind !== "hidden" && <StatusBadge status="planned">{copy.pinned}</StatusBadge>}</div></div>
         <p className="text-sm text-[var(--kucur-text-muted)]">{(faq.roles ?? []).map((role) => copy.roles[role]).join(" · ")}</p>
-        <div className="flex flex-wrap gap-2">
+        {view === "trash" ? <>
+          <p className="text-[13px] text-[var(--kucur-text-muted)]">{copy.deletedOn.replace("{date}", formatDate(faq.entry.deletedAt, { dateStyle: "medium" }))} · {copy.daysLeft.replace("{days}", daysLeft(faq.entry.deletedAt))}</p>
+          <div className="flex flex-wrap gap-2">
+            <Button variant="secondary" className="!min-h-10 !px-4 !text-sm" disabled={busy} onClick={() => void restoreFaq(faq)}>{copy.restore}</Button>
+            <Button variant="secondary" className="!min-h-10 !px-4 !text-sm" disabled={busy} onClick={() => setConfirm({ faq, type: "purge" })}>{copy.purge}</Button>
+          </div>
+        </> : <div className="flex flex-wrap gap-2">
           {faq.kind !== "hidden" && <Button variant="secondary" className="!min-h-10 !px-4 !text-sm" disabled={busy} onClick={() => openEdit(faq)}>{copy.edit}</Button>}
           <Button variant="secondary" className="!min-h-10 !px-4 !text-sm" disabled={busy} onClick={() => void toggleHidden(faq)}>{faq.kind === "hidden" ? copy.show : copy.hide}</Button>
           {faq.kind === "edited" && <Button variant="secondary" className="!min-h-10 !px-4 !text-sm" disabled={busy} onClick={() => setConfirm({ faq, type: "reset" })}>{copy.reset}</Button>}
-          {faq.custom && <Button variant="secondary" className="!min-h-10 !px-4 !text-sm" disabled={busy} onClick={() => setConfirm({ faq, type: "remove" })}>{copy.remove}</Button>}
-        </div>
-      </li>)}</ul> : <p className="border-t border-[var(--kucur-border)] px-4 py-5 text-[15px] text-[var(--kucur-text-muted)] sm:px-5">{copy.empty}</p>}
+          <Button variant="secondary" className="!min-h-10 !px-4 !text-sm !text-rose-700 dark:!text-rose-300" disabled={busy} onClick={() => void moveToTrash(faq)}>{copy.moveToTrash}</Button>
+        </div>}
+      </li>)}</ul> : <p className="border-t border-[var(--kucur-border)] px-4 py-5 text-[15px] text-[var(--kucur-text-muted)] sm:px-5">{view === "trash" ? copy.trashEmpty : copy.empty}</p>}
     </section>
 
     <ActionDialog open={Boolean(form)} busy={busy} title={form?.id ? copy.formEdit : copy.formNew} confirmLabel={busy ? copy.saving : copy.save} cancelLabel={copy.cancel} confirmDisabled={!formValid} onCancel={() => setForm(null)} onConfirm={saveForm}>
@@ -168,6 +189,6 @@ export default function FaqManager() {
         {importing.errors.length > 0 && <div className="grid gap-1 rounded-xl border border-rose-300 bg-rose-50 p-3 text-sm text-rose-800 dark:border-rose-800 dark:bg-rose-950 dark:text-rose-200" role="alert"><strong>{copy.importErrors}</strong><ul className="grid gap-1">{importing.errors.slice(0, 20).map((item) => <li key={`${item.row}-${item.message}`}>{copy.importRow.replace("{row}", item.row)}: {item.message}</li>)}</ul></div>}
       </>}
     </ActionDialog>
-    <ActionDialog open={Boolean(confirm)} busy={busy} destructive={confirm?.type === "remove"} title={confirm?.type === "remove" ? copy.removeTitle : copy.resetTitle} description={confirm?.type === "remove" ? copy.removeText : copy.resetText} confirmLabel={confirm?.type === "remove" ? copy.remove : copy.reset} cancelLabel={copy.cancel} onCancel={() => setConfirm(null)} onConfirm={runConfirm} />
+    <ActionDialog open={Boolean(confirm)} busy={busy} destructive={confirm?.type !== "reset"} title={confirm?.type === "purge" ? copy.purgeTitle : confirm?.type === "remove" ? copy.removeTitle : copy.resetTitle} description={confirm?.type === "purge" ? copy.purgeText : confirm?.type === "remove" ? copy.removeText : copy.resetText} confirmLabel={confirm?.type === "purge" ? copy.purge : confirm?.type === "remove" ? copy.remove : copy.reset} cancelLabel={copy.cancel} onCancel={() => setConfirm(null)} onConfirm={runConfirm} />
   </div>;
 }

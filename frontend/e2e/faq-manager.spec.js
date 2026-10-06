@@ -59,3 +59,27 @@ test("admin exports, imports, and round-trips chatbot FAQs through Excel", async
   await expect(dialog.getByText("1 FAQ disembunyikan")).toBeVisible();
   await expect(dialog.getByRole("button", { name: "Impor & simpan" })).toBeEnabled();
 });
+
+// Hapus FAQ masuk Sampah (bisa dipulihkan), hapus permanen dari Sampah.
+test("deleted FAQs go to the trash and can be restored or purged", async ({ qaPage: page }) => {
+  test.setTimeout(90_000);
+  await loginThroughUi(page, "admin");
+  await page.goto("/admin/faq");
+  const item = page.locator("li", { hasText: "Bagaimana cara memesan produk?" });
+  await item.getByRole("button", { name: "Hapus" }).click();
+  await expect(page.getByText("FAQ dipindah ke Sampah")).toBeVisible();
+  await expect(item).toHaveCount(0);
+  await page.getByRole("tab", { name: /Sampah/ }).click();
+  await expect(page.getByText(/terhapus permanen dalam 30 hari/)).toBeVisible();
+  await item.getByRole("button", { name: "Pulihkan" }).click();
+  await expect(page.getByText("FAQ dipulihkan.")).toBeVisible();
+  await page.getByRole("tab", { name: "Daftar FAQ" }).click();
+  await expect(item).toBeVisible();
+  await item.getByRole("button", { name: "Hapus" }).click();
+  await page.getByRole("tab", { name: /Sampah/ }).click();
+  await item.getByRole("button", { name: "Hapus permanen" }).click();
+  await page.getByRole("alertdialog").getByRole("button", { name: "Hapus permanen" }).click();
+  await expect(page.getByText("FAQ dihapus permanen.")).toBeVisible();
+  await page.getByRole("tab", { name: "Daftar FAQ" }).click();
+  await expect(item.getByText("Disembunyikan")).toBeVisible();
+});

@@ -27,15 +27,24 @@ const prideKeys = ["prideTransactionValueWeight", "prideTransactionCountWeight",
 const FAQ_ROLES = ["visitor", "customer", "merchant", "courier", "admin"];
 const faqText = (value, max, field) => { const text = typeof value === "string" ? value.trim() : ""; if (!text) throw errors.validation({ faqEntries: `${field} wajib diisi.` }); if (text.length > max) throw errors.validation({ faqEntries: `${field} terlalu panjang (maks ${max} karakter).` }); return text; };
 const faqLines = (value, field) => { const lines = (Array.isArray(value) ? value : []).map((line) => String(line ?? "").trim()).filter(Boolean); if (!lines.length || lines.length > 8) throw errors.validation({ faqEntries: `${field} wajib berisi 1–8 langkah.` }); return lines.map((line) => faqText(line, 600, field)); };
+// FAQ di Sampah lebih dari 30 hari: buatan admin dihapus, bawaan tetap tersembunyi (tidak bisa dibuang dari kode).
+const FAQ_TRASH_DAYS = 30;
+function purgeFaqEntries(entries, now = Date.now()) {
+  const limit = now - FAQ_TRASH_DAYS * 86400000;
+  return entries.flatMap((entry) => (entry.deletedAt && Date.parse(entry.deletedAt) < limit ? (entry.builtin ? [{ ...entry, hidden: true, deletedAt: null }] : []) : [entry]));
+}
 function sanitizeFaqEntries(value) {
   if (!Array.isArray(value) || value.length > 200) throw errors.validation({ faqEntries: "Daftar FAQ tidak valid (maks 200 entri)." });
   const seen = new Set();
-  return value.map((entry) => {
+  return purgeFaqEntries(value.map((entry) => {
     const id = String(entry?.id ?? "");
     if (!/^[a-z0-9-]{2,60}$/.test(id) || seen.has(id)) throw errors.validation({ faqEntries: "ID FAQ tidak valid atau ganda." });
     seen.add(id);
     const builtin = entry.builtin === true; const hidden = entry.hidden === true;
-    const base = { id, builtin, hidden, updatedAt: new Date().toISOString() };
+    // deletedAt = FAQ ada di Sampah (dipulihkan dalam 30 hari, sesudahnya dibersihkan purgeFaqEntries).
+    const deletedTime = entry.deletedAt ? Date.parse(entry.deletedAt) : NaN;
+    const deletedAt = Number.isFinite(deletedTime) ? new Date(Math.min(deletedTime, Date.now())).toISOString() : null;
+    const base = { id, builtin, hidden, deletedAt, updatedAt: new Date().toISOString() };
     if (builtin && hidden && !entry.q) return base;
     const roles = [...new Set((Array.isArray(entry.roles) ? entry.roles : []).filter((role) => FAQ_ROLES.includes(role)))];
     if (!roles.length) throw errors.validation({ faqEntries: "Pilih minimal satu peran untuk FAQ." });
@@ -43,7 +52,7 @@ function sanitizeFaqEntries(value) {
     if (link && (!/^\/[A-Za-z0-9/_-]*$/.test(link.to) || link.to.length > 120)) throw errors.validation({ faqEntries: "Tautan FAQ harus halaman di aplikasi (diawali /)." });
     const keywords = [...new Set((Array.isArray(entry.keywords) ? entry.keywords : []).map((word) => String(word ?? "").trim().toLowerCase()).filter(Boolean))].slice(0, 15).map((word) => faqText(word, 40, "Kata kunci"));
     return { ...base, pinned: entry.pinned === true, roles, keywords, link, q: { id: faqText(entry.q?.id, 200, "Pertanyaan (ID)"), en: faqText(entry.q?.en, 200, "Pertanyaan (EN)") }, a: { id: faqLines(entry.a?.id, "Jawaban (ID)"), en: faqLines(entry.a?.en, "Jawaban (EN)") } };
-  });
+  }));
 }
 
 // Laporan Analytics buatan Admin: susunan widget saja (angka dihitung di browser dari data asli).
@@ -78,7 +87,7 @@ function createSettingsService(repository) {
   return {
     get: () => repository.settings.get(),
     // Dipakai chatbot untuk semua pengguna, termasuk pengunjung yang belum login.
-    async faq() { const settings = await repository.settings.get(); return Array.isArray(settings?.faqEntries) ? settings.faqEntries : []; },
+    async faq() { const settings = await repository.settings.get(); return purgeFaqEntries(Array.isArray(settings?.faqEntries) ? settings.faqEntries : []); },
     async update(input, actor) {
       const changes = {};
       for (const [key, value] of Object.entries(input || {})) {
@@ -102,4 +111,4 @@ function createSettingsService(repository) {
   };
 }
 
-module.exports = { createSettingsService };
+module.exports = { createSettingsService, purgeFaqEntries, FAQ_TRASH_DAYS };
