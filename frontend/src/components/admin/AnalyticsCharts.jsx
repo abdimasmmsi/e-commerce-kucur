@@ -29,15 +29,19 @@ function Tooltip({ point, left, top, width }) {
   </div>;
 }
 
-// Kerangka bersama grafik waktu (batang atau garis): sumbu Y, garis bantu, label X, interaksi.
-function TimeChart({ rows, format, language, label, kind }) {
+// Kerangka bersama grafik waktu (batang atau garis): sumbu Y, garis bantu, label X, nilai, interaksi.
+// Nilai tampil tanpa hover: semua batang/titik diberi angka kalau muat, kalau tidak hanya tertinggi & terakhir.
+// Periode tanpa data (null, mis. rata-rata rating di minggu tanpa ulasan) tidak digambar sebagai 0.
+function TimeChart({ rows, format, short, language, label, kind, maxHint }) {
   const [ref, width] = useWidth();
   const [active, setActive] = useState(null);
   const descriptionId = useId();
-  const height = 200;
-  const pad = { top: 12, right: kind === "line" ? 56 : 12, bottom: 26, left: 52 };
-  const max = Math.max(...rows.map((row) => row.value), 0);
-  const ticks = niceTicks(max);
+  const height = 220;
+  const pad = { top: 22, right: kind === "line" ? 20 : 12, bottom: 26, left: 52 };
+  const values = rows.map((row) => row.value);
+  const present = values.filter((value) => value !== null && value !== undefined);
+  const max = Math.max(...present, 0);
+  const ticks = maxHint && max <= maxHint ? niceTicks(maxHint, maxHint <= 5 ? 5 : 4).filter((tick) => tick <= maxHint) : niceTicks(max);
   const top = ticks.at(-1) || 1;
   const plotWidth = Math.max(width - pad.left - pad.right, 10);
   const plotHeight = height - pad.top - pad.bottom;
@@ -45,10 +49,16 @@ function TimeChart({ rows, format, language, label, kind }) {
   const x = (index) => pad.left + band * index + band / 2;
   const y = (value) => pad.top + plotHeight - (value / top) * plotHeight;
   const barWidth = Math.max(Math.min(24, band * 0.68), 2);
-  const labelEvery = Math.max(1, Math.ceil(rows.length / Math.max(Math.floor(plotWidth / 72), 1)));
+  // Jarak label sumbu X mengikuti panjang teks label (perkiraan 6,2px per huruf) supaya tidak bertumpuk.
+  const labelWidth = Math.max(...rows.map((row) => String(row.label).length), 4) * 6.2 + 14;
+  const labelEvery = Math.max(1, Math.ceil(labelWidth / Math.max(band, 1)));
   const last = rows.length - 1;
-  const peak = rows.reduce((best, row, index) => (row.value > (rows[best]?.value ?? -1) ? index : best), 0);
-  const point = active === null ? null : { ...rows[active], formatted: format(rows[active].value) };
+  const lastPresent = values.findLastIndex((value) => value !== null && value !== undefined);
+  const peak = values.reduce((best, value, index) => (value !== null && value > (values[best] ?? -Infinity) ? index : best), lastPresent);
+  // Semua nilai diberi label kalau tiap kolom cukup lebar (>= 34px); kalau tidak, hanya tertinggi & terakhir.
+  const labelAll = band >= 34;
+  const valueLabels = rows.map((row, index) => (row.value !== null && row.value !== undefined && row.value > 0 && (labelAll || index === peak || index === lastPresent)));
+  const point = active === null || rows[active]?.value === null || rows[active]?.value === undefined ? (active === null ? null : { label: rows[active].label, formatted: "–" }) : { ...rows[active], formatted: format(rows[active].value) };
 
   const pick = (clientX) => {
     const box = ref.current?.getBoundingClientRect();
@@ -62,15 +72,18 @@ function TimeChart({ rows, format, language, label, kind }) {
     if (event.key === "ArrowLeft") { event.preventDefault(); setActive((value) => (value === null ? last : Math.max(value - 1, 0))); }
     if (event.key === "Escape") setActive(null);
   };
-  const linePath = rows.map((row, index) => `${index ? "L" : "M"}${x(index)},${y(row.value)}`).join(" ");
-  const areaPath = rows.length ? `${linePath} L${x(last)},${y(0)} L${x(0)},${y(0)} Z` : "";
+  // Garis terputus di periode kosong; area hanya di bawah segmen yang ada datanya.
+  const segments = [];
+  rows.forEach((row, index) => { if (row.value === null || row.value === undefined) return; const previous = segments.at(-1); if (previous && previous.at(-1) === index - 1) previous.push(index); else segments.push([index]); });
+  const segmentPath = (segment) => segment.map((index, position) => `${position ? "L" : "M"}${x(index)},${y(rows[index].value)}`).join(" ");
   const barPath = (index, value) => {
     const height0 = y(0) - y(value);
-    if (height0 <= 0) return "";
+    if (!(height0 > 0)) return "";
     const r = Math.min(4, height0, barWidth / 2);
     const left = x(index) - barWidth / 2; const right = left + barWidth; const base = y(0); const tip = y(value);
     return `M${left},${base} L${left},${tip + r} Q${left},${tip} ${left + r},${tip} L${right - r},${tip} Q${right},${tip} ${right},${tip + r} L${right},${base} Z`;
   };
+  const showDots = kind === "line" && band >= 14;
 
   return <div className="relative" ref={ref}>
     <p className="sr-only" id={descriptionId}>{label}. {language === "en" ? "Use the left and right arrow keys to read each value." : "Pakai tombol panah kiri dan kanan untuk membaca tiap nilai."}</p>
@@ -80,18 +93,17 @@ function TimeChart({ rows, format, language, label, kind }) {
         <line x1={pad.left} x2={width - pad.right} y1={y(tick)} y2={y(tick)} stroke={tick === 0 ? "var(--chart-axis)" : "var(--chart-grid)"} strokeWidth="1" shapeRendering="crispEdges" />
         <text x={pad.left - 8} y={y(tick)} dy="0.32em" textAnchor="end" className="fill-[var(--kucur-text-muted)] text-[11px] tabular-nums">{compactNumber(tick, language)}</text>
       </g>)}
-      {kind === "bar" && rows.map((row, index) => <path key={row.key} d={barPath(index, row.value)} fill="var(--chart-1)" opacity={active === null || active === index ? 1 : 0.45} />)}
+      {active !== null && <rect x={x(active) - band / 2} y={pad.top} width={band} height={plotHeight} fill="var(--kucur-surface-elevated)" opacity="0.7" />}
+      {kind === "bar" && rows.map((row, index) => row.value !== null && row.value !== undefined && <path key={row.key} d={barPath(index, row.value)} fill="var(--chart-1)" />)}
       {kind === "line" && <>
-        <path d={areaPath} fill="var(--chart-1)" opacity="0.1" />
-        <path d={linePath} fill="none" stroke="var(--chart-1)" strokeWidth="2" strokeLinejoin="round" strokeLinecap="round" />
-        {active !== null && <line x1={x(active)} x2={x(active)} y1={pad.top} y2={y(0)} stroke="var(--chart-axis)" strokeWidth="1" />}
-        {rows.length > 0 && <circle cx={x(active ?? last)} cy={y(rows[active ?? last].value)} r="4.5" fill="var(--chart-1)" stroke="var(--kucur-surface)" strokeWidth="2" />}
-        {rows.length > 0 && active === null && <text x={x(last) + 8} y={y(rows[last].value)} dy="0.32em" className="fill-[var(--kucur-text)] text-[12px] font-bold">{compactNumber(rows[last].value, language)}</text>}
+        {segments.map((segment) => segment.length > 1 && <path key={`area-${segment[0]}`} d={`${segmentPath(segment)} L${x(segment.at(-1))},${y(0)} L${x(segment[0])},${y(0)} Z`} fill="var(--chart-1)" opacity="0.1" />)}
+        {segments.map((segment) => <path key={`line-${segment[0]}`} d={segmentPath(segment)} fill="none" stroke="var(--chart-1)" strokeWidth="2" strokeLinejoin="round" strokeLinecap="round" />)}
+        {rows.map((row, index) => row.value !== null && row.value !== undefined && (showDots || index === lastPresent || segments.some((segment) => segment.length === 1 && segment[0] === index)) && <circle key={row.key} cx={x(index)} cy={y(row.value)} r={index === active || index === lastPresent ? 4.5 : 3} fill="var(--chart-1)" stroke="var(--kucur-surface)" strokeWidth="2" />)}
       </>}
-      {kind === "bar" && rows.length > 0 && rows[peak].value > 0 && active === null && <text x={x(peak)} y={y(rows[peak].value) - 6} textAnchor="middle" className="fill-[var(--kucur-text)] text-[11px] font-bold">{compactNumber(rows[peak].value, language)}</text>}
-      {rows.map((row, index) => (index % labelEvery === 0 || index === last) && (index === last || last - index >= labelEvery * 0.6) && <text key={row.key} x={x(index)} y={height - 8} textAnchor="middle" className={`text-[11px] ${index === active ? "fill-[var(--kucur-text)] font-bold" : "fill-[var(--kucur-text-muted)]"}`}>{row.label}</text>)}
+      {rows.map((row, index) => valueLabels[index] && <text key={`v-${row.key}`} x={x(index)} y={y(row.value) - 8} textAnchor="middle" className={`text-[11px] tabular-nums ${index === active ? "fill-[var(--kucur-text)] font-extrabold" : index === peak || index === lastPresent ? "fill-[var(--kucur-text)] font-bold" : "fill-[var(--kucur-text-muted)] font-semibold"}`}>{short(row.value)}</text>)}
+      {rows.map((row, index) => (index % labelEvery === 0 || index === last) && (index === last || x(last) - x(index) >= labelWidth * (x(last) + labelWidth / 2 > width ? 1.5 : 1)) && <text key={row.key} x={index === last ? Math.min(x(index), width - 2) : index === 0 ? Math.max(x(index), 2) : x(index)} y={height - 8} textAnchor={index === last && x(index) + labelWidth / 2 > width ? "end" : index === 0 && x(index) - labelWidth / 2 < 0 ? "start" : "middle"} className={`text-[11px] ${index === active ? "fill-[var(--kucur-text)] font-bold" : "fill-[var(--kucur-text-muted)]"}`}>{row.label}</text>)}
     </svg>}
-    {point && <Tooltip point={point} left={x(active)} top={Math.max(y(point.value), pad.top + 18)} width={width} />}
+    {point && <Tooltip point={point} left={x(active)} top={Math.max(y(rows[active].value ?? 0), pad.top + 18)} width={width} />}
   </div>;
 }
 

@@ -34,7 +34,7 @@ export async function exportExcel({ title, periodText, filterText, widgets, orde
     sheet.columns = [{ header: id ? "Kelompok" : "Group", width: 32 }, { header: id ? metric?.id : metric?.en, width: 22 }];
     sheet.getRow(1).font = { bold: true };
     for (const row of widget.result.rows) {
-      const added = sheet.addRow([row.label, Math.round(row.value * 100) / 100]);
+      const added = sheet.addRow([row.label, row.value === null || row.value === undefined ? null : Math.round(row.value * 100) / 100]);
       if (metric?.money) added.getCell(2).numFmt = money;
     }
   }

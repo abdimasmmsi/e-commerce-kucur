@@ -20,5 +20,5 @@
 @media(max-width:620px){.create-store-grid{grid-template-columns:minmax(0,1fr)}.create-store-full{grid-column:auto}.create-store-actions{display:grid;grid-template-columns:1fr}.create-store-actions>*{width:100%}.create-store-image-input{grid-template-columns:1fr}.create-store-image-preview{width:min(180px,100%)}}
 @media(max-width:390px){.create-store-section,.create-store-card-preview{padding:16px}.create-store-preview-image{margin-inline:-16px}.create-store-image-input>div:last-child{display:grid}.create-store-upload-button,.create-store-remove-image{width:100%}}
 
-/* HP: pratinjau kartu lapak disembunyikan agar form tidak terlalu panjang. */
-@media (max-width: 767px) { .create-store-card-preview { display: none; } }
+/* HP: pratinjau kartu lapak tetap ada, tapi ringkas (foto kecil di kiri) supaya form tidak terlalu panjang. */
+@media (max-width: 767px) { .create-store-card-preview { max-width: none; grid-template-columns: 72px minmax(0,1fr); gap: 6px 12px; align-items: start; padding: 14px 16px; } .create-store-card-preview>span { grid-column: 1 / -1; text-transform: none; letter-spacing: 0; font-size: .8rem; } .create-store-preview-image { width: 72px; margin-inline: 0; border-radius: 12px; } .create-store-preview-image strong { display: none; } .create-store-card-preview h2 { margin: 2px 0 4px; font-size: 1rem; } .create-store-card-preview p { display: -webkit-box; overflow: hidden; -webkit-box-orient: vertical; -webkit-line-clamp: 2; } .create-store-preview-status { grid-column: 2; } }

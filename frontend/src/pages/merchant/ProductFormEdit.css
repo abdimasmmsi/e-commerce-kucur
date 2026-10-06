@@ -97,11 +97,15 @@
   .merchant-edit-product__setting-row, .merchant-edit-product__status-section { align-items: flex-start; }
   .merchant-edit-product__status-section { flex-direction: column; }
   .merchant-edit-product__status-section label, .merchant-edit-product__status-section select { width: 100%; }
-  .merchant-edit-product__switch em { display: none; }
   .merchant-edit-product__upload-actions, .merchant-edit-product__upload-actions > button { width: 100%; }
   .merchant-edit-product__image-grid { grid-template-columns: repeat(2, minmax(0, 1fr)); }
   .merchant-edit-product__image-actions { opacity: 1; }
-  .merchant-edit-product__image-actions button:not(.merchant-edit-product__remove-image) { display: none; }
+  /* HP: "Jadikan Foto Utama" tetap ada (dulu disembunyikan), dibuat ringkas di bawah foto. */
+  .merchant-edit-product__image-tile { aspect-ratio: 1 / 1; }
+  .merchant-edit-product__image-actions { right: .4rem; bottom: .4rem; left: .4rem; gap: .3rem; }
+  .merchant-edit-product__image-actions button { min-height: 2.75rem; }
+  .merchant-edit-product__image-actions button:not(.merchant-edit-product__remove-image) { flex: 1 1 auto; min-width: 0; padding: .3rem .45rem; font-size: .7rem; line-height: 1.15; white-space: normal; }
+  .merchant-edit-product__image-actions .merchant-edit-product__remove-image { width: 2.75rem; flex: 0 0 2.75rem; }
   .merchant-edit-product__variant-card-fields { grid-template-columns: 1fr; }
   .merchant-edit-product__variant-image { grid-column: auto; }
   .merchant-edit-product__actions { display: grid; grid-template-columns: 1fr 1fr; padding-inline: .75rem; }
@@ -110,3 +114,6 @@
 /* HP: bar Simpan/Batal tetap terlihat di atas menu bawah workspace. */
 @media (max-width: 767px) { .merchant-edit-product__actions { bottom: calc(66px + env(safe-area-inset-bottom)); } }
 .merchant-edit-product__field > span { color: var(--kucur-text); }
+
+/* Layar sentuh (tanpa hover): tombol foto selalu terlihat, tidak menunggu hover. */
+@media (max-width: 767px), (hover: none) { .merchant-edit-product__image-actions { opacity: 1; } .merchant-edit-product__image-actions button { min-height: 2.75rem; } .merchant-edit-product__image-actions .merchant-edit-product__remove-image { width: 2.75rem; } }

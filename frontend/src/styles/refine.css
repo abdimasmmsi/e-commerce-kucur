@@ -306,3 +306,5 @@ button[aria-busy="true"]::before { content: ""; display: inline-block; flex: 0 0
   --chart-1: #3c9a52; --chart-2: #3987e5; --chart-3: #d95926; --chart-4: #9085e9; --chart-5: #c98500; --chart-6: #d55181;
   --chart-other: #5f6a62; --chart-muted: #4d6a55; --chart-grid: #243029; --chart-axis: #3a473e;
 }
+/* Deretan tab/chip yang bisa digeser: tanpa batang gulir (isi tetap bisa digeser). */
+.kucur-no-scrollbar { scrollbar-width: none; } .kucur-no-scrollbar::-webkit-scrollbar { display: none; }

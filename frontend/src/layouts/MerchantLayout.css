@@ -673,5 +673,12 @@
   .merchant-bottom-nav .merchant-nav-icon { width: 24px; height: 24px; }
 }
 
-/* HP: identitas lapak sudah ada di judul halaman, header workspace disembunyikan agar layar tidak sesak. */
-@media (max-width: 767px) { .merchant-workspace .store-workspace-header { display: none; } }
+/* HP: header lapak tetap tampil (status lapak, mis. ditangguhkan, penting), tapi ringkas satu baris. */
+@media (max-width: 767px) {
+  .merchant-workspace .store-workspace-header { flex-direction: row; align-items: center; gap: 10px; margin-bottom: 12px; padding: 8px 12px; border-left-width: 1px; border-radius: 10px; }
+  .merchant-workspace .store-workspace-header__eyebrow { display: none; }
+  .merchant-workspace .store-workspace-header__identity { width: auto; flex: 1 1 auto; }
+  .merchant-workspace .store-workspace-header__identity strong { font-size: .9rem; white-space: nowrap; overflow-wrap: normal; }
+  .merchant-workspace .store-workspace-header__meta { width: auto; flex: 0 1 auto; gap: 5px; font-size: .8rem; }
+  .merchant-workspace .store-workspace-header__meta > span:not(.store-workspace-header__status) { display: none; }
+}

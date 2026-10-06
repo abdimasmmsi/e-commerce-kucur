@@ -60,6 +60,18 @@
   color: #b45309;
 }
 
+.store-workspace-header__status:is(.is-suspended, .is-suspended-admin-fee, .is-suspended_admin_fee) {
+  color: var(--kucur-danger);
+}
+
+.dark .store-workspace-header__status:is(.is-suspended, .is-suspended-admin-fee, .is-suspended_admin_fee) {
+  color: #fca5a5;
+}
+
+.dark .store-workspace-header__status.is-active {
+  color: var(--kucur-green-ink);
+}
+
 @media (max-width: 540px) {
   .store-workspace-header {
     align-items: flex-start;

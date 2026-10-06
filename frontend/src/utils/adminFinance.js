@@ -120,8 +120,11 @@ export function sortLedgers(rows) {
   return [...rows].sort((a, b) => rank(a) - rank(b) || b.oldestOverdueDays - a.oldestOverdueDays || (a.nearestDue && b.nearestDue ? new Date(a.nearestDue.dueAt) - new Date(b.nearestDue.dueAt) : 0) || b.outstanding - a.outstanding || a.storeName.localeCompare(b.storeName));
 }
 
-export const FINANCE_FILTERS = ["all", "overdue", "dueSoon", "paid"];
+export const FINANCE_FILTERS = ["all", "unpaid", "overdue", "dueSoon", "atRisk", "suspended", "paid"];
 export function filterLedgers(rows, filter) {
+  if (filter === "unpaid") return rows.filter((row) => row.outstanding > 0);
+  if (filter === "atRisk") return rows.filter((row) => row.atRisk);
+  if (filter === "suspended") return rows.filter((row) => row.suspended);
   if (filter === "overdue") return rows.filter((row) => row.overdueCount > 0);
   if (filter === "dueSoon") return rows.filter((row) => row.dueSoonCount > 0);
   if (filter === "paid") return rows.filter((row) => row.paidUp);

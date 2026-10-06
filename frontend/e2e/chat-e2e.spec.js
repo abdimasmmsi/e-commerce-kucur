@@ -23,7 +23,7 @@ test("Customer and Merchant exchange realtime messages and reconnect without dup
     }
   };
   await openMerchantProfile();
-  await expect.poll(async () => unreadBadge.count() ? Number(await unreadBadge.textContent()) : 0).toBe(initialUnread);
+  await expect.poll(async () => (await unreadBadge.count()) ? Number(await unreadBadge.textContent()) : 0).toBe(initialUnread);
   await customer.goto("/orders");
   const merchantOrder = customer.locator("article").filter({ hasText: "Lapak Merchant A" }).first();
   await merchantOrder.getByRole("link", { name: /Lihat pesanan|View order/i }).click();
@@ -33,18 +33,18 @@ test("Customer and Merchant exchange realtime messages and reconnect without dup
   await customer.getByPlaceholder(/Ketik pesan|Type a message/i).fill(customerMessage);
   await customer.getByRole("button", { name: /^(Kirim|Send)$/i }).click();
   await expect(customer.getByText(customerMessage, { exact: true })).toHaveCount(1);
-  await expect.poll(async () => unreadBadge.count() ? Number(await unreadBadge.textContent()) : 0).toBe(initialUnread + 1);
+  await expect.poll(async () => (await unreadBadge.count()) ? Number(await unreadBadge.textContent()) : 0).toBe(initialUnread + 1);
   await merchant.locator(".header-chat-shortcut").click();
   await expect(merchant.getByText(customerMessage, { exact: true })).toBeVisible();
   await merchant.getByText(customerMessage, { exact: true }).click();
   await expect(merchant).toHaveURL(/\/messages\//);
   await merchant.goto("/merchant");
   await openMerchantProfile();
-  await expect.poll(async () => unreadBadge.count() ? Number(await unreadBadge.textContent()) : 0).toBeLessThan(initialUnread + 1);
-  const persistedUnread = await unreadBadge.count() ? Number(await unreadBadge.textContent()) : 0;
+  await expect.poll(async () => (await unreadBadge.count()) ? Number(await unreadBadge.textContent()) : 0).toBeLessThan(initialUnread + 1);
+  const persistedUnread = await (await unreadBadge.count()) ? Number(await unreadBadge.textContent()) : 0;
   await merchant.reload();
   await openMerchantProfile();
-  await expect.poll(async () => unreadBadge.count() ? Number(await unreadBadge.textContent()) : 0).toBe(persistedUnread);
+  await expect.poll(async () => (await unreadBadge.count()) ? Number(await unreadBadge.textContent()) : 0).toBe(persistedUnread);
   await merchant.goto("/messages");
   await merchant.getByText(customerMessage, { exact: true }).click();
   const merchantReply = `Balasan ${runId}`;

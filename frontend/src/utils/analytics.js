@@ -84,6 +84,7 @@ function metricRows(metric, data) {
     default: return [];
   }
 }
+export const AVERAGE_METRICS = new Set(["avgOrder", "avgRating", "cancelRate"]);
 const aggregate = (metric, values) => {
   if (!values.length) return 0;
   const sum = values.reduce((total, value) => total + value, 0);
@@ -131,13 +132,20 @@ export function computeWidget(widget, data, { from, to, storeId = "", category =
     const trend = length > 1 ? timeBuckets(grain, from, to).map((key) => aggregate(widget.metric, buckets.get(key) ?? [])) : [];
     return { rows: [], total, previous, trend };
   }
+  // Periode panjang dengan pengelompokan per hari/minggu otomatis dibuat lebih kasar (maks ±60 titik) supaya tetap terbaca.
+  let timeGroup = widget.group;
+  if (isTimeGroup(timeGroup)) {
+    if (timeGroup === "day" && timeBuckets("day", from, to).length > 62) timeGroup = "week";
+    if (timeGroup === "week" && timeBuckets("week", from, to).length > 60) timeGroup = "month";
+  }
   const groups = new Map();
   for (const entry of current) {
-    const key = isTimeGroup(widget.group) ? bucketKey(widget.group, jakartaDay(entry.date)) : widget.group === "status" ? (STATUS_LABEL[language] ?? STATUS_LABEL.id)[entry.row.status] ?? entry.row.status : entry.row[widget.group] || (language === "en" ? "Not set" : "Belum ada");
+    const key = isTimeGroup(widget.group) ? bucketKey(timeGroup, jakartaDay(entry.date)) : widget.group === "status" ? (STATUS_LABEL[language] ?? STATUS_LABEL.id)[entry.row.status] ?? entry.row.status : entry.row[widget.group] || (language === "en" ? "Not set" : "Belum ada");
     groups.set(key, [...(groups.get(key) ?? []), entry.value]);
   }
   let rows;
-  if (isTimeGroup(widget.group)) rows = timeBuckets(widget.group, from, to).map((key) => ({ key, label: bucketLabel(widget.group, key, language), value: aggregate(widget.metric, groups.get(key) ?? []) }));
+  // Rata-rata/persentase tanpa data di satu periode = kosong (null), bukan 0, supaya grafik tidak menyesatkan.
+  if (isTimeGroup(widget.group)) rows = timeBuckets(timeGroup, from, to).map((key) => ({ key, label: bucketLabel(timeGroup, key, language), value: AVERAGE_METRICS.has(widget.metric) && !groups.get(key)?.length ? null : aggregate(widget.metric, groups.get(key) ?? []) }));
   else {
     const sorted = [...groups.entries()].map(([key, values]) => ({ key, label: key, value: aggregate(widget.metric, values), values })).sort((a, b) => b.value - a.value);
     if (widget.view === "share") {
@@ -149,11 +157,12 @@ export function computeWidget(widget, data, { from, to, storeId = "", category =
     } else rows = sorted.slice(0, widget.limit || 10);
     rows = rows.map(({ values, ...row }) => row); // eslint-disable-line no-unused-vars
   }
-  return { rows, total, previous };
+  return { rows, total, previous, timeGroup: isTimeGroup(widget.group) ? timeGroup : null, regrouped: timeGroup !== widget.group };
 }
 
 export function formatMetric(metricKey, value, { formatCurrency, language }) {
   const metric = METRICS[metricKey]; const locale = language === "en" ? "en-US" : "id-ID";
+  if (value === null || value === undefined) return "–";
   if (metric?.money) return formatCurrency(Math.round(value));
   if (metric?.percent) return `${value.toLocaleString(locale, { maximumFractionDigits: 1 })}%`;
   if (metric?.rating) return value ? value.toLocaleString(locale, { minimumFractionDigits: 1, maximumFractionDigits: 1 }) : "-";
@@ -198,4 +207,14 @@ export function niceTicks(max, count = 4) {
 // Angka ringkas untuk sumbu: 12 rb, 1,2 jt (ID) / 12K, 1.2M (EN).
 export function compactNumber(value, language) {
   return new Intl.NumberFormat(language === "en" ? "en-US" : "id-ID", { notation: "compact", maximumFractionDigits: 1 }).format(value);
+}
+
+// Angka ringkas untuk label di atas batang/titik: Rp 1,2 jt · 4,5 · 12% · 1,3 rb.
+export function shortMetric(metricKey, value, language) {
+  const metric = METRICS[metricKey]; const locale = language === "en" ? "en-US" : "id-ID";
+  if (value === null || value === undefined) return "–";
+  if (metric?.rating) return value.toLocaleString(locale, { minimumFractionDigits: 1, maximumFractionDigits: 1 });
+  if (metric?.percent) return `${value.toLocaleString(locale, { maximumFractionDigits: 1 })}%`;
+  const compact = Math.abs(value) >= 1000 ? compactNumber(value, language) : Math.round(value).toLocaleString(locale);
+  return metric?.money ? `${language === "en" ? "IDR" : "Rp"} ${compact}` : compact;
 }
