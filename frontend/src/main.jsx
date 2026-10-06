@@ -44,6 +44,9 @@ import "./styles/kucur-redesign.css";
 import "./styles/design-system.css";
 import "./styles/form-system.css";
 import "./styles/refine.css";
+import { installActionBusy } from "./utils/actionBusy";
+
+installActionBusy();
 
 createRoot(document.getElementById("root")).render(
   <StrictMode>

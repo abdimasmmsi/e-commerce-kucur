@@ -98,6 +98,7 @@ Catatan desain: gambar/opsi produk disimpan JSON; reservasi stok di `CommerceOrd
 - Wajib lolos **kontras WCAG AA**: teks hijau pakai `--kucur-green-ink` (bukan `--kucur-green`/`--kucur-green-hover`), target sentuh di HP ≥ 40–44px.
 - Gaya mobile mengikuti marketplace app. **Layout "Forest" (2026-10-06, mockup disetujui: https://claude.ai/artifact/WtoLjnHHEW2bJvUsoVjvZg)** berlaku untuk semua modul: header hijau hutan (`--kucur-brand`) dengan logo "K" putih, kolom cari putih, ikon putih, badge amber, **avatar profil selalu tampil di kanan atas** (semua role); latar abu netral (bukan krem); tombol aksi hijau tua `--kucur-green` dengan teks `--kucur-on-green` (jangan pakai `--kucur-forest-dark`/navy untuk teks di atas hijau); amber (`--kucur-amber`) hanya untuk rating/penanda; di HP bagian halaman melebar sampai tepi (lembar putih + garis tipis), bukan tumpukan kartu; gambar kosong = pola garis (`.kucur-placeholder`); hindari pola "AI" (label kapital + letter-spacing, garis hijau pendek di bawah judul, kartu bergaris kiri berwarna, chip aktif hitam). Token di `frontend/src/styles/refine.css` (dimuat terakhir). Menu bawah di HP. Notifikasi dibuka sebagai popup yang bisa discroll. Referensi visual: Shopee/Sayurbox, tapi UI harus terasa orisinal, tidak "AI made".
 - Pindah halaman menampilkan bar loading tipis hijau (`components/RouteProgress.jsx`, ikut menunggu request API) dan skeleton `LoadingPanel` untuk halaman lazy.
+- **Animasi & spinner global (2026-10-06)**: tombol `<button>` yang diketuk lalu memicu request API otomatis diberi `aria-busy` + spinner (`utils/actionBusy.js`, berlangganan `loadingBus`; kecualikan dengan `data-no-busy`). Isi `.page-container`, daftar `aria-live="polite"`, dialog (kelas `kucur-overlay-in`/`kucur-dialog-in`), menu profil, notifikasi, dan chatbot muncul dengan animasi singkat (keyframes di `refine.css`, mati saat prefers-reduced-motion).
 - Navigasi tap ganda dicegah global di `main.jsx` (push ke URL yang sama jadi replace; tap kedua di titik sama <350 ms setelah pindah diabaikan).
 - Dashboard: kartu bisa diklik sebagai shortcut ke menu (hitungan harus sesuai filter), filter default hari ini + 7 hari / 1 bulan / 1 tahun / custom range.
 - Semua role harus punya logout; sembunyikan tombol login/register jika sudah login. Navbar header harus ikut role aktif.
@@ -127,7 +128,7 @@ Catatan desain: gambar/opsi produk disimpan JSON; reservasi stok di `CommerceOrd
 
 ## Status test terbaru
 
-- 2026-10-06: backend `npm test` 87/87 (termasuk rateLimit), `test:final-repository` 30/30, lint (encoding + FAQ check + ESLint) dan build lolos, Playwright e2e 71 test (termasuk courier-leave, courier-create, faq-manager, analytics), backend `npm test` 94 (hijau setelah perbaikan penjaga tap ganda; jalankan ulang penuh sebelum demo).
+- 2026-10-06: backend `npm test` 87/87 (termasuk rateLimit), `test:final-repository` 30/30, lint (encoding + FAQ check + ESLint) dan build lolos, Playwright e2e 73 test (termasuk courier-leave, courier-create, faq-manager, analytics), backend `npm test` 94 (hijau setelah perbaikan penjaga tap ganda; jalankan ulang penuh sebelum demo).
 - Ide masa depan (di luar scope): SMTP/Roundcube untuk notifikasi email, payment gateway Midtrans, kembali ke Tourism/Live In, integrasi SIG.
 
 ## 10. Jurnal dan dokumen

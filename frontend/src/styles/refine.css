@@ -214,3 +214,40 @@ button:not(:disabled):active, a[class*="min-h-"]:active, a.primary-button:active
 /* Moderasi ulasan admin: tombol selalu di dasar kartu, jadi sejajar antar kartu (ada/tidak balasan merchant). */
 .review-moderation-card { display: flex !important; flex-direction: column; }
 .review-moderation-card > .review-card-actions { margin-top: auto; }
+
+/* ===== Animasi transisi (pengganti tampilan yang "langsung ganti") ===== */
+@keyframes kucur-enter { from { opacity: 0; transform: translateY(6px); } to { opacity: 1; transform: none; } }
+@keyframes kucur-fade { from { opacity: 0; } to { opacity: 1; } }
+@keyframes kucur-pop { from { opacity: 0; transform: translateY(-4px) scale(.98); } to { opacity: 1; transform: none; } }
+@keyframes kucur-dialog { from { opacity: 0; transform: translateY(10px) scale(.98); } to { opacity: 1; transform: none; } }
+@keyframes kucur-spin { to { transform: rotate(360deg); } }
+
+/* Isi halaman, pergantian skeleton → isi, daftar yang berubah karena tab/filter. */
+.page-container > *, [aria-live="polite"] > *, [role="tabpanel"] > * { animation: kucur-enter .24s ease-out both; }
+.page-container > :nth-child(2) { animation-delay: .03s; }
+.page-container > :nth-child(3) { animation-delay: .06s; }
+.page-container > :nth-child(n+4) { animation-delay: .09s; }
+/* Menu dan popup kecil. */
+.profile-dropdown, [data-notification-panel], .store-switcher-menu { animation: kucur-pop .16s ease-out both; transform-origin: top right; }
+/* Jendela dialog (ActionDialog dan dialog lain yang memakai kelasnya). */
+.kucur-overlay-in { animation: kucur-fade .18s ease-out both; }
+.kucur-dialog-in { animation: kucur-dialog .22s cubic-bezier(.2, .8, .2, 1) both; }
+
+/* Tombol yang sedang memproses permintaan: spinner di depan teks, tidak bisa diketuk lagi. */
+button[aria-busy="true"] { pointer-events: none; cursor: progress; opacity: .85; }
+button[aria-busy="true"]::before { content: ""; display: inline-block; flex: 0 0 auto; width: 1em; height: 1em; margin-right: .5em; vertical-align: -.15em; border: 2px solid currentColor; border-right-color: transparent; border-radius: 50%; animation: kucur-spin .7s linear infinite; }
+
+@media (prefers-reduced-motion: reduce) {
+  .page-container > *, [aria-live="polite"] > *, [role="tabpanel"] > *, .profile-dropdown, [data-notification-panel], .store-switcher-menu, .kucur-overlay-in, .kucur-dialog-in { animation: none !important; }
+  button[aria-busy="true"]::before { animation-duration: 1.6s; }
+}
+.account-photo-modal, .account-photo-remove-modal, .admin-users-modal-backdrop, .merchant-review-modal, .merchant-review-photo-modal, .password-security-backdrop, .pickup-reason-modal, .review-photo-modal { animation: kucur-fade .18s ease-out both; }
+.account-photo-modal > section, .account-photo-remove-modal > section, .admin-users-modal, .merchant-review-modal > form, .merchant-review-modal > section, .password-security-notice, .pickup-reason-modal > form, .pickup-reason-modal > section { animation: kucur-dialog .22s cubic-bezier(.2, .8, .2, 1) both; }
+@media (prefers-reduced-motion: reduce) {
+  .account-photo-modal, .account-photo-remove-modal, .admin-users-modal-backdrop, .merchant-review-modal, .merchant-review-photo-modal, .password-security-backdrop, .pickup-reason-modal, .review-photo-modal, .account-photo-modal > section, .account-photo-remove-modal > section, .admin-users-modal, .merchant-review-modal > form, .merchant-review-modal > section, .password-security-notice, .pickup-reason-modal > form, .pickup-reason-modal > section { animation: none !important; }
+}
+/* Panel bantuan (chatbot): naik dari bawah di HP, muncul dari pojok di desktop. */
+@keyframes kucur-sheet { from { opacity: 0; transform: translateY(24px); } to { opacity: 1; transform: none; } }
+.faq-bot-layer { animation: kucur-fade .18s ease-out both; }
+.faq-bot-panel { animation: kucur-sheet .26s cubic-bezier(.2, .8, .2, 1) both; }
+@media (prefers-reduced-motion: reduce) { .faq-bot-layer, .faq-bot-panel { animation: none !important; } }

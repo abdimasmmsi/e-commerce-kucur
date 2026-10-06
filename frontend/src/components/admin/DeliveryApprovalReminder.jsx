@@ -40,8 +40,8 @@ export default function DeliveryApprovalReminder() {
       <span>{fill(late ? copy.late : copy.ready)}</span>
       {!onBatchPage && <Link className={`inline-flex min-h-9 items-center rounded-lg px-3 ${late ? "bg-white text-rose-800" : "bg-[var(--kucur-surface)] text-[var(--kucur-text)]"}`} to="/admin/delivery-batches">{copy.open}</Link>}
     </div>
-    {late && !onBatchPage && now >= snoozedUntil && <div className="fixed inset-0 z-[950] grid place-items-center bg-slate-950/60 p-4" role="presentation">
-      <section className="w-full max-w-md rounded-2xl bg-[var(--kucur-surface)] p-5 text-[var(--kucur-text)] shadow-2xl" role="alertdialog" aria-modal="true" aria-labelledby="batch-reminder-title">
+    {late && !onBatchPage && now >= snoozedUntil && <div className="kucur-overlay-in fixed inset-0 z-[950] grid place-items-center bg-slate-950/60 p-4" role="presentation">
+      <section className="kucur-dialog-in w-full max-w-md rounded-2xl bg-[var(--kucur-surface)] p-5 text-[var(--kucur-text)] shadow-2xl" role="alertdialog" aria-modal="true" aria-labelledby="batch-reminder-title">
         <h2 className="text-lg font-extrabold" id="batch-reminder-title">{copy.title}</h2>
         <p className="mt-2 text-[15px] leading-6">{fill(copy.text)}</p>
         <div className="mt-4 grid gap-2 sm:grid-cols-2"><button className="min-h-12 rounded-xl border border-[var(--kucur-border-strong)] px-3 font-bold" type="button" onClick={snooze}>{copy.snooze}</button><Link className="inline-flex min-h-12 items-center justify-center rounded-xl bg-[var(--kucur-green)] px-3 font-bold text-[var(--kucur-on-green)]" to="/admin/delivery-batches">{copy.open}</Link></div>
