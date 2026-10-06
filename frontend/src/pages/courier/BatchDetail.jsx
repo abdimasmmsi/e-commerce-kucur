@@ -10,6 +10,7 @@ import { usePreferences } from "../../context/PreferencesContext";
 import { deliveryApi } from "../../services/deliveryApiService";
 import { prepareProofPhoto } from "../../services/proofImageService";
 import { shortOrderCode } from "../../utils/orderCode";
+import { whatsappLink } from "../../utils/whatsapp";
 
 const ACTIVE = ["WAITING_PICKUP", "PICKED_UP", "OUT_FOR_DELIVERY"];
 const mapsLink = (order) => {
@@ -25,11 +26,11 @@ export default function BatchDetail() {
   const copy = language === "id" ? {
     back: "Semua pengiriman", title: "Pengiriman {date}", depart: "Berangkat {time}", progress: "{done} dari {total} terkirim", collect: "Total COD ditagih", start: "Mulai pengiriman", stop: "Stop {number}",
     pickupHint: "Ambil barang di {store}. Bayar harga barang ke penjual.", pickup: "Konfirmasi Pickup", deliverHint: "Barang sudah di tangan. Berangkat ke alamat pembeli.", startDelivery: "Mulai Antar", proofHint: "Serahkan barang, tagih uang, lalu foto barang yang diterima.",
-    photo: "Foto & selesaikan", photoAgain: "Ganti foto", finish: "Selesaikan dengan Bukti", call: "Telepon", maps: "Buka Maps", codCollect: "Tagih dari pembeli", codPaid: "Sudah dibayar", tip: "termasuk tip {amount}", fail: "Gagal antar", photoError: "Foto tidak bisa dipakai. Coba ambil ulang.",
+    photo: "Foto & selesaikan", photoAgain: "Ganti foto", finish: "Selesaikan dengan Bukti", call: "Telepon", whatsapp: "WhatsApp", waText: "Halo {name}, saya kurir Kucur yang mengantar pesanan {code}. ", maps: "Maps", codCollect: "Tagih dari pembeli", codPaid: "Sudah dibayar", tip: "termasuk tip {amount}", fail: "Gagal antar", photoError: "Foto tidak bisa dipakai. Coba ambil ulang.",
   } : {
     back: "All deliveries", title: "Delivery {date}", depart: "Leaves {time}", progress: "{done} of {total} delivered", collect: "COD to collect", start: "Start delivery", stop: "Stop {number}",
     pickupHint: "Pick up at {store}. Pay the item price to the seller.", pickup: "Confirm Pickup", deliverHint: "You have the items. Head to the buyer's address.", startDelivery: "Start Delivery", proofHint: "Hand over the items, collect payment, then photograph the delivered items.",
-    photo: "Take photo & finish", photoAgain: "Retake photo", finish: "Complete with Proof", call: "Call", maps: "Open Maps", codCollect: "Collect from buyer", codPaid: "Already paid", tip: "includes {amount} tip", fail: "Delivery failed", photoError: "This photo cannot be used. Please take it again.",
+    photo: "Take photo & finish", photoAgain: "Retake photo", finish: "Complete with Proof", call: "Call", whatsapp: "WhatsApp", waText: "Hi {name}, I am the Kucur courier delivering order {code}. ", maps: "Maps", codCollect: "Collect from buyer", codPaid: "Already paid", tip: "includes {amount} tip", fail: "Delivery failed", photoError: "This photo cannot be used. Please take it again.",
   };
   const fill = (text, values) => Object.entries(values).reduce((value, [key, replacement]) => value.replace(`{${key}}`, replacement), text);
   const [batch, setBatch] = useState(null);
@@ -64,6 +65,8 @@ export default function BatchDetail() {
   const codTotal = stops.filter((item) => item.commerceOrder.paymentMethod === "COD" && item.commerceOrder.paymentStatus !== "paid" && ACTIVE.includes(item.status)).reduce((sum, item) => sum + Number(item.commerceOrder.totalAmount || 0), 0);
   const actionClass = "inline-flex min-h-12 w-full items-center justify-center rounded-xl bg-[var(--kucur-green)] px-4 text-base font-bold text-[var(--kucur-on-green)] disabled:opacity-50";
   const smallClass = "inline-flex min-h-11 items-center justify-center gap-2 rounded-xl border border-[var(--kucur-border-strong)] px-3 text-sm font-bold";
+  // Tombol kontak pembeli (Telepon / WhatsApp / Maps): ikon di atas teks supaya tiga tombol muat di HP 360px.
+  const contactClass = "inline-flex min-h-14 flex-col items-center justify-center gap-1 rounded-xl border border-[var(--kucur-border-strong)] px-1 text-[13px] font-bold";
 
   return <><PageContainer as="main" className="space-y-4 text-[var(--kucur-text)]">
     <header className="grid gap-1">
@@ -91,9 +94,10 @@ export default function BatchDetail() {
           </div>
           <p className="break-words text-[15px] leading-6">{order.deliveryAddress}</p>
           <p className="text-sm text-[var(--kucur-text-muted)]">{order.storeName}</p>
-          {active && <div className="grid grid-cols-2 gap-2">
-            {order.recipientPhone ? <a className={smallClass} href={`tel:${order.recipientPhone}`}><svg className="size-5" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true"><path d="M5 4h4l2 5-2.5 1.5a11 11 0 0 0 5 5L15 13l5 2v4a2 2 0 0 1-2 2A16 16 0 0 1 3 6a2 2 0 0 1 2-2"/></svg>{copy.call}</a> : <span />}
-            <a className={smallClass} href={mapsLink(order)} target="_blank" rel="noreferrer"><svg className="size-5" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true"><path d="M12 21s-7-6.2-7-11.5a7 7 0 0 1 14 0C19 14.8 12 21 12 21Z"/><circle cx="12" cy="9.5" r="2.5"/></svg>{copy.maps}</a>
+          {active && <div className="grid grid-cols-3 gap-2">
+            {order.recipientPhone ? <a className={contactClass} href={`tel:${order.recipientPhone}`}><svg className="size-5" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true"><path d="M5 4h4l2 5-2.5 1.5a11 11 0 0 0 5 5L15 13l5 2v4a2 2 0 0 1-2 2A16 16 0 0 1 3 6a2 2 0 0 1 2-2"/></svg>{copy.call}</a> : <span />}
+            {whatsappLink(order.recipientPhone, fill(copy.waText, { name: order.recipientName || "", code: shortOrderCode(code) })) ? <a className={contactClass} href={whatsappLink(order.recipientPhone, fill(copy.waText, { name: order.recipientName || "", code: shortOrderCode(code) }))} target="_blank" rel="noreferrer"><svg className="size-5" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true"><path d="M4 20l1.3-3.9A8 8 0 1 1 8 19z"/><path d="M9 9.5c0 3 2.5 5.5 5.5 5.5l1-1.5-2-1-1 .8a4 4 0 0 1-1.8-1.8l.8-1-1-2z"/></svg>{copy.whatsapp}</a> : <span />}
+            <a className={contactClass} href={mapsLink(order)} target="_blank" rel="noreferrer"><svg className="size-5" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true"><path d="M12 21s-7-6.2-7-11.5a7 7 0 0 1 14 0C19 14.8 12 21 12 21Z"/><circle cx="12" cy="9.5" r="2.5"/></svg>{copy.maps}</a>
           </div>}
           {order.paymentMethod === "COD" && <div className={`flex items-center justify-between gap-3 rounded-xl p-3 ${order.paymentStatus === "paid" ? "bg-[var(--kucur-green-soft)]" : "bg-amber-50 dark:bg-amber-950/40"}`}><div className="min-w-0"><span className="block text-[15px] font-bold">{order.paymentStatus === "paid" ? copy.codPaid : copy.codCollect}</span><span className="text-[13px] text-[var(--kucur-text-muted)]">{Number(order.courierTip) > 0 ? fill(copy.tip, { amount: formatCurrency(order.courierTip) }) : t("courierDelivery.codHint")}</span></div><strong className="text-xl font-extrabold">{formatCurrency(order.totalAmount)}</strong></div>}
 

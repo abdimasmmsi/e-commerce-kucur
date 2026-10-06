@@ -5,8 +5,8 @@ import { usePreferences } from "../../context/PreferencesContext";
 export default function AddressForm({ value, onChange }) {
   const { language } = usePreferences();
   const copy = language === "id"
-    ? { recipient: "Nama penerima", phone: "Nomor HP penerima", label: "Label alamat (mis. Rumah, Kantor)", address: "Alamat lengkap dan patokan" }
-    : { recipient: "Recipient name", phone: "Recipient phone", label: "Address label (e.g. Home, Office)", address: "Full address and landmark" };
+    ? { recipient: "Nama penerima", phone: "Nomor WhatsApp penerima", label: "Label alamat (mis. Rumah, Kantor)", address: "Alamat lengkap dan patokan" }
+    : { recipient: "Recipient name", phone: "Recipient WhatsApp number", label: "Address label (e.g. Home, Office)", address: "Full address and landmark" };
   const update = (changes) => onChange({ ...value, ...changes });
   const fieldClass = "min-h-12 w-full rounded-xl border border-[var(--kucur-border-strong)] bg-[var(--kucur-surface)] px-3 text-base text-[var(--kucur-text)]";
   return <div className="grid min-w-0 gap-3">

@@ -15,7 +15,8 @@ test("Customer and Merchant exchange realtime messages and reconnect without dup
   expect(inboxResponse.ok()).toBeTruthy();
   const inboxPayload = await inboxResponse.json();
   const initialUnread = (inboxPayload.data?.items || []).reduce((total, conversation) => total + Number(conversation.unreadCount || 0), 0);
-  const unreadBadge = merchant.locator(".chat-unread-badge");
+  // Badge di ikon chat header (sebelah notifikasi) menunjukkan jumlah chat belum dibaca.
+  const unreadBadge = merchant.locator(".header-chat-shortcut .chat-unread-badge");
   const openMerchantProfile = async () => {
     if (!(await merchant.locator(".profile-dropdown").isVisible().catch(() => false))) {
       await merchant.getByRole("button", { name: /Akun|Account/i }).click();
@@ -33,7 +34,7 @@ test("Customer and Merchant exchange realtime messages and reconnect without dup
   await customer.getByRole("button", { name: /^(Kirim|Send)$/i }).click();
   await expect(customer.getByText(customerMessage, { exact: true })).toHaveCount(1);
   await expect.poll(async () => unreadBadge.count() ? Number(await unreadBadge.textContent()) : 0).toBe(initialUnread + 1);
-  await merchant.getByRole("link", { name: /Pesan & Bantuan|Messages & Help|Chat & Bantuan|Chat & Help/i }).click();
+  await merchant.locator(".header-chat-shortcut").click();
   await expect(merchant.getByText(customerMessage, { exact: true })).toBeVisible();
   await merchant.getByText(customerMessage, { exact: true }).click();
   await expect(merchant).toHaveURL(/\/messages\//);

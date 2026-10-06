@@ -74,11 +74,11 @@ export default function Availability() {
       <form className="grid gap-4 rounded-xl border border-[var(--kucur-border)] bg-[var(--kucur-surface)] p-4 sm:p-5" onSubmit={submit}>
         <h2 className="text-lg font-extrabold">{copy.formTitle}</h2>
         <ol className="grid gap-1.5 text-sm text-[var(--kucur-text-muted)]">{copy.flow.map((step, index) => <li className="flex items-start gap-2.5" key={step}><span className="grid size-6 shrink-0 place-items-center rounded-full bg-[var(--kucur-green-soft)] text-xs font-extrabold text-[var(--kucur-green-ink)]">{index + 1}</span><span className="pt-0.5">{step}</span></li>)}</ol>
-        <div className="grid gap-4 sm:grid-cols-2">
-          <label className="grid gap-1.5 text-[15px] font-semibold">{copy.start}<input className={inputClass} type="datetime-local" required value={form.startAt} onChange={(event) => setForm((value) => ({ ...value, startAt: event.target.value }))}/></label>
-          <label className="grid gap-1.5 text-[15px] font-semibold">{copy.end}<input className={inputClass} type="datetime-local" min={form.startAt || undefined} value={form.endAt} onChange={(event) => setForm((value) => ({ ...value, endAt: event.target.value }))}/><span className="text-[13px] font-normal text-[var(--kucur-text-muted)]">{copy.endHint}</span></label>
+        <div className="grid items-start gap-4 sm:grid-cols-2">
+          <label className="grid content-start gap-1.5 text-[15px] font-semibold">{copy.start}<input className={inputClass} type="datetime-local" required value={form.startAt} onChange={(event) => setForm((value) => ({ ...value, startAt: event.target.value }))}/></label>
+          <label className="grid content-start gap-1.5 text-[15px] font-semibold">{copy.end}<input className={inputClass} type="datetime-local" min={form.startAt || undefined} value={form.endAt} onChange={(event) => setForm((value) => ({ ...value, endAt: event.target.value }))}/><span className="text-[13px] font-normal text-[var(--kucur-text-muted)]">{copy.endHint}</span></label>
         </div>
-        <label className="grid gap-1.5 text-[15px] font-semibold">{copy.reason}<textarea className={`${inputClass} min-h-24 resize-y py-3`} required maxLength="255" placeholder={copy.reasonPlaceholder} value={form.reason} onChange={(event) => setForm((value) => ({ ...value, reason: event.target.value }))}/></label>
+        <label className="grid content-start gap-1.5 text-[15px] font-semibold">{copy.reason}<textarea className={`${inputClass} min-h-24 resize-y py-3`} required maxLength="255" placeholder={copy.reasonPlaceholder} value={form.reason} onChange={(event) => setForm((value) => ({ ...value, reason: event.target.value }))}/></label>
         <Button className="w-full sm:w-auto sm:justify-self-start" disabled={state.busy || !form.startAt || !form.reason.trim()} type="submit">{copy.submit}</Button>
       </form>
       <section className="min-w-0 rounded-xl border border-[var(--kucur-border)] bg-[var(--kucur-surface)]">

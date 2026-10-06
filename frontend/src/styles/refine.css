@@ -210,3 +210,7 @@ button:not(:disabled):active, a[class*="min-h-"]:active, a.primary-button:active
 
 /* Header desktop: nama pengguna di tombol profil harus putih di atas hijau hutan. */
 .app-header .profile-trigger-copy strong { color: var(--kucur-on-brand) !important; }
+
+/* Moderasi ulasan admin: tombol selalu di dasar kartu, jadi sejajar antar kartu (ada/tidak balasan merchant). */
+.review-moderation-card { display: flex !important; flex-direction: column; }
+.review-moderation-card > .review-card-actions { margin-top: auto; }
