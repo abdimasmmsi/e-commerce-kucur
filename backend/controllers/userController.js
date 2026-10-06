@@ -1,4 +1,5 @@
 const createUserController = (userService) => ({
+  createCourier: async (req, res, next) => { try { res.status(201).json({ data: await userService.createCourier(req.auth.user, req.body || {}) }); } catch (error) { next(error); } },
   list: async (req, res, next) => { try { res.json({ data: await userService.listUsers(req.auth.user) }); } catch (error) { next(error); } },
   updateProfile: async (req, res, next) => { try { res.json({ data: await userService.updateProfile(req.auth.user, req.body || {}) }); } catch (error) { next(error); } },
   updateAvatar: async (req, res, next) => { try { res.json({ data: await userService.updateAvatar(req.auth.user, req.body || {}) }); } catch (error) { next(error); } },

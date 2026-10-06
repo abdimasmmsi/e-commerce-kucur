@@ -12,6 +12,7 @@ export const deliveryApi = {
   ready: (id, input) => apiData(`/api/merchant/orders/${id}/pickup-confirmation`, body(input)),
   eligible: (deliveryDate) => apiData(`/api/admin/delivery/eligible-orders${deliveryDate ? `?deliveryDate=${encodeURIComponent(deliveryDate)}` : ""}`),
   couriers: () => apiData("/api/admin/delivery/couriers"),
+  createCourier: (input) => apiData("/api/users/couriers", body(input)),
   leaveRequests: () => apiData("/api/admin/delivery/leave-requests"),
   reviewLeave: (courierUserId, id, input) => apiData(`/api/admin/delivery/leave-requests/${encodeURIComponent(courierUserId)}/${encodeURIComponent(id)}`, { method: "PATCH", body: input }), adminBatches: () => apiData("/api/admin/delivery/batches"),
   createBatch: (input) => apiData("/api/admin/delivery/batches", body(input)), completeBatch: (id) => apiData(`/api/admin/delivery/batches/${id}/complete`, { method: "PATCH" }),

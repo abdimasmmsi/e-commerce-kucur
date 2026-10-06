@@ -4,6 +4,8 @@ const { requiredString, validateEmail, validatePhone } = require("../validation/
 const { hashPassword, publicUser, verifyPassword } = require("./authService");
 const { removeProfileImage, saveProfileImage } = require("./profileImageService");
 
+// Kata sandi awal akun kurir baru (permintaan Steven 2026-10-06); kurir dipaksa menggantinya setelah masuk.
+const COURIER_INITIAL_PASSWORD = "KurirKucur123!";
 const forbiddenProfileFields = ["id", "roles", "status", "password", "passwordHash", "preferences", "language", "theme"];
 function createUserService(repository) {
   const audit = (tx, user, activityType, description) => tx.audits.append({ entityType: "user", entityId: user.id, actorId: user.id, actorRole: user.roles[0] || null, activityType, description, isSystem: false });
@@ -79,6 +81,19 @@ function createUserService(repository) {
     async listUsers(actor) {
       if (!actor.roles.includes("admin")) throw errors.forbidden();
       return (await repository.users.list()).map(publicUser);
+    },
+    // Akun kurir dibuat Admin dengan kata sandi awal standar; kurir wajib menggantinya saat pertama masuk.
+    async createCourier(actor, input = {}) {
+      if (!actor.roles.includes("admin")) throw errors.forbidden();
+      const email = validateEmail(input.email);
+      if (await repository.users.findByEmail(email)) throw errors.conflict("Email sudah terdaftar. Gunakan email lain untuk akun kurir.");
+      const maxActiveDeliveries = input.maxActiveDeliveries === undefined || input.maxActiveDeliveries === "" ? 10 : Number(input.maxActiveDeliveries);
+      if (!Number.isInteger(maxActiveDeliveries) || maxActiveDeliveries < 1 || maxActiveDeliveries > 100) throw errors.validation({ maxActiveDeliveries: "Kapasitas pengiriman aktif harus 1–100." });
+      const timestamp = new Date().toISOString();
+      const user = await repository.users.create({ fullName: requiredString(input.fullName, "fullName", { max: 120 }), email, phone: validatePhone(input.phone), passwordHash: await hashPassword(COURIER_INITIAL_PASSWORD), passwordChangedAt: timestamp, passwordResetRequired: true, status: "active", language: "id", theme: "light", roles: ["courier"], createdAt: timestamp, updatedAt: timestamp });
+      await repository.delivery.upsertProfile(user.id, { maxActiveDeliveries, isActive: true, availabilityHistory: [] });
+      await repository.audits.append({ entityType: "user", entityId: user.id, actorId: actor.id, actorRole: "admin", activityType: "ADMIN_COURIER_CREATED", description: "Admin membuat akun kurir dengan kata sandi awal standar.", isSystem: false });
+      return { user: publicUser(user), initialPassword: COURIER_INITIAL_PASSWORD };
     },
     async adminResetPassword(actor, userId, input) {
       if (!actor.roles.includes("admin")) throw errors.forbidden();

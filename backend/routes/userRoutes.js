@@ -6,6 +6,7 @@ module.exports = ({ userService, authMiddleware }) => {
   const controller = createUserController(userService);
   router.use(authMiddleware.requireAuth);
   router.get("/", authMiddleware.requireRole("admin"), controller.list);
+  router.post("/couriers", authMiddleware.requireRole("admin"), controller.createCourier);
   router.patch("/me", controller.updateProfile);
   router.put("/me/avatar", controller.updateAvatar);
   router.delete("/me/avatar", controller.removeAvatar);

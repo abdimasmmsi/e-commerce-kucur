@@ -13,6 +13,11 @@ async function main() {
   await prisma.targetProduct.update({ where: { id: "20000000-0000-4000-8000-000000000003" }, data: { stock: 20 } });
   // Test FAQ Chatbot menambah FAQ admin; kosongkan lagi.
   await prisma.targetPlatformSettings.updateMany({ data: { faqEntries: null } });
+  // Test tambah kurir membuat akun kurir.e2e.*; hapus supaya daftar kurir tidak menumpuk.
+  const testCouriers = await prisma.targetUser.findMany({ where: { email: { startsWith: "kurir.e2e." } }, select: { id: true } });
+  for (const { id } of testCouriers) {
+    try { await prisma.targetSession.deleteMany({ where: { userId: id } }); await prisma.targetCourierProfile.deleteMany({ where: { userId: id } }); await prisma.targetUserRole.deleteMany({ where: { userId: id } }); await prisma.targetUser.delete({ where: { id } }); } catch (error) { console.warn(`Skip cleanup ${id}: ${error.message}`); }
+  }
   // Test cuti kurir menambah pengajuan; kosongkan riwayat cuti kurir QA.
   const courier = await prisma.targetUser.findFirst({ where: { email: "courier@kucur.test" } });
   if (courier) await prisma.targetCourierProfile.updateMany({ where: { userId: courier.id }, data: { availabilityHistory: [], availabilityStatus: "AVAILABLE", unavailableStartAt: null, unavailableEndAt: null, unavailableReason: null } });
