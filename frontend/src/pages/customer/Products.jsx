@@ -15,7 +15,9 @@ function Products() {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState("");
   const [search, setSearch] = useState(() => searchParams.get("search") ?? "");
-  const [category, setCategory] = useState(() => searchParams.get("category") ?? "All");
+  // Kategori bisa dipilih lebih dari satu; daftar kosong = semua kategori.
+  const [selectedCategories, setSelectedCategories] = useState(() => searchParams.getAll("category").filter(Boolean));
+  const toggleCategory = (item) => setSelectedCategories((current) => current.includes(item) ? current.filter((value) => value !== item) : [...current, item]);
   const [storeId, setStoreId] = useState("All");
   const [minimumPrice, setMinimumPrice] = useState("");
   const [maximumPrice, setMaximumPrice] = useState("");
@@ -26,7 +28,7 @@ function Products() {
     productService.list().then((rows) => { if (active) setProducts(rows); }).catch((cause) => { if (active) setError(cause.message); }).finally(() => { if (active) setLoading(false); });
     return () => { active = false; };
   }, []);
-  useEffect(() => { queueMicrotask(() => { setSearch(searchParams.get("search") ?? ""); setCategory(searchParams.get("category") ?? "All"); }); }, [searchParams]);
+  useEffect(() => { queueMicrotask(() => { setSearch(searchParams.get("search") ?? ""); setSelectedCategories(searchParams.getAll("category").filter(Boolean)); }); }, [searchParams]);
 
   const activeProducts = useMemo(() => products.filter((product) => product.status === "active"), [products]);
   const stores = useMemo(() => [...new Map(activeProducts.filter((product) => product.store?.type === "product").map((product) => [String(product.store.id), product.store])).values()].sort((a, b) => a.name.localeCompare(b.name)), [activeProducts]);
@@ -40,23 +42,23 @@ function Products() {
     const storeName = storeMap.get(String(product.storeId))?.name ?? "";
     const matchesQuery = !query || [product.name, product.category, storeName].some((value) => String(value ?? "").toLowerCase().includes(query));
     const price = getProductDisplayPrice(product);
-    return matchesQuery && (category === "All" || product.category === category) && (storeId === "All" || String(product.storeId) === storeId) && !invalidPriceRange && (minimum === null || price >= minimum) && (maximum === null || price <= maximum);
+    return matchesQuery && (!selectedCategories.length || selectedCategories.includes(product.category)) && (storeId === "All" || String(product.storeId) === storeId) && !invalidPriceRange && (minimum === null || price >= minimum) && (maximum === null || price <= maximum);
   }).sort((a, b) => {
     if (sort === "Lowest") return getProductDisplayPrice(a) - getProductDisplayPrice(b);
     if (sort === "Highest") return getProductDisplayPrice(b) - getProductDisplayPrice(a);
     if (sort === "Name") return a.name.localeCompare(b.name);
     if (sort === "Newest") return new Date(b.createdAt ?? 0) - new Date(a.createdAt ?? 0);
     return 0;
-  }), [activeProducts, category, invalidPriceRange, maximum, minimum, search, sort, storeId, storeMap]);
+  }), [activeProducts, selectedCategories, invalidPriceRange, maximum, minimum, search, sort, storeId, storeMap]);
 
   const chips = [
     search.trim() && { key: "search", label: `${t("commerce.search")}: ${search.trim()}`, clear: () => setSearch("") },
-    category !== "All" && { key: "category", label: category, clear: () => setCategory("All") },
+    ...selectedCategories.map((item) => ({ key: `category-${item}`, label: item, clear: () => toggleCategory(item) })),
     storeId !== "All" && { key: "store", label: storeMap.get(storeId)?.name, clear: () => setStoreId("All") },
     minimumPrice !== "" && { key: "minimum", label: `${t("catalogFilters.minimumPrice")}: ${formatCurrency(Number(minimumPrice))}`, clear: () => setMinimumPrice("") },
     maximumPrice !== "" && { key: "maximum", label: `${t("catalogFilters.maximumPrice")}: ${formatCurrency(Number(maximumPrice))}`, clear: () => setMaximumPrice("") },
   ].filter(Boolean);
-  const reset = () => { setSearch(""); setCategory("All"); setStoreId("All"); setMinimumPrice(""); setMaximumPrice(""); setSort("Featured"); };
+  const reset = () => { setSearch(""); setSelectedCategories([]); setStoreId("All"); setMinimumPrice(""); setMaximumPrice(""); setSort("Featured"); };
 
   const chipClass = (active) => `inline-flex min-h-10 shrink-0 items-center rounded-full border px-4 text-sm font-bold transition ${active ? "border-[var(--kucur-brand)] bg-[var(--kucur-brand)] text-[var(--kucur-on-brand)]" : "border-[var(--kucur-border)] bg-[var(--kucur-surface)] text-[var(--kucur-text)] hover:border-[var(--kucur-border-strong)]"}`;
   const advancedActive = storeId !== "All" || minimumPrice !== "" || maximumPrice !== "";
@@ -68,8 +70,8 @@ function Products() {
     <form className="grid min-w-0 gap-3 border-[var(--kucur-border)] max-sm:-mx-4 max-sm:!max-w-none max-sm:border-y max-sm:bg-[var(--kucur-surface)] max-sm:px-4 max-sm:py-3 sm:gap-4" role="search" aria-label={t("catalogFilters.title")} onSubmit={(event) => event.preventDefault()}>
       <label className="relative block"><span className="sr-only">{t("commerce.search")}</span><svg className="pointer-events-none absolute left-3.5 top-1/2 size-5 -translate-y-1/2 text-[var(--kucur-text-muted)]" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" aria-hidden="true"><circle cx="11" cy="11" r="7"/><path d="m20 20-3.5-3.5"/></svg><input className={`${controlClass} !min-h-12 !pl-11 !text-base`} type="search" value={search} onChange={(event) => setSearch(event.target.value)} placeholder={t("catalogFilters.searchPlaceholder")}/></label>
       <div className="-mx-4 flex gap-2 overflow-x-auto px-4 py-1 [scrollbar-width:none] sm:mx-0 sm:flex-wrap sm:px-0 [&::-webkit-scrollbar]:hidden" role="group" aria-label={t("commerce.category")}>
-        <button className={chipClass(category === "All")} type="button" aria-pressed={category === "All"} onClick={() => setCategory("All")}>{t("catalogFilters.allCategories")}</button>
-        {categories.map((item) => <button className={chipClass(category === item)} type="button" aria-pressed={category === item} key={item} onClick={() => setCategory(item)}>{item}</button>)}
+        <button className={chipClass(!selectedCategories.length)} type="button" aria-pressed={!selectedCategories.length} onClick={() => setSelectedCategories([])}>{t("catalogFilters.allCategories")}</button>
+        {categories.map((item) => { const on = selectedCategories.includes(item); return <button className={chipClass(on)} type="button" aria-pressed={on} key={item} onClick={() => toggleCategory(item)}>{on && <svg className="-ml-1 mr-1.5 size-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.6" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true"><path d="m5 12.5 4.5 4.5L19 7.5"/></svg>}{item}</button>; })}
       </div>
       <div className="flex min-w-0 flex-wrap items-center justify-between gap-3">
         <p className="text-sm font-semibold text-[var(--kucur-text-muted)]" aria-live="polite">{loading ? " " : t("catalogFilters.results", { count: rows.length })}</p>

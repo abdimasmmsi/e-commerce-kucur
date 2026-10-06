@@ -207,3 +207,6 @@ button:not(:disabled):active, a[class*="min-h-"]:active, a.primary-button:active
 }
 .admin-settings-toggle { grid-template-columns: 24px minmax(0, 1fr) !important; align-items: center !important; min-height: 56px; cursor: pointer; }
 .admin-settings-toggle input { width: 22px !important; height: 22px !important; margin: 0 !important; accent-color: var(--kucur-green); cursor: pointer; }
+
+/* Header desktop: nama pengguna di tombol profil harus putih di atas hijau hutan. */
+.app-header .profile-trigger-copy strong { color: var(--kucur-on-brand) !important; }
