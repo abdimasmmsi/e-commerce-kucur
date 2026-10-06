@@ -1,5 +1,9 @@
 const createUserController = (userService) => ({
   createCourier: async (req, res, next) => { try { res.status(201).json({ data: await userService.createCourier(req.auth.user, req.body || {}) }); } catch (error) { next(error); } },
+  getHistory: async (req, res, next) => { try { res.json({ data: await userService.getHistory(req.auth.user) }); } catch (error) { next(error); } },
+  saveHistory: async (req, res, next) => { try { res.json({ data: await userService.saveHistory(req.auth.user, req.body || {}) }); } catch (error) { next(error); } },
+  addPushSubscription: async (req, res, next) => { try { res.status(201).json({ data: await userService.addPushSubscription(req.auth.user, req.body || {}) }); } catch (error) { next(error); } },
+  removePushSubscription: async (req, res, next) => { try { res.json({ data: await userService.removePushSubscription(req.auth.user, req.body || {}) }); } catch (error) { next(error); } },
   list: async (req, res, next) => { try { res.json({ data: await userService.listUsers(req.auth.user) }); } catch (error) { next(error); } },
   updateProfile: async (req, res, next) => { try { res.json({ data: await userService.updateProfile(req.auth.user, req.body || {}) }); } catch (error) { next(error); } },
   updateAvatar: async (req, res, next) => { try { res.json({ data: await userService.updateAvatar(req.auth.user, req.body || {}) }); } catch (error) { next(error); } },

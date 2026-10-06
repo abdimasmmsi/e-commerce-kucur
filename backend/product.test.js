@@ -56,3 +56,28 @@ test("Product management scopes lists and details to the selected store", async 
   );
   assert.equal((await service.get(storeCProduct.id, actor, true, { storeId: "STORE-C" })).id, storeCProduct.id);
 });
+
+test("compare-at price is optional but must be higher than the selling price", () => {
+  const { validateProduct } = require("./services/productService");
+  const base = { storeId: "s1", name: "Kopi", description: "Kopi bubuk", category: "Minuman", price: 15000, stock: 3 };
+  assert.equal(validateProduct(base).compareAtPrice, null);
+  assert.equal(validateProduct({ ...base, compareAtPrice: 20000 }).compareAtPrice, 20000);
+  assert.throws(() => validateProduct({ ...base, compareAtPrice: 15000 }), (error) => error.code === "VALIDATION_ERROR");
+});
+
+test("restocking a sold-out product notifies watchers once and clears the list", async () => {
+  const { createProductService } = require("./services/productService");
+  const product = { id: "p1", storeId: "s1", name: "Kopi", description: "Kopi bubuk", category: "Minuman", status: "active", hasVariants: false, price: 15000, stock: 0, images: [], variantGroups: [], variants: [] };
+  let watchers = ["u1", "u2"]; const sent = [];
+  const repository = {
+    products: { findById: async () => product, update: async (id, data) => ({ ...product, ...data, id }), restockWatchers: async () => watchers, setRestockWatchers: async (id, list) => { watchers = list; } },
+    stores: { findById: async () => ({ id: "s1", merchantUserId: "m1", type: "product" }) },
+    audits: { append: async () => null },
+    notifications: { create: async (data) => { sent.push(data); return { id: `n${sent.length}` }; } },
+    users: { findById: async () => ({ pushSubscriptions: [] }) },
+  };
+  repository.transaction = (work) => work(repository);
+  await createProductService(repository).update("p1", { stock: 5 }, { id: "m1", roles: ["merchant"] });
+  assert.deepEqual(sent.map((item) => [item.userId, item.type]), [["u1", "PRODUCT_BACK_IN_STOCK"], ["u2", "PRODUCT_BACK_IN_STOCK"]]);
+  assert.deepEqual(watchers, []);
+});

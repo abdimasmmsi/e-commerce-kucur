@@ -3,7 +3,8 @@ const { READ_METHODS, differences, normalize } = require("./dualReadRepository")
 const { currentReadContext } = require("./repositoryReadContext");
 const { defaultCanaryNormalizers } = require("./canaryComparisonAdapters");
 
-const FINAL_ONLY_READS = new Set(["products.stats"]);
+// Method yang hanya ada di repository final (dibaca/ditulis langsung saat mode final).
+const FINAL_ONLY_READS = new Set(["products.stats", "products.restockWatchers", "products.setRestockWatchers", "products.recordView", "products.viewStats"]);
 const ELIGIBLE_DOMAINS = new Set(["users", "sessions", "stores", "products", "commerce", "settings", "finance", "delivery", "reviews", "chats", "notifications"]);
 const DOMAIN_NAMES = { users: "AUTH", sessions: "AUTH", stores: "STORE", products: "PRODUCT", commerce: "COMMERCE", settings: "SETTINGS", finance: "FINANCE", delivery: "DELIVERY", reviews: "REVIEW", chats: "CHAT", notifications: "NOTIFICATION" };
 const publicDomainFor = (domain, operation) => operation.startsWith("commerce.getCart") || operation.startsWith("commerce.findCartItem") ? "CART" : DOMAIN_NAMES[domain];

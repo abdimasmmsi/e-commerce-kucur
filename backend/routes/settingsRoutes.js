@@ -5,6 +5,7 @@ module.exports = ({ settingsService, authMiddleware }) => {
   const router = express.Router();
   const controller = createSettingsController(settingsService);
   router.get("/faq", controller.faq);
+  router.get("/push-key", (req, res) => res.json({ data: { publicKey: require("../services/pushService").publicKey() } }));
   router.get("/", authMiddleware.requireAuth, controller.get);
   router.patch("/", authMiddleware.requireAuth, authMiddleware.requireRole("admin"), controller.update);
   return router;

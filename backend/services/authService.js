@@ -17,7 +17,7 @@ const passwordSecurity = (user) => {
     resetRequired: Boolean(user.passwordResetRequired),
   };
 };
-const publicUser = ({ passwordHash, passwordChangedAt, passwordResetRequired, language = "id", theme = "light", ...user }) => ({
+const publicUser = ({ passwordHash, passwordChangedAt, passwordResetRequired, pushSubscriptions, browsingHistory, language = "id", theme = "light", ...user }) => ({
   ...user,
   preferences: { language: language === "en" ? "en" : "id", theme: theme === "dark" ? "dark" : "light" },
   passwordSecurity: passwordSecurity({ ...user, passwordChangedAt, passwordResetRequired }),

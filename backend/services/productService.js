@@ -1,5 +1,6 @@
 const { errors } = require("../errors/AppError");
 const { requiredString } = require("../validation/sharedValidation");
+const { notifySafe } = require("./notifyHelpers");
 
 const statuses = ["active", "inactive"];
 const number = (value, field, { integer = false } = {}) => {
@@ -10,6 +11,13 @@ const number = (value, field, { integer = false } = {}) => {
 const status = (value, field = "status") => {
   const result = String(value || "active").toLowerCase();
   if (!statuses.includes(result)) throw errors.validation({ [field]: `Harus salah satu: ${statuses.join(", ")}.` });
+  return result;
+};
+// Harga coret (harga sebelum diskon): opsional, harus lebih besar dari harga jual.
+const compareAt = (value, price, field) => {
+  if (value === undefined || value === null || value === "") return null;
+  const result = number(value, field);
+  if (price !== null && result <= price) throw errors.validation({ [field]: "Harga coret harus lebih besar dari harga jual." });
   return result;
 };
 const combinationKey = (options, groups) => groups.map((group) => `${group.name.trim().toLowerCase()}=${String(options[group.name]).trim().toLowerCase()}`).join("|");
@@ -23,6 +31,7 @@ function validateProduct(input) {
     category: requiredString(input.category, "category", { max: 100 }), status: status(input.status), hasVariants,
     price: hasVariants ? null : number(input.price, "price"), stock: hasVariants ? null : number(input.stock, "stock", { integer: true }),
   };
+  result.compareAtPrice = hasVariants ? null : compareAt(input.compareAtPrice, result.price, "compareAtPrice");
   const rawImages = Array.isArray(input.images) ? input.images : [];
   if (rawImages.length > 3) throw errors.validation({ images: "Maksimal tiga foto umum per produk." });
   if (rawImages.filter((item) => item?.isPrimary).length > 1) throw errors.validation({ images: "Hanya satu foto yang boleh menjadi foto utama." });
@@ -46,14 +55,24 @@ function validateProduct(input) {
       options[group.name] = selected;
     }
     const image = variant?.image?.url ? { url: requiredString(variant.image.url, `variants.${index}.image.url`, { max: 2000 }), storageKey: variant.image.storageKey ? requiredString(variant.image.storageKey, `variants.${index}.image.storageKey`, { max: 500 }) : null } : null;
-    return { sku: requiredString(variant?.sku, `variants.${index}.sku`, { max: 100 }), options, combinationKey: combinationKey(options, result.variantGroups), price: number(variant?.price, `variants.${index}.price`), stock: number(variant?.stock, `variants.${index}.stock`, { integer: true }), status: status(variant?.status, `variants.${index}.status`), image };
+    return { sku: requiredString(variant?.sku, `variants.${index}.sku`, { max: 100 }), options, combinationKey: combinationKey(options, result.variantGroups), price: number(variant?.price, `variants.${index}.price`), compareAtPrice: compareAt(variant?.compareAtPrice, Number(variant?.price), `variants.${index}.compareAtPrice`), stock: number(variant?.stock, `variants.${index}.stock`, { integer: true }), status: status(variant?.status, `variants.${index}.status`), image };
   });
   if (new Set(result.variants.map((item) => item.sku.toLowerCase())).size !== result.variants.length) throw errors.conflict("SKU harus unik dalam satu produk.");
   if (new Set(result.variants.map((item) => item.combinationKey)).size !== result.variants.length) throw errors.conflict("Kombinasi variasi duplikat tidak diperbolehkan.");
   return result;
 }
 
+const totalStock = (product) => (product.hasVariants ? (product.variants || []).filter((item) => item.status === "active").reduce((sum, item) => sum + Math.max(Number(item.stock) || 0, 0), 0) : Math.max(Number(product.stock) || 0, 0));
+
 function createProductService(repository) {
+  // Stok habis lalu diisi lagi: kabari pembeli yang menekan "Ingatkan saya", lalu kosongkan daftarnya.
+  const notifyBackInStock = async (before, after) => {
+    if (typeof repository.products.restockWatchers !== "function" || totalStock(before) > 0 || totalStock(after) <= 0 || after.status !== "active") return;
+    const watchers = await repository.products.restockWatchers(after.id);
+    if (!watchers.length) return;
+    await notifySafe(repository, watchers.map((userId) => ({ userId, type: "PRODUCT_BACK_IN_STOCK", title: "Stok tersedia lagi", body: `${after.name} sudah bisa dipesan lagi.`, entityType: "PRODUCT", entityId: after.id, metadata: { storeId: after.storeId }, dedupeKey: `back-in-stock:${after.id}:${userId}:${Date.now()}` })));
+    await repository.products.setRestockWatchers(after.id, []);
+  };
   const owned = async (product, actor) => {
     const store = await repository.stores.findById(product.storeId);
     if (!store) throw errors.notFound("Store produk tidak ditemukan.");
@@ -120,7 +139,7 @@ function createProductService(repository) {
       if (!destination) throw errors.notFound("Store tidak ditemukan.");
       if (!actor.roles.includes("admin") && destination.merchantUserId !== actor.id) throw errors.forbidden("Store bukan milik pengguna ini.");
       if (destination.type !== "product") throw errors.validation({ storeId: "Produk hanya dapat dipindahkan ke Store bertipe product." });
-      return repository.transaction(async (tx) => {
+      const result = await repository.transaction(async (tx) => {
         const updated = await tx.products.update(productId, normalized);
         const statusChanged = current.status !== updated.status;
         const withoutIds = (items) => items.map(({ id, ...item }) => item);
@@ -129,6 +148,39 @@ function createProductService(repository) {
         await tx.audits.append({ entityType: "product", entityId: productId, actorId: actor.id, actorRole: actor.roles.includes("admin") ? "admin" : "merchant", activityType: statusChanged ? "PRODUCT_STATUS_CHANGED" : variantsChanged ? "PRODUCT_VARIANTS_UPDATED" : stockChanged ? "PRODUCT_STOCK_UPDATED" : "PRODUCT_UPDATED", previousStatus: current.status, nextStatus: updated.status, description: `Produk ${updated.name} diperbarui.`, isSystem: false });
         return { ...updated, store: destination };
       });
+      await notifyBackInStock(current, result);
+      return result;
+    },
+    // Statistik dilihat: dipanggil sekali per sesi per produk dari halaman detail (tanpa login juga boleh).
+    async recordView(productId) {
+      const product = await repository.products.findById(productId);
+      if (!product || product.status !== "active") throw errors.notFound("Produk tidak ditemukan.");
+      if (typeof repository.products.recordView !== "function") return { recorded: false };
+      await repository.products.recordView(productId, new Date().toISOString().slice(0, 10));
+      return { recorded: true };
+    },
+    async storeViews(storeId, actor) {
+      const store = await repository.stores.findById(storeId);
+      if (!store) throw errors.notFound("Store tidak ditemukan.");
+      if (store.merchantUserId !== actor.id && !actor.roles.includes("admin")) throw errors.forbidden("Store bukan milik pengguna ini.");
+      const stats = typeof repository.products.viewStats === "function" ? await repository.products.viewStats(storeId) : {};
+      const today = Date.now();
+      const sumDays = (daily, days) => Object.entries(daily).filter(([day]) => today - Date.parse(`${day}T00:00:00Z`) < days * 86400000).reduce((sum, [, count]) => sum + Number(count || 0), 0);
+      return Object.fromEntries(Object.entries(stats).map(([id, daily]) => [id, { last7Days: sumDays(daily, 7), last30Days: sumDays(daily, 30), daily }]));
+    },
+    // "Ingatkan saat stok ada": hanya pembeli, hanya untuk produk yang stoknya habis.
+    async restockStatus(productId, actor) {
+      const watchers = typeof repository.products.restockWatchers === "function" ? await repository.products.restockWatchers(productId) : [];
+      return { watching: watchers.includes(actor.id) };
+    },
+    async setRestockWatch(productId, actor, watching) {
+      const product = await repository.products.findById(productId);
+      if (!product || product.status !== "active") throw errors.notFound("Produk tidak ditemukan.");
+      if (watching && totalStock(product) > 0) throw errors.conflict("Stok produk masih tersedia.");
+      const watchers = await repository.products.restockWatchers(productId);
+      const next = watching ? [...new Set([...watchers, actor.id])].slice(-500) : watchers.filter((id) => id !== actor.id);
+      await repository.products.setRestockWatchers(productId, next);
+      return { watching };
     },
   };
 }

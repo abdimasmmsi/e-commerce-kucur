@@ -95,6 +95,32 @@ function createUserService(repository) {
       await repository.audits.append({ entityType: "user", entityId: user.id, actorId: actor.id, actorRole: "admin", activityType: "ADMIN_COURIER_CREATED", description: "Admin membuat akun kurir dengan kata sandi awal standar.", isSystem: false });
       return { user: publicUser(user), initialPassword: COURIER_INITIAL_PASSWORD };
     },
+    // Riwayat pencarian & produk dilihat ikut akun (dipakai di semua perangkat).
+    async getHistory(user) { const row = await repository.users.findById(user.id); return row?.browsingHistory ?? { searches: [], viewed: [] }; },
+    async saveHistory(user, input = {}) {
+      const text = (value, max) => String(value ?? "").trim().slice(0, max);
+      const searches = [...new Set((Array.isArray(input.searches) ? input.searches : []).map((item) => text(item, 80)).filter((item) => item.length >= 2))].slice(0, 20);
+      const viewed = (Array.isArray(input.viewed) ? input.viewed : []).filter((item) => /^[0-9a-f-]{36}$/i.test(String(item?.id ?? ""))).slice(0, 20).map((item) => ({ id: String(item.id), name: text(item.name, 180), category: item.category ? text(item.category, 100) : null, price: Number.isFinite(Number(item.price)) ? Number(item.price) : null, image: item.image && /^(https?:|\/)/.test(String(item.image)) ? text(item.image, 2000) : null, viewedAt: Number.isFinite(Date.parse(item.viewedAt)) ? new Date(item.viewedAt).toISOString() : new Date().toISOString() }));
+      const history = { searches, viewed, updatedAt: new Date().toISOString() };
+      await repository.users.update(user.id, { browsingHistory: history });
+      return history;
+    },
+    // Langganan notifikasi push per perangkat (maks 10 perangkat per akun).
+    async addPushSubscription(user, input = {}) {
+      const endpoint = String(input.endpoint ?? "");
+      if (!/^https:\/\//.test(endpoint) || endpoint.length > 1000 || !input.keys?.p256dh || !input.keys?.auth) throw errors.validation({ subscription: "Langganan notifikasi tidak valid." });
+      const row = await repository.users.findById(user.id);
+      const current = (row?.pushSubscriptions ?? []).filter((item) => item.endpoint !== endpoint);
+      const next = [...current, { endpoint, keys: { p256dh: String(input.keys.p256dh).slice(0, 200), auth: String(input.keys.auth).slice(0, 100) }, createdAt: new Date().toISOString() }].slice(-10);
+      await repository.users.update(user.id, { pushSubscriptions: next });
+      return { subscribed: true, devices: next.length };
+    },
+    async removePushSubscription(user, input = {}) {
+      const row = await repository.users.findById(user.id);
+      const next = (row?.pushSubscriptions ?? []).filter((item) => item.endpoint !== String(input.endpoint ?? ""));
+      await repository.users.update(user.id, { pushSubscriptions: next });
+      return { subscribed: false, devices: next.length };
+    },
     async adminResetPassword(actor, userId, input) {
       if (!actor.roles.includes("admin")) throw errors.forbidden();
       await assertCurrentPassword(actor, input.adminPassword);
