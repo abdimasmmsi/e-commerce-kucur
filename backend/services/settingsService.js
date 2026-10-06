@@ -6,7 +6,7 @@ const numberBetween = (min, max) => (value) => Number.isFinite(Number(value)) &&
 const integerBetween = (min, max) => (value) => Number.isInteger(Number(value)) && Number(value) >= min && Number(value) <= max;
 const validators = {
   deliveryRatePerKm: numberBetween(0, 10000000), deliveryOrderCutoffTime: time, deliveryDispatchTime: time,
-  maxDailyDeliveries: integerBetween(1, 10000), tourismApprovalTimeoutHours: integerBetween(1, 720),
+  maxDailyDeliveries: integerBetween(1, 10000), batchReminderMinutes: integerBetween(5, 720), tourismApprovalTimeoutHours: integerBetween(1, 720),
   initialStoreFeeAmount: numberBetween(0, 1000000000000), installmentFullEnabled: (value) => typeof value === "boolean",
   installment3MonthsEnabled: (value) => typeof value === "boolean", installment6MonthsEnabled: (value) => typeof value === "boolean",
   installmentLateInterestPercent: numberBetween(0, 100), adminFeeType: (value) => ["percentage", "fixed"].includes(value),

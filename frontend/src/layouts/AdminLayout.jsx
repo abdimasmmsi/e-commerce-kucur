@@ -3,6 +3,7 @@ import { NavLink, Outlet } from "react-router-dom";
 import AppHeader from "../components/AppHeader";
 import WorkspaceNavIcon from "../components/WorkspaceNavIcon";
 import ChatUnreadBadge from "../components/ChatUnreadBadge";
+import DeliveryApprovalReminder from "../components/admin/DeliveryApprovalReminder";
 import { usePreferences } from "../context/PreferencesContext";
 import "./AdminLayout.css";
 import "../components/CustomerBottomNav.css";
@@ -31,6 +32,7 @@ function AdminLayout() {
   return (
     <div className="admin-workspace">
       <AppHeader accountMode workspaceRole="admin" />
+      <DeliveryApprovalReminder />
       <div className="admin-layout">
       {sidebarOpen && <button className="admin-overlay" type="button" onClick={closeSidebar} aria-label={t("workspace.closeMenu")} />}
       <aside className={`admin-sidebar ${sidebarOpen ? "open" : ""}`}>

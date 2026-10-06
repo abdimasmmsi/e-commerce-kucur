@@ -96,6 +96,48 @@ function createDeliveryService(repository) {
         : { userId: courierUserId, type: "COURIER_LEAVE_REJECTED", title: "Cuti ditolak", body: `Cuti ${period} ditolak Admin. Alasan: ${note}`, entityType: "COURIER_LEAVE", entityId: id, dedupeKey: `courier-leave-rejected:${id}` }]);
       return next.find((item) => item.id === id);
     },
+    // Draf batch otomatis: order siap kirim dibagi ke kurir yang tidak cuti dan masih punya kapasitas.
+    // Order dari lapak yang sama dikumpulkan ke satu kurir (sedikit titik ambil). Draf tidak disimpan;
+    // batch baru dibuat saat Admin menyetujui (approveDrafts). Tidak ada persetujuan otomatis.
+    async drafts(query = {}) {
+      const config = await settings();
+      // Tanpa tanggal: batch hari ini selama kurir belum berangkat, sesudahnya batch besok.
+      const today = (({ year, month, day }) => `${year}-${month}-${day}`)(jakartaParts(new Date()));
+      const deliveryDate = /^\d{4}-\d{2}-\d{2}$/.test(String(query.deliveryDate || "")) ? query.deliveryDate : (Date.now() < jakartaInstant(today, clockText(config.deliveryDispatchTime) || "17:00").getTime() ? today : addDate(today, 1));
+      const orders = await eligible(deliveryDate);
+      const { cutoffAt, dispatchAt } = createBatchData(deliveryDate, config, null);
+      const reminderMinutes = Number(config.batchReminderMinutes ?? 60);
+      const reminderAt = new Date(dispatchAt.getTime() - reminderMinutes * 60000);
+      const couriers = [];
+      for (const profile of await repository.delivery.listCouriers()) {
+        if (!profile.isActive || !hasRole(profile, "courier")) continue;
+        const onLeave = Boolean(await repository.delivery.overlappingAvailability(profile.userId, dispatchAt, new Date(dispatchAt.getTime() + 86400000)));
+        const capacity = effectiveCapacity(profile.maxActiveDeliveries, config.maxDailyDeliveries);
+        const active = await repository.delivery.activeCourierCount(profile.userId, new Date(`${deliveryDate}T00:00:00Z`));
+        couriers.push({ courierUserId: profile.userId, fullName: profile.user?.fullName, onLeave, capacity, active, remaining: onLeave ? 0 : Math.max(capacity - active, 0), orders: [] });
+      }
+      const groups = [...orders.reduce((map, order) => map.set(order.storeId, [...(map.get(order.storeId) || []), order]), new Map()).values()].sort((a, b) => b.length - a.length);
+      const unassigned = [];
+      for (const group of groups) {
+        const rest = [...group];
+        while (rest.length) {
+          const courier = couriers.filter((item) => item.remaining > 0).sort((a, b) => b.remaining - a.remaining || a.orders.length - b.orders.length)[0];
+          if (!courier) { unassigned.push(...rest); break; }
+          const take = rest.splice(0, courier.remaining);
+          courier.orders.push(...take); courier.remaining -= take.length;
+        }
+      }
+      return { deliveryDate, cutoffAt, dispatchAt, reminderAt, reminderMinutes, cutoffPassed: Date.now() >= cutoffAt.getTime(), total: orders.length, couriers: couriers.map((item) => ({ ...item, orders: item.orders.map(publicOrder) })), unassigned: unassigned.map(publicOrder) };
+    },
+    async approveDrafts(input, actor) {
+      const deliveryDate = dateOnly(input.deliveryDate || "");
+      if (!/^\d{4}-\d{2}-\d{2}$/.test(deliveryDate)) throw errors.validation({ deliveryDate: "Tanggal pengiriman wajib valid." });
+      const assignments = (Array.isArray(input.assignments) ? input.assignments : []).map((item) => ({ courierUserId: String(item.courierUserId || ""), commerceOrderIds: [...new Set((item.commerceOrderIds || []).map(String))] })).filter((item) => item.courierUserId && item.commerceOrderIds.length);
+      if (!assignments.length) throw errors.validation({ assignments: "Tidak ada order di draf yang bisa disetujui." });
+      const created = [];
+      for (const assignment of assignments) created.push(await this.createBatch({ ...assignment, deliveryDate }, actor));
+      return { deliveryDate, batches: created.map(publicBatch) };
+    },
     async eligible(query) { const config = await settings(); const target = query.deliveryDate || resolveDeliveryDate(new Date(), config.deliveryOrderCutoffTime); return { deliveryDate: target, items: await eligible(target) }; },
     async couriers() { return (await repository.delivery.listCouriers()).map(publicCourier); },
     async merchantOrders(actor) { return (await repository.delivery.merchantAssignments(actor.id)).map((item) => ({ id: item.id, status: item.status, pickupSequence: item.pickupSequence, deliverySequence: item.deliverySequence, commerceOrder: publicOrder(item.commerceOrder), batch: publicBatch(item.batch) })); },
@@ -117,4 +159,4 @@ function createDeliveryService(repository) {
   };
 }
 
-module.exports = { ACTIVE_ORDER_STATUSES, TERMINAL_ORDER_STATUSES, availabilityOverlaps, createDeliveryService, deliveryOrderEligible, effectiveCapacity, resolveDeliveryDate };
+module.exports = { jakartaDate: (date = new Date()) => { const parts = jakartaParts(date); return `${parts.year}-${parts.month}-${parts.day}`; }, ACTIVE_ORDER_STATUSES, TERMINAL_ORDER_STATUSES, availabilityOverlaps, createDeliveryService, deliveryOrderEligible, effectiveCapacity, resolveDeliveryDate };

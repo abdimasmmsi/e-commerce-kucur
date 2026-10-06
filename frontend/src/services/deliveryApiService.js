@@ -13,6 +13,8 @@ export const deliveryApi = {
   eligible: (deliveryDate) => apiData(`/api/admin/delivery/eligible-orders${deliveryDate ? `?deliveryDate=${encodeURIComponent(deliveryDate)}` : ""}`),
   couriers: () => apiData("/api/admin/delivery/couriers"),
   createCourier: (input) => apiData("/api/users/couriers", body(input)),
+  drafts: (deliveryDate) => apiData(`/api/admin/delivery/drafts${deliveryDate ? `?deliveryDate=${encodeURIComponent(deliveryDate)}` : ""}`),
+  approveDrafts: (input) => apiData("/api/admin/delivery/drafts/approve", body(input)),
   leaveRequests: () => apiData("/api/admin/delivery/leave-requests"),
   reviewLeave: (courierUserId, id, input) => apiData(`/api/admin/delivery/leave-requests/${encodeURIComponent(courierUserId)}/${encodeURIComponent(id)}`, { method: "PATCH", body: input }), adminBatches: () => apiData("/api/admin/delivery/batches"),
   createBatch: (input) => apiData("/api/admin/delivery/batches", body(input)), completeBatch: (id) => apiData(`/api/admin/delivery/batches/${id}/complete`, { method: "PATCH" }),

@@ -1511,6 +1511,8 @@ model TargetPlatformSettings {
   adminContactName String? @db.VarChar(120)
   adminContactPhone String? @db.VarChar(30)
   faqEntries Json?
+  batchReminderMinutes Int @default(60)
+  analyticsReports Json?
   updatedByUserId String? @db.Char(36)
   createdAt DateTime @default(now()) @db.DateTime(3)
   updatedAt DateTime @default(now()) @updatedAt @db.DateTime(3)

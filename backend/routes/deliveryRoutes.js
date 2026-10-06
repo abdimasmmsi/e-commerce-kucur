@@ -34,6 +34,8 @@ function adminRoutes({ deliveryService, authMiddleware }) {
   const router = express.Router(); router.use(authMiddleware.requireAuth, authMiddleware.requireRole("admin"));
   router.get("/eligible-orders", handler((req) => deliveryService.eligible(req.query)));
   router.get("/couriers", handler(() => deliveryService.couriers()));
+  router.get("/drafts", handler((req) => deliveryService.drafts(req.query)));
+  router.post("/drafts/approve", handler((req) => deliveryService.approveDrafts(req.body || {}, req.auth.user), 201));
   router.get("/leave-requests", handler(() => deliveryService.leaveRequests()));
   router.patch("/leave-requests/:courierUserId/:id", handler((req) => deliveryService.reviewLeave(req.params.courierUserId, req.params.id, req.body || {}, req.auth.user)));
   router.get("/batches", handler((req) => deliveryService.batches(req.auth.user, req.query)));

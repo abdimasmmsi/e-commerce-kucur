@@ -20,3 +20,17 @@ test("overlapping leave request is rejected",async()=>{const start=new Date(Date
 test("leave request needs a reason and starts as pending",async()=>{let saved=null;const service=createDeliveryService({delivery:{availability:async()=>[],upsertProfile:async(id,data)=>{saved=data;}},users:{list:async()=>[]}});const start=new Date(Date.now()+86400000).toISOString();await assert.rejects(()=>service.createAvailability({startAt:start},{id:"c"}),e=>e.code==="VALIDATION_ERROR");const entry=await service.createAvailability({startAt:start,reason:"Acara keluarga"},{id:"c"});assert.equal(entry.status,"pending");assert.equal(saved.availabilityHistory.length,1);assert.equal(saved.availabilityStatus,undefined);});
 test("admin rejection of leave needs a reason; approval of a running leave marks courier unavailable",async()=>{let saved=null;const now=Date.now();const history=[{id:"a",startAt:new Date(now-3600000).toISOString(),endAt:new Date(now+86400000).toISOString(),reason:"Sakit",status:"pending"}];const service=createDeliveryService({delivery:{availability:async()=>saved?.availabilityHistory||history,upsertProfile:async(id,data)=>{saved=data;}}});await assert.rejects(()=>service.reviewLeave("c","a",{decision:"reject"},{id:"admin"}),e=>e.code==="VALIDATION_ERROR");const row=await service.reviewLeave("c","a",{decision:"approve"},{id:"admin"});assert.equal(row.status,"approved");assert.equal(saved.availabilityStatus,"UNAVAILABLE");await assert.rejects(()=>service.reviewLeave("c","a",{decision:"approve"},{id:"admin"}),e=>e.statusCode===409);});
 test("merchant cannot confirm another Store order",async()=>{const service=createDeliveryService({commerce:{findOrder:async()=>({store:{merchantUserId:"other"}})}});await assert.rejects(()=>service.confirmReady("o",{isReady:true},{id:"merchant"}),e=>e.statusCode===403);});
+test("delivery drafts group orders per store, skip couriers on leave, and leave overflow unassigned",async()=>{
+  const date="2026-11-02";
+  const order=(id,storeId)=>({id,storeId,createdAt:`${date}T02:00:00Z`,fulfillmentStatus:"processing",paymentStatus:"pending",deliveryFee:5000,items:[]});
+  const courier=(id)=>({userId:id,isActive:true,maxActiveDeliveries:2,user:{id,fullName:id,roles:[{role:{name:"courier"}}]}});
+  const service=createDeliveryService({settings:{get:async()=>({deliveryOrderCutoffTime:"16:00",deliveryDispatchTime:"17:00",maxDailyDeliveries:3,batchReminderMinutes:45})},delivery:{eligibleOrders:async()=>[order("a1","A"),order("a2","A"),order("a3","A"),order("b1","B"),order("b2","B")],activeAssignment:async()=>null,listCouriers:async()=>[courier("c1"),courier("c2")],overlappingAvailability:async(id)=>id==="c2"?{id:"leave"}:null,activeCourierCount:async()=>0}});
+  const draft=await service.drafts({deliveryDate:date});
+  assert.equal(draft.total,5);
+  const c1=draft.couriers.find((c)=>c.courierUserId==="c1"),c2=draft.couriers.find((c)=>c.courierUserId==="c2");
+  assert.deepEqual(c1.orders.map((o)=>o.id),["a1","a2"]);
+  assert.equal(c2.onLeave,true); assert.equal(c2.orders.length,0);
+  assert.equal(draft.unassigned.length,3);
+  assert.equal(new Date(draft.dispatchAt)-new Date(draft.reminderAt),45*60000);
+});
+test("approving drafts requires at least one assignment",async()=>{const service=createDeliveryService({});await assert.rejects(()=>service.approveDrafts({deliveryDate:"2026-11-02",assignments:[]},{id:"admin",roles:["admin"]}),e=>e.code==="VALIDATION_ERROR");});

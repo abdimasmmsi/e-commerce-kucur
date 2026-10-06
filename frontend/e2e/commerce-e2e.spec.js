@@ -71,15 +71,38 @@ test.describe.serial("canonical cross-role commerce", () => {
 
     await loginThroughUi(admin, "admin");
     await admin.goto("/admin/delivery-batches");
-    const eligibleOrder = admin.getByText(orderCode, { exact: true });
-    await expect(eligibleOrder).toBeVisible();
-    await eligibleOrder.locator("xpath=ancestor::label").getByRole("checkbox").check();
-    const batchResponsePromise = admin.waitForResponse((response) => response.url().includes("/api/admin/delivery/batches") && response.request().method() === "POST");
-    await admin.getByRole("button", { name: /Buat Batch|Create batch/i }).click();
+    // Batch dari draf otomatis: cari pesanan ini (hari ini atau besok, tergantung cutoff), jadwalkan ke kurir QA,
+    // keluarkan pesanan lain dari draf supaya tes hanya menyetujui pesanan ini.
+    const draftPanel = admin.locator("section", { has: admin.getByRole("heading", { name: /Draf batch otomatis|Automatic batch draft/ }) });
+    const shortCode = `#${orderCode.replace(/[^a-z0-9]/gi, "").slice(-4).toUpperCase()}`;
+    const draftOrder = draftPanel.locator("li", { hasText: shortCode });
+    const dateInput = draftPanel.getByLabel(/Tanggal pengiriman|Delivery date/);
+    await expect(draftPanel.getByText(/^Cutoff$/)).toBeVisible();
+    const foundToday = await draftOrder.waitFor({ state: "visible", timeout: 8000 }).then(() => true).catch(() => false);
+    if (!foundToday) {
+      const current = await dateInput.inputValue();
+      const next = new Date(`${current}T12:00:00Z`); next.setUTCDate(next.getUTCDate() + 1);
+      await dateInput.fill(next.toISOString().slice(0, 10));
+    }
+    await expect(draftOrder).toBeVisible();
+    await draftOrder.getByRole("combobox").selectOption({ label: "Courier Kucur" });
+    // Pesanan lain dikeluarkan satu per satu (daftar berubah setiap kali satu pesanan dipindah).
+    for (let guard = 0; guard < 50; guard += 1) {
+      const others = draftPanel.locator("li").filter({ hasNotText: shortCode });
+      let moved = false;
+      for (let index = 0; index < await others.count(); index += 1) {
+        const select = others.nth(index).getByRole("combobox");
+        if (await select.inputValue()) { await select.selectOption({ value: "" }); moved = true; break; }
+      }
+      if (!moved) break;
+    }
+    await draftPanel.getByRole("button", { name: /Setujui 1 pesanan|Approve 1 orders/i }).click();
+    const batchResponsePromise = admin.waitForResponse((response) => response.url().includes("/api/admin/delivery/drafts/approve") && response.request().method() === "POST");
+    await admin.getByRole("dialog").getByRole("button", { name: /Setujui 1 pesanan|Approve 1 orders/i }).click();
     const batchResponse = await batchResponsePromise;
     expect(batchResponse.ok()).toBeTruthy();
     const batchPayload = await batchResponse.json();
-    const batchId = batchPayload.data?.id ?? batchPayload.id;
+    const batchId = batchPayload.data?.batches?.[0]?.id;
     expect(batchId).toBeTruthy();
     await qaScreenshot(admin, "final/admin/id-light", `batch-${runId}`);
 
