@@ -10,6 +10,7 @@ import { useAuth } from "../../context/AuthContext";
 import { usePreferences } from "../../context/PreferencesContext";
 import { useSystemSettings } from "../../context/SystemSettingsContext";
 import { getProductDisplayPrice, getProductTotalStock, productService } from "../../services/productService";
+import { HISTORY_EVENT, personalize } from "../../utils/browsingHistory";
 
 const Icon = ({ path, className = "size-7" }) => <svg className={className} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true"><path d={path} /></svg>;
 // Warna inisial lapak (teks putih, kontras ≥ 4.5:1).
@@ -43,8 +44,15 @@ function Home() {
   }, []);
 
   const available = useMemo(() => products.filter((product) => product.status === "active" && getProductTotalStock(product) > 0), [products]);
-  const bestSellers = useMemo(() => [...available].filter((product) => Number(product.soldCount) > 0).sort((a, b) => Number(b.soldCount) - Number(a.soldCount)).slice(0, 8), [available]);
-  const feed = available.slice(0, 10);
+  // Terlaris = penjualan 30 hari terakhir (data asli dari pesanan selesai); bila belum ada, pakai total penjualan.
+  const bestSellers = useMemo(() => {
+    const recent = available.filter((product) => Number(product.soldRecent) > 0).sort((a, b) => Number(b.soldRecent) - Number(a.soldRecent));
+    return (recent.length >= 2 ? recent : available.filter((product) => Number(product.soldCount) > 0).sort((a, b) => Number(b.soldCount) - Number(a.soldCount))).slice(0, 8);
+  }, [available]);
+  // "Untuk kamu": diurutkan dari kategori yang sering dilihat & kata yang pernah dicari di perangkat ini.
+  const [historyVersion, setHistoryVersion] = useState(0);
+  useEffect(() => { const bump = () => setHistoryVersion((value) => value + 1); window.addEventListener(HISTORY_EVENT, bump); return () => window.removeEventListener(HISTORY_EVENT, bump); }, []);
+  const feed = useMemo(() => personalize(available).slice(0, 10), [available, historyVersion]); // eslint-disable-line react-hooks/exhaustive-deps
   const categories = useMemo(() => [...new Set(available.map((product) => product.category).filter(Boolean))].slice(0, 5), [available]);
   const stores = useMemo(() => {
     const map = new Map();

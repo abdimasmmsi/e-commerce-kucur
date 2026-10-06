@@ -7,6 +7,7 @@ import { useAuth } from "../../context/AuthContext";
 import { useChat } from "../../context/ChatContext";
 import { cartService } from "../../services/commerceService";
 import { getProductDisplayPrice, productService } from "../../services/productService";
+import { addViewed } from "../../utils/browsingHistory";
 import { getAverageRating, reviewService } from "../../services/reviewService";
 import ProductImage from "../../components/ProductImage";
 import { getPrimaryProductImage } from "../../services/productImageStorage";
@@ -34,7 +35,8 @@ function ProductDetail() {
 
   useEffect(() => {
     let active = true;
-    productService.get(productId).then((row) => { if (active) setProduct(row); }).catch((error) => {
+    // Produk yang dibuka masuk "Terakhir dilihat" di panel cari (maks 5 tampil).
+    productService.get(productId).then((row) => { if (!active) return; setProduct(row); if (row?.status === "active") addViewed({ ...row, price: getProductDisplayPrice(row) }); }).catch((error) => {
       if (active) setLoadError(error.message);
     }).finally(() => { if (active) setLoading(false); });
     reviewService.publicForTarget("product", productId).then((result) => { if (active) setReviews((result.items || []).filter((review) => !review.isHidden)); }).catch(() => { if (active) setReviews([]); });

@@ -251,3 +251,15 @@ button[aria-busy="true"]::before { content: ""; display: inline-block; flex: 0 0
 .faq-bot-layer { animation: kucur-fade .18s ease-out both; }
 .faq-bot-panel { animation: kucur-sheet .26s cubic-bezier(.2, .8, .2, 1) both; }
 @media (prefers-reduced-motion: reduce) { .faq-bot-layer, .faq-bot-panel { animation: none !important; } }
+
+/* Pembungkus kolom cari header (untuk panel riwayat): tata letak pindah ke pembungkus, tampilan tetap di form. */
+.customer-desktop-search-wrap { flex: 1 1 190px; min-width: 0; max-width: 400px; }
+.customer-desktop-search-wrap > .customer-desktop-search { width: 100%; max-width: none; }
+.customer-mobile-search-wrap { display: none; }
+@media (min-width: 1101px) { .customer-desktop-search-wrap { justify-self: center; width: min(100%, 520px); max-width: 520px; } }
+@media (max-width: 767px) {
+  .customer-desktop-search-wrap { display: none; }
+  .customer-mobile-search-wrap { display: block; width: 100%; }
+  .customer-mobile-search-wrap > .customer-mobile-search { width: 100%; }
+}
+.search-history-panel { max-height: min(70dvh, 520px); overflow-y: auto; animation: kucur-pop .16s ease-out both; }

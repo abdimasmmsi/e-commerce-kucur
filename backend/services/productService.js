@@ -61,7 +61,7 @@ function createProductService(repository) {
     return store;
   };
   const withStores = async (products) => Promise.all(products.map(async (product) => ({ ...product, store: product.store || await repository.stores.findById(product.storeId) })));
-  const emptyStats = { ratingAverage: null, ratingCount: 0, soldCount: 0 };
+  const emptyStats = { ratingAverage: null, ratingCount: 0, soldCount: 0, soldRecent: 0 };
   const loadStats = async () => (typeof repository.products.stats === "function" ? repository.products.stats() : { products: {}, stores: {} });
   const withStats = (product, stats) => ({ ...product, ...emptyStats, ...stats.products[product.id] });
   // Data lapak yang aman ditampilkan ke pembeli (tanpa email/HP pemilik dan data keuangan).

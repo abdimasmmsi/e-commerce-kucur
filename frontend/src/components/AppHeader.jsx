@@ -9,15 +9,29 @@ import NotificationPopover from "./NotificationPopover";
 import PreferenceControls from "./PreferenceControls";
 import UserAvatar from "./UserAvatar";
 import PageContainer from "./ui/PageContainer";
+import SearchHistoryPanel from "./SearchHistoryPanel";
+import { addSearch, setHistoryOwner } from "../utils/browsingHistory";
 import { roleHomePaths } from "../utils/authNavigation";
 import "./AppHeader.css";
 
 const customerNavItems = [{ to: "/", key: "nav.home", end: true }, { to: "/products", key: "nav.products" }, { to: "/orders", key: "nav.orders" }];
+// Kolom cari + panel riwayat pencarian & produk terakhir dilihat (muncul saat kolom difokuskan).
 function SearchForm({ className = "", onSearch, query, setQuery, t }) {
-  return <form className={`customer-nav-search ${className}`} onSubmit={onSearch} role="search">
-    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" aria-hidden="true"><circle cx="11" cy="11" r="6.5"/><path strokeLinecap="round" d="m16 16 4 4"/></svg>
-    <input type="search" value={query} onChange={(event) => setQuery(event.target.value)} placeholder={t("header.searchProducts")} aria-label={t("header.searchProducts")} />
-  </form>;
+  const [open, setOpen] = useState(false);
+  const wrapRef = useRef(null);
+  useEffect(() => {
+    if (!open) return undefined;
+    const close = (event) => { if (!wrapRef.current?.contains(event.target)) setOpen(false); };
+    document.addEventListener("pointerdown", close);
+    return () => document.removeEventListener("pointerdown", close);
+  }, [open]);
+  return <div className={`customer-nav-search-wrap relative ${className}-wrap`} ref={wrapRef}>
+    <form className={`customer-nav-search ${className}`} onSubmit={(event) => { setOpen(false); onSearch(event); }} role="search">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" aria-hidden="true"><circle cx="11" cy="11" r="6.5"/><path strokeLinecap="round" d="m16 16 4 4"/></svg>
+      <input type="search" value={query} onFocus={() => setOpen(true)} onKeyDown={(event) => { if (event.key === "Escape") setOpen(false); }} onChange={(event) => { setQuery(event.target.value); setOpen(true); }} placeholder={t("header.searchProducts")} aria-label={t("header.searchProducts")} autoComplete="off" />
+    </form>
+    {open && <SearchHistoryPanel className="absolute inset-x-0 top-[calc(100%+6px)]" query={query} onNavigate={() => setOpen(false)} onPick={(item) => { setOpen(false); onSearch(null, item); }} />}
+  </div>;
 }
 
 function AppHeader({ accountMode = false, workspaceRole = "" }) {
@@ -55,7 +69,9 @@ function AppHeader({ accountMode = false, workspaceRole = "" }) {
     setTheme(nextTheme);
     if (isAuthenticated) void updatePreferences({ language, theme: nextTheme });
   };
-  const submitSearch = (event) => { event.preventDefault(); const query = search.trim(); navigate(query ? `/products?search=${encodeURIComponent(query)}` : "/products"); };
+  const submitSearch = (event, picked) => { event?.preventDefault(); const query = (picked ?? search).trim(); if (picked) setSearch(picked); addSearch(query); navigate(query ? `/products?search=${encodeURIComponent(query)}` : "/products"); };
+  // Riwayat pencarian & produk dilihat dipisah per akun di perangkat ini.
+  useEffect(() => { setHistoryOwner(user?.id); }, [user?.id]);
   const handleNotificationClick = (notification, navigable) => { markRead(notification.id); if (navigable) { setNotificationOpen(false); navigate(notification.link); } };
   const handleRoleSwitch = async (role) => {
     if (role === activeRole || switchingRole) return;

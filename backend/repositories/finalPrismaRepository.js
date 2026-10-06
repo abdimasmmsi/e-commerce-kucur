@@ -144,15 +144,19 @@ function createFinalPrismaRepository(client = getPrisma()) {
       update: async (id, input) => { const update = async (tx) => { await tx.targetProductVariant.deleteMany({ where: { productId: id } }); return tx.targetProduct.update({ where: { id }, data: { name: input.name, description: input.description || null, category: input.category || null, productType: input.hasVariants ? "VARIANT" : "SIMPLE", price: input.price, stock: input.stock, images: input.images || [], options: (input.variantGroups || []).map((item) => ({ name: item.name, values: item.options, position: item.position })), status: dbStatus(input.status), variants: { create: (input.variants || []).map((item) => ({ sku: item.sku, combinationKey: item.combinationKey, selectedOptions: item.options, price: item.price, stock: item.stock, isActive: item.status === "active", imageUrl: item.image?.url || null, imageStorageKey: item.image?.storageKey || null })) } }, include: productInclude }); }; return mapProduct(await (typeof client.$transaction === "function" ? client.$transaction(update) : update(client))); },
       // Statistik publik: rating dari ulasan yang tampil, terjual dari order yang sudah sampai/selesai.
       stats: async () => {
-        const [ratings, sold, storeRatings] = await Promise.all([
+        // soldRecent = terjual 30 hari terakhir (dipakai rel "Terlaris"), soldCount = sepanjang waktu.
+        const since = new Date(Date.now() - 30 * 86400000);
+        const [ratings, sold, storeRatings, recent] = await Promise.all([
           client.$queryRaw`SELECT oi.productId AS id, AVG(r.rating) AS average, COUNT(*) AS count FROM Review r JOIN CommerceOrderItem oi ON oi.id = r.commerceOrderItemId WHERE r.visibilityStatus = 'VISIBLE' AND oi.productId IS NOT NULL GROUP BY oi.productId`,
           client.$queryRaw`SELECT oi.productId AS id, SUM(oi.quantity) AS sold FROM CommerceOrderItem oi JOIN CommerceOrder o ON o.id = oi.commerceOrderId WHERE o.fulfillmentStatus IN ('DELIVERED', 'COMPLETED') AND oi.productId IS NOT NULL GROUP BY oi.productId`,
           client.$queryRaw`SELECT storeId AS id, AVG(rating) AS average, COUNT(*) AS count FROM Review WHERE visibilityStatus = 'VISIBLE' GROUP BY storeId`,
+          client.$queryRaw`SELECT oi.productId AS id, SUM(oi.quantity) AS sold FROM CommerceOrderItem oi JOIN CommerceOrder o ON o.id = oi.commerceOrderId WHERE o.fulfillmentStatus IN ('DELIVERED', 'COMPLETED') AND COALESCE(o.completedAt, o.updatedAt) >= ${since} AND oi.productId IS NOT NULL GROUP BY oi.productId`,
         ]);
         const products = {};
-        const entry = (id) => (products[id] ??= { ratingAverage: null, ratingCount: 0, soldCount: 0 });
+        const entry = (id) => (products[id] ??= { ratingAverage: null, ratingCount: 0, soldCount: 0, soldRecent: 0 });
         for (const row of ratings) Object.assign(entry(row.id), { ratingAverage: Math.round(Number(row.average) * 10) / 10, ratingCount: Number(row.count) });
         for (const row of sold) entry(row.id).soldCount = Number(row.sold);
+        for (const row of recent) entry(row.id).soldRecent = Number(row.sold);
         const stores = Object.fromEntries(storeRatings.map((row) => [row.id, { ratingAverage: Math.round(Number(row.average) * 10) / 10, ratingCount: Number(row.count) }]));
         return { products, stores };
       },
