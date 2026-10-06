@@ -22,3 +22,12 @@ test("admin FAQ entries reject missing translations, bad roles, and external lin
   await assert.rejects(service.update({ faqEntries: [{ ...entry, link: { to: "https://evil.example", label: { id: "x", en: "x" } } }] }, admin), (error) => error.code === "VALIDATION_ERROR");
   await assert.rejects(service.update({ faqEntries: [entry, entry] }, admin), (error) => error.code === "VALIDATION_ERROR");
 });
+
+test("admin analytics reports keep only known metrics, groups, and views", async () => {
+  const service = createSettingsService(fakeRepository());
+  const report = { id: "kopi-bulanan", name: "Penjualan kopi", widgets: [{ id: "w1", title: "Pendapatan", metric: "revenue", group: "month", view: "line", size: "full", filters: { categories: ["Minuman"] } }] };
+  const saved = await service.update({ analyticsReports: [report] }, admin);
+  assert.equal(saved.analyticsReports[0].widgets[0].filters.categories[0], "Minuman");
+  await assert.rejects(service.update({ analyticsReports: [{ ...report, widgets: [{ ...report.widgets[0], metric: "dropTables" }] }] }, admin), (error) => error.code === "VALIDATION_ERROR");
+  await assert.rejects(service.update({ analyticsReports: [{ ...report, widgets: [] }] }, admin), (error) => error.code === "VALIDATION_ERROR");
+});

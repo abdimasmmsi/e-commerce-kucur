@@ -10,7 +10,7 @@ import "../components/CustomerBottomNav.css";
 import "../styles/workspace-shell.css";
 
 const adminNavigation = [
-  { label: "workspaceNav.overview", items: [["dashboard", "/admin", "dashboard"]] },
+  { label: "workspaceNav.overview", items: [["dashboard", "/admin", "dashboard"], ["analytics", "/admin/analytics", "analytics"]] },
   { label: "workspaceNav.commerce", items: [["merchantApproval", "/admin/merchant-approval", "stores"], ["transactions", "/admin/transactions", "transactions"], ["productMonitoring", "/admin/products", "products"], ["deliveryMonitoring", "/admin/delivery-batches", "delivery"], ["reviews", "/admin/reviews", "reviews"]] },
   { label: "workspaceNav.people", items: [["users", "/admin/users", "users"], ["couriers", "/admin/couriers", "delivery"]] },
   { label: "workspaceNav.finance", items: [["financeMonitoring", "/admin/finance", "finance"]] },

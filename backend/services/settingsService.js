@@ -46,6 +46,34 @@ function sanitizeFaqEntries(value) {
   });
 }
 
+// Laporan Analytics buatan Admin: susunan widget saja (angka dihitung di browser dari data asli).
+const ANALYTICS_METRICS = ["orders", "completedOrders", "revenue", "avgOrder", "cancelledOrders", "cancelRate", "itemsSold", "deliveryFee", "courierTip", "tax", "failedDeliveries", "reviewCount", "avgRating", "adminFeeBilled", "adminFeePaid", "contributions"];
+const ANALYTICS_GROUPS = ["total", "day", "week", "month", "store", "category", "product", "courier", "status"];
+const ANALYTICS_VIEWS = ["kpi", "bar", "line", "hbar", "table", "share"];
+function sanitizeAnalyticsReports(value) {
+  if (!Array.isArray(value) || value.length > 30) throw errors.validation({ analyticsReports: "Daftar laporan tidak valid (maks 30)." });
+  const ids = new Set();
+  return value.map((report) => {
+    const id = String(report?.id ?? "");
+    if (!/^[a-z0-9-]{2,60}$/.test(id) || ids.has(id)) throw errors.validation({ analyticsReports: "ID laporan tidak valid atau ganda." });
+    ids.add(id);
+    const name = String(report.name ?? "").trim();
+    if (!name || name.length > 80) throw errors.validation({ analyticsReports: "Nama laporan wajib diisi (maks 80 karakter)." });
+    const widgets = Array.isArray(report.widgets) ? report.widgets : [];
+    if (!widgets.length || widgets.length > 12) throw errors.validation({ analyticsReports: "Laporan harus berisi 1–12 widget." });
+    return { id, name, updatedAt: new Date().toISOString(), widgets: widgets.map((widget, index) => {
+      const title = String(widget?.title ?? "").trim();
+      if (!title || title.length > 80) throw errors.validation({ analyticsReports: "Judul widget wajib diisi (maks 80 karakter)." });
+      if (!ANALYTICS_METRICS.includes(widget.metric) || !ANALYTICS_GROUPS.includes(widget.group) || !ANALYTICS_VIEWS.includes(widget.view)) throw errors.validation({ analyticsReports: "Data, pengelompokan, atau tampilan widget tidak dikenali." });
+      const limit = widget.limit === undefined || widget.limit === null ? null : Number(widget.limit);
+      if (limit !== null && (!Number.isInteger(limit) || limit < 3 || limit > 20)) throw errors.validation({ analyticsReports: "Batas baris widget harus 3–20." });
+      const categories = (Array.isArray(widget.filters?.categories) ? widget.filters.categories : []).map((item) => String(item).trim()).filter(Boolean).slice(0, 10);
+      const storeIds = (Array.isArray(widget.filters?.storeIds) ? widget.filters.storeIds : []).map(String).filter((item) => /^[0-9a-f-]{36}$/i.test(item)).slice(0, 20);
+      return { id: /^[a-z0-9-]{2,60}$/.test(String(widget.id ?? "")) ? String(widget.id) : `w${index + 1}`, title, metric: widget.metric, group: widget.group, view: widget.view, size: widget.size === "full" ? "full" : "half", limit, filters: { categories, storeIds } };
+    }) };
+  });
+}
+
 function createSettingsService(repository) {
   return {
     get: () => repository.settings.get(),
@@ -55,6 +83,7 @@ function createSettingsService(repository) {
       const changes = {};
       for (const [key, value] of Object.entries(input || {})) {
         if (key === "faqEntries") { changes.faqEntries = sanitizeFaqEntries(value); continue; }
+        if (key === "analyticsReports") { changes.analyticsReports = sanitizeAnalyticsReports(value); continue; }
         if (!validators[key]) continue;
         if (!validators[key](value)) throw errors.validation({ [key]: "Nilai pengaturan tidak valid." });
         changes[key] = value === null ? null : numericKeys.has(key) ? Number(value) : textKeys.has(key) ? value.trim() || null : value;

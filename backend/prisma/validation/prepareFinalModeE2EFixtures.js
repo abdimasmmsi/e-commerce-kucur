@@ -12,7 +12,7 @@ async function main() {
   // Test commerce membeli produk QA B setiap run; isi ulang stok supaya e2e bisa diulang.
   await prisma.targetProduct.update({ where: { id: "20000000-0000-4000-8000-000000000003" }, data: { stock: 20 } });
   // Test FAQ Chatbot menambah FAQ admin; kosongkan lagi.
-  await prisma.targetPlatformSettings.updateMany({ data: { faqEntries: null } });
+  await prisma.targetPlatformSettings.updateMany({ data: { faqEntries: null, analyticsReports: null } });
   // Test tambah kurir membuat akun kurir.e2e.*; hapus supaya daftar kurir tidak menumpuk.
   const testCouriers = await prisma.targetUser.findMany({ where: { email: { startsWith: "kurir.e2e." } }, select: { id: true } });
   for (const { id } of testCouriers) {
