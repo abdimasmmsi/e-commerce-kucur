@@ -85,10 +85,12 @@ function AppHeader({ accountMode = false, workspaceRole = "" }) {
 
   // Halaman Masuk/Daftar: tanpa kolom cari dan tombol Masuk di header (sudah ada formnya).
   const isAuthPage = pathname === "/login" || pathname === "/register";
-  // Admin: shortcut ke chat bantuan (balas pesan warga) di sebelah notifikasi.
-  const supportChatButton = isAuthenticated && (resolvedWorkspaceRole || activeRole) === "admin" && <Link className="notification-button header-chat-shortcut" to="/admin/support-chats" onClick={closeMenus} title={t("header.supportChats")} aria-label={t("header.supportChats")}>
+  // Shortcut chat di sebelah notifikasi: admin ke chat bantuan, role lain ke Pesan (chat dengan pembeli/lapak/admin).
+  const isAdminContext = (resolvedWorkspaceRole || activeRole) === "admin";
+  const chatLabel = isAdminContext ? t("header.supportChats") : t("header.messagesHelp");
+  const supportChatButton = isAuthenticated && !isAuthPage && <Link className="notification-button header-chat-shortcut" to={isAdminContext ? "/admin/support-chats" : "/messages"} onClick={closeMenus} title={chatLabel} aria-label={chatLabel}>
     <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.9" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true"><path d="M4 5h16v11H9l-5 4V5Z"/><path d="M8 9.5h8M8 12.5h5"/></svg>
-    <ChatUnreadBadge adminMode />
+    <ChatUnreadBadge adminMode={isAdminContext} />
   </Link>;
   const notificationButton = isAuthenticated && <div className="customer-notification-wrap" ref={notificationRef}>
     <button className="notification-button" type="button" title={t("header.notificationsLabel")} onClick={() => { setNotificationOpen((value) => !value); setProfileOpen(false); }} aria-label={`${t("header.notificationsLabel")}${unreadCount ? `, ${t("header.unreadNotifications", { count: unreadCount })}` : ""}`} aria-expanded={notificationOpen} aria-haspopup="dialog">
