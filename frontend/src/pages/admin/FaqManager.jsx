@@ -8,6 +8,7 @@ import { usePreferences } from "../../context/PreferencesContext";
 import { FAQS } from "../../data/faq.js";
 import { faqEntriesService } from "../../services/faqEntriesService";
 import { buildFaqList, detectConcepts, matchFaq } from "../../utils/faqMatcher.js";
+import { exportFaqExcel, parseFaqExcel } from "../../utils/faqExcel.js";
 
 const ROLES = ["visitor", "customer", "merchant", "courier", "admin"];
 const copyByLanguage = {
@@ -20,6 +21,7 @@ const copyByLanguage = {
     formNew: "Tambah FAQ", formEdit: "Ubah FAQ", questionId: "Pertanyaan (Indonesia)", questionEn: "Pertanyaan (Inggris)", answerId: "Jawaban (Indonesia)", answerEn: "Jawaban (Inggris)", answerHint: "Satu langkah per baris (maks 8). Tulis **teks** untuk huruf tebal. Angka dari Admin Settings: {cutoff}, {dispatch}, {rate}, {tax}, {adminFee}, {contact}.",
     rolesLabel: "Tampil untuk", keywords: "Kata kunci tambahan", keywordsHint: "Pisahkan dengan koma. Dipakai chatbot untuk mengenali pertanyaan, mis. wifi, jam buka, parkir.", link: "Tombol pintasan", noLink: "Tanpa tombol", pinnedLabel: "Tampilkan di topik awal chatbot",
     save: "Simpan", saving: "Menyimpan...", cancel: "Batal", saved: "FAQ tersimpan dan langsung dipakai chatbot.", notRecognized: "Chatbot belum bisa mengenali pertanyaan ini dari kata-katanya. Tambahkan kata kunci supaya mudah ditemukan.",
+    excelExport: "Unduh Excel", excelTemplate: "Unduh contoh", excelImport: "Impor Excel", excelHint: "Ubah banyak FAQ sekaligus lewat Excel: unduh, ubah, lalu impor. Gunakan contoh untuk melihat format.", importTitle: "Impor FAQ dari Excel", importText: "Isi file menggantikan semua perubahan FAQ sebelumnya. FAQ bawaan yang tidak ada di file kembali ke versi bawaan.", importAdded: "{count} FAQ baru", importChanged: "{count} FAQ bawaan diubah", importHidden: "{count} FAQ disembunyikan", importErrors: "Perbaiki dulu baris berikut di Excel, lalu impor ulang:", importRow: "Baris {row}", importConfirm: "Impor & simpan", importDone: "FAQ dari Excel tersimpan dan langsung dipakai chatbot.", reading: "Membaca file...",
     removeTitle: "Hapus FAQ ini?", removeText: "FAQ buatan admin ini akan dihapus dari chatbot.", resetTitle: "Kembalikan ke bawaan?", resetText: "Perubahan admin pada FAQ ini dibuang dan jawaban bawaan dipakai lagi.",
   },
   en: {
@@ -31,6 +33,7 @@ const copyByLanguage = {
     formNew: "Add FAQ", formEdit: "Edit FAQ", questionId: "Question (Indonesian)", questionEn: "Question (English)", answerId: "Answer (Indonesian)", answerEn: "Answer (English)", answerHint: "One step per line (max 8). Write **text** for bold. Admin Settings values: {cutoff}, {dispatch}, {rate}, {tax}, {adminFee}, {contact}.",
     rolesLabel: "Show to", keywords: "Extra keywords", keywordsHint: "Separate with commas. Helps the chatbot recognise the question, e.g. wifi, opening hours, parking.", link: "Shortcut button", noLink: "No button", pinnedLabel: "Show in the chatbot starter topics",
     save: "Save", saving: "Saving...", cancel: "Cancel", saved: "FAQ saved and used by the chatbot right away.", notRecognized: "The chatbot cannot recognise this question from its words yet. Add keywords so users can find it.",
+    excelExport: "Download Excel", excelTemplate: "Download example", excelImport: "Import Excel", excelHint: "Change many FAQs at once in Excel: download, edit, then import. Use the example to see the format.", importTitle: "Import FAQs from Excel", importText: "The file replaces all earlier FAQ changes. Built-in FAQs missing from the file go back to their built-in version.", importAdded: "{count} new FAQs", importChanged: "{count} built-in FAQs changed", importHidden: "{count} FAQs hidden", importErrors: "Fix these rows in Excel first, then import again:", importRow: "Row {row}", importConfirm: "Import & save", importDone: "FAQs from Excel saved and used by the chatbot right away.", reading: "Reading file...",
     removeTitle: "Delete this FAQ?", removeText: "This admin-made FAQ will be removed from the chatbot.", resetTitle: "Restore built-in?", resetText: "Admin changes to this FAQ are discarded and the built-in answer is used again.",
   },
 };
@@ -54,6 +57,7 @@ export default function FaqManager() {
   const [form, setForm] = useState(null);
   const [confirm, setConfirm] = useState(null);
   const [test, setTest] = useState({ text: "", role: "customer" });
+  const [importing, setImporting] = useState(null);
 
   useEffect(() => {
     let active = true;
@@ -91,6 +95,16 @@ export default function FaqManager() {
     if (faq.kind === "hidden") return persist(faq.entry.q ? withEntry({ ...faq.entry, hidden: false }) : entries.filter((item) => item.id !== faq.id));
     return persist(withEntry(faq.entry ? { ...faq.entry, hidden: true } : { id: faq.id, builtin: true, hidden: true }));
   };
+  const exportExcel = async (template) => { setBusy(true); try { await exportFaqExcel({ faqs: merged, entries, template }); } catch (caught) { setMessage({ type: "error", text: caught.message }); } finally { setBusy(false); } };
+  const readExcel = async (event) => {
+    const file = event.target.files?.[0]; event.target.value = "";
+    if (!file) return;
+    setBusy(true); setMessage({ type: "", text: "" });
+    try { setImporting({ fileName: file.name, ...(await parseFaqExcel(file)) }); }
+    catch (caught) { setMessage({ type: "error", text: caught.message }); }
+    finally { setBusy(false); }
+  };
+  const confirmImport = async () => { if (await persist(importing.entries)) { setImporting(null); setMessage({ type: "success", text: copy.importDone }); } };
   const runConfirm = async () => { const { faq } = confirm; if (await persist(entries.filter((item) => item.id !== faq.id))) setConfirm(null); };
 
   const formValid = form && form.qId.trim() && form.qEn.trim() && form.aId.trim() && form.aEn.trim() && form.roles.length;
@@ -101,6 +115,12 @@ export default function FaqManager() {
     <PageHeader eyebrow={t("workspace.adminEyebrow")} title={copy.title} description={copy.description} actions={<Button onClick={() => setForm({ ...emptyForm })}>{copy.add}</Button>} />
     {message.text && <p className={`mb-4 rounded-xl p-4 text-[15px] font-semibold ${message.type === "error" ? "border border-rose-300 bg-rose-50 text-rose-800 dark:border-rose-800 dark:bg-rose-950 dark:text-rose-200" : "bg-[var(--kucur-green-soft)] text-[var(--kucur-text)]"}`} role={message.type === "error" ? "alert" : "status"}>{message.text}</p>}
 
+    <section className="mb-4 flex flex-wrap items-center gap-2 rounded-xl border border-[var(--kucur-border)] bg-[var(--kucur-surface)] p-4" aria-label="Excel">
+      <p className="w-full text-sm text-[var(--kucur-text-muted)] sm:w-auto sm:flex-1">{copy.excelHint}</p>
+      <Button variant="secondary" disabled={busy} onClick={() => exportExcel(false)}>{copy.excelExport}</Button>
+      <Button variant="secondary" disabled={busy} onClick={() => exportExcel(true)}>{copy.excelTemplate}</Button>
+      <label className={`inline-flex min-h-12 cursor-pointer items-center justify-center rounded-xl border border-[var(--kucur-green)] px-5 text-[15px] font-bold text-[var(--kucur-green-ink)] sm:min-h-11 ${busy ? "pointer-events-none opacity-50" : ""}`}>{busy ? copy.reading : copy.excelImport}<input className="sr-only" type="file" accept=".xlsx,application/vnd.openxmlformats-officedocument.spreadsheetml.sheet" onChange={readExcel} /></label>
+    </section>
     <section className="mb-4 grid gap-3 rounded-xl border border-[var(--kucur-border)] bg-[var(--kucur-surface)] p-4 sm:p-5" aria-labelledby="faq-tester">
       <div><h2 className="text-lg font-extrabold" id="faq-tester">{copy.tester}</h2><p className="text-sm text-[var(--kucur-text-muted)]">{copy.testerHint}</p></div>
       <div className="grid gap-2 sm:grid-cols-[minmax(0,1fr)_180px]">
@@ -140,6 +160,12 @@ export default function FaqManager() {
         <label className="grid gap-1.5 text-[15px] font-semibold">{copy.link}<select className={inputClass} value={form.linkTo} onChange={(event) => setForm((value) => ({ ...value, linkTo: event.target.value }))}><option value="">{copy.noLink}</option>{LINK_OPTIONS.map((option) => <option value={option.to} key={option.to}>{option.label[lang]} ({option.to})</option>)}</select></label>
         <label className="flex min-h-11 cursor-pointer items-center gap-3 text-[15px] font-semibold"><input className="size-5 accent-[var(--kucur-green)]" type="checkbox" checked={form.pinned} onChange={(event) => setForm((value) => ({ ...value, pinned: event.target.checked }))} />{copy.pinnedLabel}</label>
         {form.qId.trim() && !formRecognized && <p className="rounded-lg bg-[var(--kucur-amber-soft)] px-3 py-2 text-sm font-semibold text-[var(--kucur-amber-ink)]">{copy.notRecognized}</p>}
+      </>}
+    </ActionDialog>
+    <ActionDialog open={Boolean(importing)} busy={busy} title={copy.importTitle} description={importing ? `${importing.fileName} · ${copy.importText}` : ""} confirmLabel={busy ? copy.saving : copy.importConfirm} cancelLabel={copy.cancel} confirmDisabled={Boolean(importing?.errors.length)} onCancel={() => setImporting(null)} onConfirm={confirmImport}>
+      {importing && <>
+        <ul className="grid gap-1 text-[15px] font-semibold">{[["importAdded", importing.summary.added], ["importChanged", importing.summary.changed], ["importHidden", importing.summary.hidden]].map(([key, count]) => <li key={key}>• {copy[key].replace("{count}", count)}</li>)}</ul>
+        {importing.errors.length > 0 && <div className="grid gap-1 rounded-xl border border-rose-300 bg-rose-50 p-3 text-sm text-rose-800 dark:border-rose-800 dark:bg-rose-950 dark:text-rose-200" role="alert"><strong>{copy.importErrors}</strong><ul className="grid gap-1">{importing.errors.slice(0, 20).map((item) => <li key={`${item.row}-${item.message}`}>{copy.importRow.replace("{row}", item.row)}: {item.message}</li>)}</ul></div>}
       </>}
     </ActionDialog>
     <ActionDialog open={Boolean(confirm)} busy={busy} destructive={confirm?.type === "remove"} title={confirm?.type === "remove" ? copy.removeTitle : copy.resetTitle} description={confirm?.type === "remove" ? copy.removeText : copy.resetText} confirmLabel={confirm?.type === "remove" ? copy.remove : copy.reset} cancelLabel={copy.cancel} onCancel={() => setConfirm(null)} onConfirm={runConfirm} />

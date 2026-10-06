@@ -32,3 +32,30 @@ test("admin adds a chatbot FAQ and a visitor gets it from the bot", async ({ qaP
   await expect(bot.getByText(/balai desa/)).toBeVisible();
   await visitorContext.close();
 });
+
+// Ekspor/impor FAQ lewat Excel: file contoh menambah 1 FAQ dan menyembunyikan 1 FAQ bawaan;
+// ekspor penuh lalu impor ulang tidak mengubah apa pun.
+test("admin exports, imports, and round-trips chatbot FAQs through Excel", async ({ qaPage: page }) => {
+  test.setTimeout(90_000);
+  await loginThroughUi(page, "admin");
+  await page.goto("/admin/faq");
+  let download = page.waitForEvent("download");
+  await page.getByRole("button", { name: "Unduh contoh" }).click();
+  const template = await (await download).path();
+  await page.locator('input[type="file"]').setInputFiles(template);
+  const dialog = page.getByRole("dialog", { name: "Impor FAQ dari Excel" });
+  await expect(dialog.getByText("1 FAQ baru")).toBeVisible();
+  await expect(dialog.getByText("1 FAQ disembunyikan")).toBeVisible();
+  await dialog.getByRole("button", { name: "Impor & simpan" }).click();
+  await expect(page.getByText("FAQ dari Excel tersimpan")).toBeVisible();
+  await expect(page.getByText("Apakah ada wifi di desa?").first()).toBeVisible();
+
+  download = page.waitForEvent("download");
+  await page.getByRole("button", { name: "Unduh Excel" }).click();
+  const full = await (await download).path();
+  await page.locator('input[type="file"]').setInputFiles(full);
+  await expect(dialog.getByText("1 FAQ baru")).toBeVisible();
+  await expect(dialog.getByText("0 FAQ bawaan diubah")).toBeVisible();
+  await expect(dialog.getByText("1 FAQ disembunyikan")).toBeVisible();
+  await expect(dialog.getByRole("button", { name: "Impor & simpan" })).toBeEnabled();
+});
