@@ -42,3 +42,10 @@ test("deleted FAQs stay in the trash for 30 days, then custom ones disappear and
   await service.update({ faqEntries: [{ ...entry, deletedAt: recent }] }, admin);
   assert.equal((await service.faq())[0].deletedAt, recent);
 });
+
+test("an unchanged built-in FAQ can be moved to the trash without its text", async () => {
+  const service = createSettingsService(fakeRepository());
+  await service.update({ faqEntries: [{ id: "cancel-order", builtin: true, hidden: false, deletedAt: new Date().toISOString() }] }, admin);
+  const [row] = await service.faq();
+  assert.equal(row.id, "cancel-order"); assert.ok(row.deletedAt); assert.equal(row.hidden, false);
+});

@@ -65,7 +65,8 @@ test("deleted FAQs go to the trash and can be restored or purged", async ({ qaPa
   test.setTimeout(90_000);
   await loginThroughUi(page, "admin");
   await page.goto("/admin/faq");
-  const item = page.locator("li", { hasText: "Bagaimana cara memesan produk?" });
+  // FAQ bawaan yang belum pernah diubah atau disembunyikan.
+  const item = page.locator("li", { hasText: "Bagaimana cara membatalkan pesanan?" });
   await item.getByRole("button", { name: "Hapus" }).click();
   await expect(page.getByText("FAQ dipindah ke Sampah")).toBeVisible();
   await expect(item).toHaveCount(0);

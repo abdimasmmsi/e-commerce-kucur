@@ -45,7 +45,8 @@ function sanitizeFaqEntries(value) {
     const deletedTime = entry.deletedAt ? Date.parse(entry.deletedAt) : NaN;
     const deletedAt = Number.isFinite(deletedTime) ? new Date(Math.min(deletedTime, Date.now())).toISOString() : null;
     const base = { id, builtin, hidden, deletedAt, updatedAt: new Date().toISOString() };
-    if (builtin && hidden && !entry.q) return base;
+    // FAQ bawaan yang hanya disembunyikan atau dihapus (tanpa isi baru) cukup disimpan statusnya.
+    if (builtin && (hidden || deletedAt) && !entry.q) return base;
     const roles = [...new Set((Array.isArray(entry.roles) ? entry.roles : []).filter((role) => FAQ_ROLES.includes(role)))];
     if (!roles.length) throw errors.validation({ faqEntries: "Pilih minimal satu peran untuk FAQ." });
     const link = entry.link && entry.link.to ? { to: String(entry.link.to).trim(), label: { id: faqText(entry.link.label?.id, 40, "Label tautan (ID)"), en: faqText(entry.link.label?.en, 40, "Label tautan (EN)") } } : null;
