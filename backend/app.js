@@ -52,6 +52,18 @@ function createApp(options = {}) {
   const notificationService = createNotificationService(repository); const dependencies = { repository, authService, authMiddleware, authRateLimits: options.authRateLimits, notificationService, chatService: createChatService(repository), deliveryService: createDeliveryService(repository), storeService: createStoreService(repository), productService: createProductService(repository), cartService: createCartService(repository), commerceService: createCommerceService(repository), financeService: createFinanceService(repository), reviewService: createReviewService(repository, notificationService), settingsService: createSettingsService(repository), userService: createUserService(repository) };
   const app = express();
   app.disable("x-powered-by");
+  // Header keamanan dasar (tanpa dependensi). API hanya JSON + serve /uploads; CSP ketat & anti-clickjacking.
+  app.use((req, res, next) => {
+    res.set("X-Content-Type-Options", "nosniff");
+    res.set("X-Frame-Options", "DENY");
+    res.set("Referrer-Policy", "no-referrer");
+    res.set("Content-Security-Policy", "default-src 'none'; frame-ancestors 'none'");
+    // Gambar /uploads dimuat lintas-origin oleh frontend (port beda), jadi izinkan secara eksplisit.
+    res.set("Cross-Origin-Resource-Policy", "cross-origin");
+    // HSTS hanya berarti di HTTPS; diaktifkan di produksi (browser mengabaikannya di HTTP).
+    if (process.env.NODE_ENV === "production") res.set("Strict-Transport-Security", "max-age=15552000; includeSubDomains");
+    return next();
+  });
   // Proxy Vite (dev:phone) berjalan di laptop yang sama, jadi hanya proxy loopback yang dipercaya:
   // req.ip diambil dari X-Forwarded-For hanya bila koneksi datang dari 127.0.0.1/::1 (dipakai rate limit auth).
   app.set("trust proxy", "loopback");
