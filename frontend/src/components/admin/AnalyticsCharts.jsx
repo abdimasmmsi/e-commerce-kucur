@@ -144,15 +144,19 @@ export const LineChart = (props) => <TimeChart {...props} kind="line" />;
 
 // Tren mini di kartu angka: garis 2px warna redup, titik terakhir warna utama.
 export function Sparkline({ values = [], label }) {
+  const gradientId = `${useId().replace(/:/g, "")}-spark`;
   if (values.length < 2) return null;
   const max = Math.max(...values); const min = Math.min(...values);
   const span = max - min || 1;
-  const points = values.map((value, index) => [(index / (values.length - 1)) * 100, 26 - ((value - min) / span) * 22]);
+  const points = values.map((value, index) => [(index / (values.length - 1)) * 100, 25 - ((value - min) / span) * 21]);
   const [lastX, lastY] = points.at(-1);
+  const line = smoothPath(points);
   // Titik akhir digambar sebagai elemen HTML supaya tetap bulat walau SVG direntangkan.
-  return <div className="relative h-8 w-full" role="img" aria-label={label}>
+  return <div className="relative h-9 w-full" role="img" aria-label={label}>
     <svg className="absolute inset-0 overflow-visible" style={{ width: "100%", height: "100%" }} viewBox="0 0 100 30" preserveAspectRatio="none" aria-hidden="true">
-      <polyline points={points.map(([px, py]) => `${px},${py}`).join(" ")} fill="none" stroke="var(--chart-muted)" strokeWidth="2" vectorEffect="non-scaling-stroke" strokeLinejoin="round" strokeLinecap="round" />
+      <defs><linearGradient id={gradientId} x1="0" y1="0" x2="0" y2="1"><stop offset="0%" stopColor="var(--chart-1)" stopOpacity="0.22" /><stop offset="100%" stopColor="var(--chart-1)" stopOpacity="0" /></linearGradient></defs>
+      <path d={`${line} L100,30 L0,30 Z`} fill={`url(#${gradientId})`} />
+      <path d={line} fill="none" stroke="var(--chart-1)" strokeWidth="2" vectorEffect="non-scaling-stroke" strokeLinejoin="round" strokeLinecap="round" />
     </svg>
     <span className="absolute size-2 -translate-x-1/2 -translate-y-1/2 rounded-full bg-[var(--chart-1)] ring-2 ring-[var(--kucur-surface)]" style={{ left: `${lastX}%`, top: `${(lastY / 30) * 100}%` }} />
   </div>;

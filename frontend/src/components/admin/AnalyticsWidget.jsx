@@ -12,7 +12,8 @@ const copyByLanguage = {
 };
 
 function Delta({ widget, result, copy, language }) {
-  if (!result.previous) return <span className="text-[13px] text-[var(--kucur-text-muted)]">{copy.noPrevious}</span>;
+  // Periode lalu tanpa data = tidak ada yang dibandingkan; tidak perlu menulis apa pun (hindari teks berulang di tiap kartu).
+  if (!result.previous) return null;
   const change = ((result.total - result.previous) / result.previous) * 100;
   if (!Number.isFinite(change)) return null;
   if (Math.abs(change) < 0.05) return <span className="text-[13px] text-[var(--kucur-text-muted)]">{copy.same}</span>;
@@ -28,7 +29,7 @@ function Delta({ widget, result, copy, language }) {
 
 function DataTable({ rows, value, copy, showShare }) {
   const sum = rows.reduce((total, row) => total + (row.value ?? 0), 0) || 1;
-  return <div className="max-h-80 overflow-auto rounded-lg border border-[var(--kucur-border)]">
+  return <div className="max-h-80 flex-1 overflow-auto rounded-lg border border-[var(--kucur-border)] [&>table]:min-h-full">
     <table className="w-full text-[13px] sm:text-sm">
       <thead className="sticky top-0 bg-[var(--kucur-surface-elevated)] text-left text-xs text-[var(--kucur-text-muted)]"><tr><th className="px-2.5 py-2 sm:px-3 font-semibold" scope="col">{copy.item}</th><th className="px-2.5 py-2 sm:px-3 text-right font-semibold" scope="col">{copy.value}</th>{showShare && <th className="w-16 px-2.5 py-2 sm:px-3 text-right font-semibold" scope="col">{copy.share}</th>}</tr></thead>
       <tbody>{rows.map((row) => <tr className="border-t border-[var(--kucur-border)]" key={row.key}>

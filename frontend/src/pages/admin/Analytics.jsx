@@ -10,7 +10,7 @@ import { financeService } from "../../services/financeService";
 import { orderService } from "../../services/orderService";
 import { productService } from "../../services/productService";
 import { reviewService } from "../../services/reviewService";
-import { BUILTIN_REPORTS, GROUPS, METRICS, VIEWS, WIDGET_HEIGHTS, WIDGET_SIZES, arrangeWidgets, buildDatasets, buildHighlights, computeWidget, formatMetric, groupsFor, nearestSize, newWidgetId, periodRange, reportName, shiftSize, sizeOf, viewsFor, widgetTitle } from "../../utils/analytics";
+import { BUILTIN_REPORTS, GROUPS, METRICS, VIEWS, WIDGET_HEIGHTS, WIDGET_SIZES, arrangeWidgets, buildDatasets, buildHighlights, buildReportHighlights, computeWidget, formatMetric, groupsFor, nearestSize, newWidgetId, periodRange, reportName, shiftSize, sizeOf, viewsFor, widgetTitle } from "../../utils/analytics";
 import "./Analytics.css";
 import { exportExcel, exportPdf } from "../../utils/analyticsExport";
 
@@ -87,7 +87,12 @@ export default function AdminAnalytics() {
   const format = useMemo(() => ({ formatCurrency, language: lang }), [formatCurrency, lang]);
   const results = useMemo(() => (data ? report.widgets.map((widget) => computeWidget(widget, data, { ...range, storeId, category }, lang)) : []), [category, data, lang, range.from, range.to, report, storeId]); // eslint-disable-line react-hooks/exhaustive-deps
   const periodText = `${formatDate(`${range.from}T12:00:00`, { dateStyle: "medium" })} – ${formatDate(`${range.to}T12:00:00`, { dateStyle: "medium" })}`;
-  const highlights = useMemo(() => (data && !draft ? buildHighlights(data, { ...range, storeId, category }, lang, { formatCurrency }) : []), [category, data, draft, formatCurrency, lang, range.from, range.to, storeId]); // eslint-disable-line react-hooks/exhaustive-deps
+  // Ringkasan Penjualan memakai sorotan penjualan yang kaya; laporan lain menyorot isinya sendiri.
+  const highlights = useMemo(() => {
+    if (!data || draft) return [];
+    if (report.id === "sales") return buildHighlights(data, { ...range, storeId, category }, lang, { formatCurrency });
+    return buildReportHighlights(report.widgets, results, lang, { formatCurrency });
+  }, [category, data, draft, formatCurrency, lang, range.from, range.to, report, results, storeId]); // eslint-disable-line react-hooks/exhaustive-deps
   const filterText = [storeId && data?.stores.find((item) => item.id === storeId)?.name, category].filter(Boolean).join(", ") || copy.noFilter;
 
   const startEdit = (source, asNew) => {
@@ -224,7 +229,7 @@ export default function AdminAnalytics() {
           <h2 className="text-sm font-bold text-[var(--kucur-text-muted)]">{copy.highlights}</h2>
           <ul className="grid gap-2 sm:grid-cols-2">{highlights.map((item, index) => <li className="flex items-start gap-2.5 text-[15px]" key={index}>
             <span className={`mt-0.5 grid size-6 shrink-0 place-items-center rounded-lg ${item.tone === "good" ? "bg-[var(--kucur-green-soft)] text-[var(--kucur-green-ink)]" : item.tone === "warn" ? "bg-rose-50 text-rose-700 dark:bg-rose-950 dark:text-rose-200" : "bg-[var(--kucur-surface-elevated)] text-[var(--kucur-text-muted)]"}`} aria-hidden="true">
-              <svg className="size-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">{item.icon === "money" ? <><circle cx="12" cy="12" r="8"/><path d="M12 8v8M9.5 10h3a1.5 1.5 0 0 1 0 3h-2a1.5 1.5 0 0 0 0 3h3"/></> : item.icon === "calendar" ? <><rect x="3" y="5" width="18" height="16" rx="2"/><path d="M3 9h18M8 3v4M16 3v4"/></> : item.icon === "clock" ? <><circle cx="12" cy="12" r="9"/><path d="M12 7v5l3 2"/></> : item.icon === "store" ? <><path d="M4 9h16l-1-4H5z"/><path d="M5 9v10h14V9M9 19v-5h6v5"/></> : item.icon === "box" ? <><path d="m12 3 8 4.5v9L12 21l-8-4.5v-9z"/><path d="m4 7.5 8 4.5 8-4.5M12 12v9"/></> : <><path d="M12 9v4M12 17h.01"/><path d="M10.3 3.9 1.8 18a2 2 0 0 0 1.7 3h17a2 2 0 0 0 1.7-3L13.7 3.9a2 2 0 0 0-3.4 0z"/></>}</svg>
+              <svg className="size-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">{item.icon === "money" ? <><circle cx="12" cy="12" r="8"/><path d="M12 8v8M9.5 10h3a1.5 1.5 0 0 1 0 3h-2a1.5 1.5 0 0 0 0 3h3"/></> : item.icon === "calendar" ? <><rect x="3" y="5" width="18" height="16" rx="2"/><path d="M3 9h18M8 3v4M16 3v4"/></> : item.icon === "clock" ? <><circle cx="12" cy="12" r="9"/><path d="M12 7v5l3 2"/></> : item.icon === "store" ? <><path d="M4 9h16l-1-4H5z"/><path d="M5 9v10h14V9M9 19v-5h6v5"/></> : item.icon === "box" ? <><path d="m12 3 8 4.5v9L12 21l-8-4.5v-9z"/><path d="m4 7.5 8 4.5 8-4.5M12 12v9"/></> : item.icon === "star" ? <path d="m12 3 2.7 5.6 6.1.9-4.4 4.3 1 6.1L12 17l-5.4 2.9 1-6.1L3.2 9.5l6.1-.9z"/> : item.icon === "truck" ? <><path d="M3 6h11v10H3zM14 10h4l3 3v3h-7"/><circle cx="7" cy="18" r="1.8"/><circle cx="17" cy="18" r="1.8"/></> : item.icon === "chart" ? <path d="M4 20V10M10 20V4M16 20v-7M22 20H2"/> : <><path d="M12 9v4M12 17h.01"/><path d="M10.3 3.9 1.8 18a2 2 0 0 0 1.7 3h17a2 2 0 0 0 1.7-3L13.7 3.9a2 2 0 0 0-3.4 0z"/></>}</svg>
             </span>
             <span className="leading-snug text-[var(--kucur-text)]">{item.text}</span>
           </li>)}</ul>

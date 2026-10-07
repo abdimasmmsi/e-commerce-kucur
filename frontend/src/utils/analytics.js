@@ -311,3 +311,44 @@ export function arrangeWidgets(widgets) {
 }
 
 export const BUILTIN_REPORTS = RAW_BUILTIN_REPORTS.map((report) => ({ ...report, widgets: arrangeWidgets(report.widgets) }));
+
+// "Sorotan" yang mengikuti isi laporan: dibangun dari widget laporan itu sendiri (hasil computeWidget),
+// jadi laporan Keuangan menyorot keuangan, laporan Ulasan menyorot rating, laporan buatan admin menyorot isinya.
+const LOWER_IS_BETTER = new Set(["cancelRate", "cancelledOrders", "failedDeliveries"]);
+const GROUP_ICON = { store: "store", category: "box", product: "box", courier: "truck", status: "chart", weekday: "calendar", hour: "clock", day: "calendar", week: "calendar", month: "calendar" };
+export function buildReportHighlights(widgets, results, language = "id", { formatCurrency } = {}) {
+  const id = language !== "en";
+  const fmt = (metric, value) => formatMetric(metric, value, { formatCurrency, language });
+  const compare = []; const grouped = []; const timed = [];
+  widgets.forEach((widget, index) => {
+    const result = results[index];
+    const title = typeof widget.title === "string" ? widget.title : widget.title?.[language] ?? widget.title?.id ?? "";
+    if (!result || !METRICS[widget.metric]) return;
+    if (widget.view === "kpi") {
+      if (widget.metric === "failedDeliveries" && result.total === 0) { compare.push({ tone: "good", icon: "truck", text: id ? "Tidak ada pengiriman gagal pada periode ini" : "No failed deliveries this period" }); return; }
+      if (result.previous > 0 && result.total >= 0) {
+        const change = Math.round(((result.total - result.previous) / result.previous) * 100);
+        if (Math.abs(change) >= 10) {
+          const up = change > 0; const good = LOWER_IS_BETTER.has(widget.metric) ? !up : up;
+          compare.push({ tone: good ? "good" : "warn", icon: METRICS[widget.metric].money ? "money" : "chart", text: id ? `${title} ${up ? "naik" : "turun"} ${Math.abs(change)}% dari periode lalu (${fmt(widget.metric, result.total)})` : `${title} ${up ? "up" : "down"} ${Math.abs(change)}% vs last period (${fmt(widget.metric, result.total)})` });
+        }
+      }
+      return;
+    }
+    const rows = (result.rows ?? []).filter((row) => row.value !== null && row.value !== undefined);
+    if (!rows.some((row) => row.value > 0)) return;
+    const isAverage = AVERAGE_METRICS.has(widget.metric);
+    const best = rows.reduce((top, row) => (row.value > top.value ? row : top));
+    if (result.timeGroup || isCyclicGroup(widget.group)) {
+      timed.push({ tone: "info", icon: GROUP_ICON[widget.group] ?? "calendar", text: id ? `${title}: puncak ${best.label} (${fmt(widget.metric, best.value)})` : `${title}: peak ${best.label} (${fmt(widget.metric, best.value)})` });
+      return;
+    }
+    const icon = METRICS[widget.metric].rating ? "star" : GROUP_ICON[widget.group] ?? "chart";
+    grouped.push({ tone: "info", icon, text: id ? `${title}: ${isAverage ? "tertinggi" : "terbanyak"} ${best.label} (${fmt(widget.metric, best.value)})` : `${title}: ${isAverage ? "highest" : "top"} ${best.label} (${fmt(widget.metric, best.value)})` });
+    if (isAverage && rows.length > 1) {
+      const worst = rows.reduce((low, row) => (row.value < low.value ? row : low));
+      if (worst.key !== best.key) grouped.push({ tone: "warn", icon, text: id ? `${title}: terendah ${worst.label} (${fmt(widget.metric, worst.value)})` : `${title}: lowest ${worst.label} (${fmt(widget.metric, worst.value)})` });
+    }
+  });
+  return [...compare, ...grouped, ...timed].slice(0, 6);
+}
