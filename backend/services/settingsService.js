@@ -58,8 +58,10 @@ function sanitizeFaqEntries(value) {
 
 // Laporan Analytics buatan Admin: susunan widget saja (angka dihitung di browser dari data asli).
 const ANALYTICS_METRICS = ["orders", "completedOrders", "revenue", "avgOrder", "cancelledOrders", "cancelRate", "itemsSold", "deliveryFee", "courierTip", "tax", "failedDeliveries", "reviewCount", "avgRating", "adminFeeBilled", "adminFeePaid", "contributions"];
-const ANALYTICS_GROUPS = ["total", "day", "week", "month", "store", "category", "product", "courier", "status"];
+const ANALYTICS_GROUPS = ["total", "day", "week", "month", "weekday", "hour", "store", "category", "product", "courier", "status"];
 const ANALYTICS_VIEWS = ["kpi", "bar", "line", "hbar", "table", "share"];
+const ANALYTICS_SIZES = ["quarter", "third", "half", "twothirds", "full"];
+const ANALYTICS_HEIGHTS = ["short", "normal", "tall"];
 function sanitizeAnalyticsReports(value) {
   if (!Array.isArray(value) || value.length > 30) throw errors.validation({ analyticsReports: "Daftar laporan tidak valid (maks 30)." });
   const ids = new Set();
@@ -79,7 +81,7 @@ function sanitizeAnalyticsReports(value) {
       if (limit !== null && (!Number.isInteger(limit) || limit < 3 || limit > 20)) throw errors.validation({ analyticsReports: "Batas baris widget harus 3–20." });
       const categories = (Array.isArray(widget.filters?.categories) ? widget.filters.categories : []).map((item) => String(item).trim()).filter(Boolean).slice(0, 10);
       const storeIds = (Array.isArray(widget.filters?.storeIds) ? widget.filters.storeIds : []).map(String).filter((item) => /^[0-9a-f-]{36}$/i.test(item)).slice(0, 20);
-      return { id: /^[a-z0-9-]{2,60}$/.test(String(widget.id ?? "")) ? String(widget.id) : `w${index + 1}`, title, metric: widget.metric, group: widget.group, view: widget.view, size: widget.size === "full" ? "full" : "half", limit, filters: { categories, storeIds } };
+      return { id: /^[a-z0-9-]{2,60}$/.test(String(widget.id ?? "")) ? String(widget.id) : `w${index + 1}`, title, metric: widget.metric, group: widget.group, view: widget.view, size: ANALYTICS_SIZES.includes(widget.size) ? widget.size : widget.view === "kpi" ? "quarter" : "half", height: ANALYTICS_HEIGHTS.includes(widget.height) ? widget.height : "normal", limit, filters: { categories, storeIds } };
     }) };
   });
 }

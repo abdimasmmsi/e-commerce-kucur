@@ -10,12 +10,13 @@ import { financeService } from "../../services/financeService";
 import { orderService } from "../../services/orderService";
 import { productService } from "../../services/productService";
 import { reviewService } from "../../services/reviewService";
-import { BUILTIN_REPORTS, GROUPS, METRICS, VIEWS, buildDatasets, buildHighlights, computeWidget, formatMetric, groupsFor, newWidgetId, periodRange, reportName, viewsFor, widgetTitle } from "../../utils/analytics";
+import { BUILTIN_REPORTS, GROUPS, METRICS, VIEWS, WIDGET_HEIGHTS, WIDGET_SIZES, arrangeWidgets, buildDatasets, buildHighlights, computeWidget, formatMetric, groupsFor, nearestSize, newWidgetId, periodRange, reportName, shiftSize, sizeOf, viewsFor, widgetTitle } from "../../utils/analytics";
+import "./Analytics.css";
 import { exportExcel, exportPdf } from "../../utils/analyticsExport";
 
 const copyByLanguage = {
   id: {
-    highlights: "Sorotan", title: "Analitik & Laporan", description: "Susun laporan sendiri dari data penjualan, pengiriman, ulasan, dan keuangan lapak, lalu unduh sebagai PDF atau Excel.",
+    highlights: "Sorotan", bigger: "Perbesar widget", smaller: "Perkecil widget", autoLayout: "Rapikan otomatis", autoOn: "Tata letak otomatis aktif", autoOff: "Ukuran diatur manual", autoHint: "Widget dibagi otomatis supaya tiap baris penuh. Mengubah ukuran manual mematikannya sementara.", chartHeight: "Tinggi grafik", heights: { short: "Pendek", normal: "Normal", tall: "Tinggi" }, sizes: { quarter: "Kecil (¼ lebar)", third: "Sedang (⅓ lebar)", half: "Setengah (½ lebar)", twothirds: "Lebar (⅔ lebar)", full: "Penuh" }, fullscreen: "Layar penuh", exitFullscreen: "Tutup layar penuh", title: "Analitik & Laporan", description: "Susun laporan sendiri dari data penjualan, pengiriman, ulasan, dan keuangan lapak, lalu unduh sebagai PDF atau Excel.",
     builtin: "Laporan bawaan", mine: "Laporan saya", newReport: "+ Laporan baru", report: "Laporan", edit: "Ubah laporan", exportLabel: "Ekspor", loading: "Memuat data laporan",
     periods: { today: "Hari ini", "7d": "7 hari", "30d": "30 hari", "1y": "1 tahun", custom: "Pilih tanggal" }, from: "Dari", to: "Sampai", allStores: "Semua lapak", allCategories: "Semua kategori", store: "Lapak", category: "Kategori",
     empty: "Belum ada data pada periode ini.", editing: "Mode edit", reportName: "Nama laporan", cancel: "Batal", save: "Simpan", saving: "Menyimpan...", saveCopy: "Simpan sebagai laporan baru", remove: "Hapus laporan", copySuffix: "(salinan)",
@@ -26,7 +27,7 @@ const copyByLanguage = {
     presets: { kpi: "Angka ringkas", bar: "Grafik batang", line: "Grafik garis", hbar: "Batang horizontal", table: "Tabel", share: "Batang bertumpuk" },
   },
   en: {
-    highlights: "Highlights", title: "Analytics & Reports", description: "Build your own reports from sales, delivery, review, and store finance data, then download them as PDF or Excel.",
+    highlights: "Highlights", bigger: "Make widget bigger", smaller: "Make widget smaller", autoLayout: "Auto arrange", autoOn: "Auto layout on", autoOff: "Sizes set manually", autoHint: "Widgets are split automatically so every row is full. Resizing by hand turns it off for now.", chartHeight: "Chart height", heights: { short: "Short", normal: "Normal", tall: "Tall" }, sizes: { quarter: "Small (¼ width)", third: "Medium (⅓ width)", half: "Half (½ width)", twothirds: "Wide (⅔ width)", full: "Full" }, fullscreen: "Full screen", exitFullscreen: "Close full screen", title: "Analytics & Reports", description: "Build your own reports from sales, delivery, review, and store finance data, then download them as PDF or Excel.",
     builtin: "Built-in reports", mine: "My reports", newReport: "+ New report", report: "Report", edit: "Edit report", exportLabel: "Export", loading: "Loading report data",
     periods: { today: "Today", "7d": "7 days", "30d": "30 days", "1y": "1 year", custom: "Pick dates" }, from: "From", to: "To", allStores: "All stores", allCategories: "All categories", store: "Store", category: "Category",
     empty: "No data for this period yet.", editing: "Edit mode", reportName: "Report name", cancel: "Cancel", save: "Save", saving: "Saving...", saveCopy: "Save as new report", remove: "Delete report", copySuffix: "(copy)",
@@ -39,7 +40,19 @@ const copyByLanguage = {
 };
 const PRESETS = { kpi: ["revenue", "total"], bar: ["revenue", "day"], line: ["completedOrders", "week"], hbar: ["revenue", "category"], table: ["revenue", "store"], share: ["orders", "status"] };
 const field = "min-h-11 w-full rounded-xl border border-[var(--kucur-border-strong)] bg-[var(--kucur-surface)] px-3 text-[15px] text-[var(--kucur-text)]";
-const spanClass = (widget) => (widget.view === "kpi" ? "col-span-1" : widget.size === "full" ? "col-span-2 lg:col-span-4" : "col-span-2");
+// Grid 12 kolom. Ukuran dipilih untuk layar lebar (lg); di tablet/HP kolom menyesuaikan sendiri.
+// Kartu angka selalu 2 per baris di HP; widget lain satu per baris di HP dan dua per baris di tablet.
+// Deret kartu angka berjumlah ganjil: kartu terakhir dibuat selebar layar di HP supaya tidak menyisakan lubang.
+const kpiOdd = (widgets, index) => {
+  if (widgets[index]?.view !== "kpi" || widgets[index + 1]?.view === "kpi") return false;
+  let start = index; while (start > 0 && widgets[start - 1].view === "kpi") start -= 1;
+  return (index - start + 1) % 2 === 1;
+};
+const SPAN = {
+  card: { quarter: "col-span-6 lg:col-span-3", third: "col-span-6 lg:col-span-4", half: "col-span-12 md:col-span-6", twothirds: "col-span-12 lg:col-span-8", full: "col-span-12" },
+  chart: { quarter: "col-span-12 md:col-span-6 lg:col-span-3", third: "col-span-12 md:col-span-6 lg:col-span-4", half: "col-span-12 lg:col-span-6", twothirds: "col-span-12 lg:col-span-8", full: "col-span-12" },
+};
+const spanClass = (widget) => SPAN[widget.view === "kpi" ? "card" : "chart"][sizeOf(widget)];
 
 export default function AdminAnalytics() {
   const { formatCurrency, formatDate, language, t } = usePreferences();
@@ -79,24 +92,43 @@ export default function AdminAnalytics() {
 
   const startEdit = (source, asNew) => {
     setMessage({ type: "", text: "" });
-    setDraft({ id: asNew ? `r-${Date.now().toString(36)}` : source.id, isNew: asNew, name: asNew && source.widgets.length ? `${reportName(source, lang)} ${copy.copySuffix}` : reportName(source, lang), widgets: source.widgets.map((widget) => ({ ...widget, title: widgetTitle(widget, lang), filters: { categories: [...(widget.filters?.categories ?? [])], storeIds: [...(widget.filters?.storeIds ?? [])] } })) });
+    // Tata letak otomatis hanya aktif bila laporan memang sudah rapi (atau baru dibuat); susunan manual milik admin tidak diacak.
+    const arranged = arrangeWidgets(source.widgets).every((item, index) => item.size === sizeOf(source.widgets[index]));
+    setDraft({ id: asNew ? `r-${Date.now().toString(36)}` : source.id, isNew: asNew, autoLayout: asNew || arranged, name: asNew && source.widgets.length ? `${reportName(source, lang)} ${copy.copySuffix}` : reportName(source, lang), widgets: source.widgets.map((widget) => ({ ...widget, title: widgetTitle(widget, lang), filters: { categories: [...(widget.filters?.categories ?? [])], storeIds: [...(widget.filters?.storeIds ?? [])] } })) });
     setActiveWidget(0);
   };
-  const updateWidget = (index, patch) => setDraft((value) => ({ ...value, widgets: value.widgets.map((widget, position) => {
+  const withLayout = (value, widgets) => ({ ...value, widgets: value.autoLayout ? arrangeWidgets(widgets) : widgets });
+  const updateWidget = (index, patch) => setDraft((value) => ({ ...value, autoLayout: patch.size ? false : value.autoLayout, widgets: value.widgets.map((widget, position) => {
     if (position !== index) return widget;
     const next = { ...widget, ...patch };
     if (!groupsFor(next.metric).includes(next.group)) next.group = groupsFor(next.metric)[0];
     if (!viewsFor(next.group).includes(next.view)) next.view = viewsFor(next.group)[0];
     return next;
   }) }));
-  const addWidget = (view) => { const [metric, group] = PRESETS[view]; setDraft((value) => ({ ...value, widgets: [...value.widgets, { id: newWidgetId(), title: copy.presets[view], metric, group, view, size: view === "share" ? "full" : "half", limit: null, filters: { categories: [], storeIds: [] } }] })); setActiveWidget(draft.widgets.length); setSheetOpen(true); };
-  const moveWidget = (index, delta) => setDraft((value) => { const widgets = [...value.widgets]; const target = index + delta; if (target < 0 || target >= widgets.length) return value; [widgets[index], widgets[target]] = [widgets[target], widgets[index]]; setActiveWidget(target); return { ...value, widgets }; });
-  const removeWidget = (index) => { setDraft((value) => ({ ...value, widgets: value.widgets.filter((_, position) => position !== index) })); setActiveWidget(0); };
+  const addWidget = (view) => { const [metric, group] = PRESETS[view]; setDraft((value) => withLayout(value, [...value.widgets, { id: newWidgetId(), title: copy.presets[view], metric, group, view, size: view === "kpi" ? "quarter" : "half", height: "normal", limit: null, filters: { categories: [], storeIds: [] } }])); setActiveWidget(draft.widgets.length); setSheetOpen(true); };
+  const moveWidget = (index, delta) => setDraft((value) => { const widgets = [...value.widgets]; const target = index + delta; if (target < 0 || target >= widgets.length) return value; [widgets[index], widgets[target]] = [widgets[target], widgets[index]]; setActiveWidget(target); return withLayout(value, widgets); });
+  const removeWidget = (index) => { setDraft((value) => withLayout(value, value.widgets.filter((_, position) => position !== index))); setActiveWidget(0); };
+  const resizeWidget = (index, delta) => updateWidget(index, { size: shiftSize(sizeOf(draft.widgets[index]), delta) });
+  const arrangeNow = () => setDraft((value) => ({ ...value, autoLayout: true, widgets: arrangeWidgets(value.widgets) }));
+  // Tarik tepi kanan widget (laptop): lebar mengikuti pointer, dibulatkan ke ukuran terdekat.
+  const startResize = (event, index) => {
+    event.preventDefault(); event.stopPropagation();
+    const handle = event.currentTarget; handle.setPointerCapture(event.pointerId);
+    const card = handle.parentElement; const grid = card.parentElement;
+    const move = (moveEvent) => {
+      const gridBox = grid.getBoundingClientRect(); const cardBox = card.getBoundingClientRect();
+      const columns = ((moveEvent.clientX - cardBox.left) / gridBox.width) * 12;
+      const size = nearestSize(columns);
+      setDraft((value) => (sizeOf(value.widgets[index]) === size ? value : { ...value, autoLayout: false, widgets: value.widgets.map((item, position) => (position === index ? { ...item, size } : item)) }));
+    };
+    const stop = () => { handle.removeEventListener("pointermove", move); handle.removeEventListener("pointerup", stop); handle.removeEventListener("pointercancel", stop); };
+    handle.addEventListener("pointermove", move); handle.addEventListener("pointerup", stop); handle.addEventListener("pointercancel", stop);
+  };
   const persist = async (reports) => { setBusy(true); try { await updateSettings({ analyticsReports: reports }); return true; } catch (caught) { setMessage({ type: "error", text: caught.message }); return false; } finally { setBusy(false); } };
   const saveDraft = async (asNew = false) => {
     if (!draft.widgets.length) return setMessage({ type: "error", text: copy.needWidget });
     const id = asNew ? `r-${Date.now().toString(36)}` : draft.id;
-    const entry = { id, name: draft.name.trim() || copy.newReport, widgets: draft.widgets.map((widget) => ({ ...widget, title: String(widget.title).trim() || METRICS[widget.metric][lang] })) };
+    const entry = { id, name: draft.name.trim() || copy.newReport, widgets: draft.widgets.map((widget) => ({ ...widget, size: sizeOf(widget), title: String(widget.title).trim() || METRICS[widget.metric][lang] })) };
     const list = asNew || draft.isNew ? [...customReports, entry] : customReports.map((item) => (item.id === id ? entry : item));
     if (await persist(list)) { setDraft(null); setSelectedId(id); setMessage({ type: "success", text: copy.saved }); }
   };
@@ -117,24 +149,35 @@ export default function AdminAnalytics() {
   // Mode edit: widget bisa digeser (seret di laptop, atau tombol naik/turun) dan diketuk untuk diatur.
   const [dragIndex, setDragIndex] = useState(null);
   const [sheetOpen, setSheetOpen] = useState(false);
+  // Layar penuh: laporan menutupi seluruh layar (menu & header disembunyikan), Esc untuk keluar.
+  const [immersive, setImmersive] = useState(false);
+  useEffect(() => {
+    if (!immersive) return undefined;
+    const onKey = (event) => { if (event.key === "Escape") setImmersive(false); };
+    window.addEventListener("keydown", onKey);
+    document.body.style.overflow = "hidden";
+    return () => { window.removeEventListener("keydown", onKey); document.body.style.overflow = ""; };
+  }, [immersive]);
+  const fullscreen = immersive && !draft;
   const configure = (index) => { setActiveWidget(index); setSheetOpen(true); };
-  const dropWidget = (target) => { if (dragIndex === null || dragIndex === target) return setDragIndex(null); setDraft((value) => { const widgets = [...value.widgets]; const [moved] = widgets.splice(dragIndex, 1); widgets.splice(target, 0, moved); return { ...value, widgets }; }); setActiveWidget(target); setDragIndex(null); };
+  const dropWidget = (target) => { if (dragIndex === null || dragIndex === target) return setDragIndex(null); setDraft((value) => { const widgets = [...value.widgets]; const [moved] = widgets.splice(dragIndex, 1); widgets.splice(target, 0, moved); return withLayout(value, widgets); }); setActiveWidget(target); setDragIndex(null); };
   const widget = draft?.widgets[activeWidget];
   const settingsFields = !widget ? <p className="mt-2 text-sm text-[var(--kucur-text-muted)]">{copy.pickWidget}</p> : <div className="mt-3 grid gap-3">
           <label className="grid gap-1.5 text-sm font-bold">{copy.widgetTitle}<input className={field} maxLength="80" value={widget.title} onChange={(event) => updateWidget(activeWidget, { title: event.target.value })} /></label>
           <label className="grid gap-1.5 text-sm font-bold">{copy.metric}<select className={field} value={widget.metric} onChange={(event) => updateWidget(activeWidget, { metric: event.target.value })}>{Object.entries(METRICS).map(([key, item]) => <option value={key} key={key}>{item[lang]}</option>)}</select></label>
           <label className="grid gap-1.5 text-sm font-bold">{copy.group}<select className={field} value={widget.group} onChange={(event) => updateWidget(activeWidget, { group: event.target.value })}>{groupsFor(widget.metric).map((key) => <option value={key} key={key}>{GROUPS[key][lang]}</option>)}</select></label>
           <fieldset className="grid gap-1.5"><legend className="mb-1.5 text-sm font-bold">{copy.view}</legend><div className="grid grid-cols-3 gap-1.5">{viewsFor(widget.group).map((key) => <button className={`min-h-11 rounded-lg border text-xs font-bold ${widget.view === key ? "border-[var(--kucur-green)] bg-[var(--kucur-green-soft)] text-[var(--kucur-green-ink)]" : "border-[var(--kucur-border-strong)]"}`} type="button" aria-pressed={widget.view === key} key={key} onClick={() => updateWidget(activeWidget, { view: key })}>{VIEWS[key][lang]}</button>)}</div></fieldset>
-          {widget.view !== "kpi" && <label className="grid gap-1.5 text-sm font-bold">{copy.size}<select className={field} value={widget.size} onChange={(event) => updateWidget(activeWidget, { size: event.target.value })}><option value="half">{copy.half}</option><option value="full">{copy.full}</option></select></label>}
+          <label className="grid gap-1.5 text-sm font-bold">{copy.size}<select className={field} value={sizeOf(widget)} onChange={(event) => updateWidget(activeWidget, { size: event.target.value })}>{WIDGET_SIZES.map((key) => <option value={key} key={key}>{copy.sizes[key]}</option>)}</select></label>
+          {["bar", "line"].includes(widget.view) && <label className="grid gap-1.5 text-sm font-bold">{copy.chartHeight}<select className={field} value={widget.height ?? "normal"} onChange={(event) => updateWidget(activeWidget, { height: event.target.value })}>{WIDGET_HEIGHTS.map((key) => <option value={key} key={key}>{copy.heights[key]}</option>)}</select></label>}
           {["table", "hbar", "share"].includes(widget.view) && <label className="grid gap-1.5 text-sm font-bold">{copy.limit}<select className={field} value={widget.limit ?? 10} onChange={(event) => updateWidget(activeWidget, { limit: Number(event.target.value) })}>{[5, 10, 15, 20].map((count) => <option value={count} key={count}>{count}</option>)}</select></label>}
           {["item", "order"].includes(METRICS[widget.metric].grain) && <label className="grid gap-1.5 text-sm font-bold">{copy.widgetCategory}<select className={field} value={widget.filters.categories[0] ?? ""} onChange={(event) => updateWidget(activeWidget, { filters: { ...widget.filters, categories: event.target.value ? [event.target.value] : [] } })}><option value="">{copy.allCategories}</option>{data.categories.map((item) => <option key={item}>{item}</option>)}</select></label>}
         </div>;
 
-  return <div className="page-container admin-operations-page min-w-0 text-[var(--kucur-text)]">
+  return <div className="page-container admin-operations-page analytics-wide min-w-0 text-[var(--kucur-text)]">
     <PageHeader eyebrow={t("workspace.adminEyebrow")} title={copy.title} description={copy.description} />
     {message.text && <p className={`mb-4 rounded-xl p-3 text-[15px] font-semibold ${message.type === "error" ? "bg-rose-50 text-rose-800 dark:bg-rose-950 dark:text-rose-200" : "bg-[var(--kucur-green-soft)]"}`} role={message.type === "error" ? "alert" : "status"}>{message.text}</p>}
     {error && <p className="mb-4 rounded-xl bg-rose-50 p-3 text-rose-800 dark:bg-rose-950 dark:text-rose-200" role="alert">{error}</p>}
-    {!data && !error ? <LoadingPanel label={copy.loading} rows={5} /> : data && <div className="flex flex-wrap gap-5">
+    {!data && !error ? <LoadingPanel label={copy.loading} rows={5} /> : data && <div className="flex flex-wrap gap-5" style={fullscreen ? { animation: "none" } : undefined}>
       {draft && <aside className="w-full min-w-0 shrink-0 self-start lg:sticky lg:top-24 lg:w-72" aria-label={copy.addWidget}>
         <h2 className="text-[15px] font-extrabold">{copy.addWidget}</h2><p className="mb-2 text-[13px] text-[var(--kucur-text-muted)]">{copy.addHint}</p>
         <div className="kucur-no-scrollbar -mx-1 flex gap-2 overflow-x-auto px-1 pb-1 lg:mx-0 lg:grid lg:grid-cols-1 lg:px-0">{Object.keys(PRESETS).map((view) => <button className="min-h-12 shrink-0 whitespace-nowrap rounded-xl border border-[var(--kucur-border)] bg-[var(--kucur-surface)] px-3 text-left text-sm font-bold hover:border-[var(--kucur-green)]" type="button" key={view} onClick={() => addWidget(view)}>+ {copy.presets[view]}</button>)}</div>
@@ -145,7 +188,8 @@ export default function AdminAnalytics() {
         </section>
       </aside>}
 
-      <main className="min-w-0 flex-[999_1_560px]" id="analytics-report">
+      <main className={fullscreen ? "analytics-immersive fixed inset-0 z-[900] min-w-0 overflow-y-auto bg-[var(--kucur-bg)] p-3 sm:p-6 lg:p-8" : "min-w-0 flex-[999_1_560px]"} id="analytics-report">
+        {fullscreen && <div className="mx-auto mb-4 flex max-w-[2400px] items-center justify-between gap-3"><strong className="text-lg font-extrabold">{reportName(report, lang)}</strong><Button variant="secondary" onClick={() => setImmersive(false)}>{copy.exitFullscreen}</Button></div>}
         {!draft && <nav className="kucur-no-scrollbar -mx-1 mb-4 flex items-center gap-2 overflow-x-auto px-1 pb-1" aria-label={copy.report}>
           {BUILTIN_REPORTS.map(reportButton)}
           {customReports.length > 0 && <span className="mx-1 h-6 w-px shrink-0 bg-[var(--kucur-border-strong)]" aria-hidden="true"/>}
@@ -154,14 +198,17 @@ export default function AdminAnalytics() {
         </nav>}
         {draft ? <div className="mb-4 flex flex-wrap items-end gap-2 rounded-xl border border-[var(--kucur-amber)] bg-[var(--kucur-amber-soft)] p-3">
           <span className="self-center rounded-full bg-[var(--kucur-amber)] px-2.5 py-0.5 text-xs font-extrabold text-[#2a1d00]">{copy.editing}</span>
+          <span className="self-center text-xs font-semibold text-[var(--kucur-amber-ink)]" title={copy.autoHint}>{draft.autoLayout ? copy.autoOn : copy.autoOff}</span>
           <label className="grid min-w-[14rem] flex-1 gap-1 text-[13px] font-bold">{copy.reportName}<input className={field} maxLength="80" value={draft.name} onChange={(event) => setDraft((value) => ({ ...value, name: event.target.value }))} /></label>
+          <Button variant="secondary" disabled={busy} onClick={arrangeNow} title={copy.autoHint}>{copy.autoLayout}</Button>
           <Button variant="secondary" disabled={busy} onClick={() => setDraft(null)}>{copy.cancel}</Button>
           {!draft.isNew && <Button variant="secondary" disabled={busy} onClick={() => setConfirmRemove(true)}>{copy.remove}</Button>}
           {!draft.isNew && <Button variant="secondary" disabled={busy} onClick={() => saveDraft(true)}>{copy.saveCopy}</Button>}
           <Button disabled={busy} onClick={() => saveDraft(false)}>{busy ? copy.saving : copy.save}</Button>
         </div> : <div className="mb-3 flex flex-wrap items-end gap-2">
-          <h2 className="min-w-0 flex-1 text-xl font-extrabold tracking-[-0.02em] sm:text-2xl">{reportName(report, lang)}</h2>
+          <h2 className="min-w-0 flex-1 text-xl font-extrabold tracking-[-0.02em] max-sm:basis-full sm:text-2xl">{reportName(report, lang)}</h2>
           <Button variant="secondary" onClick={() => startEdit(report, Boolean(report.builtin))}>{copy.edit}</Button>
+          <Button variant="secondary" onClick={() => setImmersive(true)}><svg className="size-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true"><path d="M4 9V4h5M20 9V4h-5M4 15v5h5M20 15v5h-5"/></svg><span className="max-sm:sr-only">{copy.fullscreen}</span></Button>
           <Button onClick={() => setExporting({ format: "pdf", orientation: "landscape", letterhead: true, include: report.widgets.map(() => true) })}>{copy.exportLabel}</Button>
         </div>}
 
@@ -183,20 +230,23 @@ export default function AdminAnalytics() {
           </li>)}</ul>
         </section>}
 
-        <div className="grid grid-cols-2 gap-3 sm:gap-4 lg:grid-cols-4">
-          {report.widgets.map((item, index) => <div className={`${spanClass(item)} grid min-w-0 content-start gap-1.5 rounded-2xl transition-[outline-color,opacity] ${draft ? `cursor-pointer outline outline-2 outline-offset-2 ${index === activeWidget ? "outline-[var(--kucur-green)]" : "outline-transparent hover:outline-[var(--kucur-border-strong)]"}` : ""} ${dragIndex === index ? "opacity-50" : ""}`} key={item.id}
+        <div className={`${fullscreen ? "mx-auto max-w-[2400px] " : ""}grid grid-cols-12 gap-3 sm:gap-4`}>
+          {report.widgets.map((item, index) => <div className={`${spanClass(item)} ${kpiOdd(report.widgets, index) ? "max-md:col-span-12" : ""} relative grid min-w-0 content-start gap-1.5 rounded-2xl transition-[outline-color,opacity] ${draft ? `cursor-pointer outline outline-2 outline-offset-2 ${index === activeWidget ? "outline-[var(--kucur-green)]" : "outline-transparent hover:outline-[var(--kucur-border-strong)]"}` : ""} ${dragIndex === index ? "opacity-50" : ""}`} key={item.id}
             draggable={Boolean(draft)} onDragStart={() => setDragIndex(index)} onDragEnd={() => setDragIndex(null)} onDragOver={(event) => { if (draft && dragIndex !== null) event.preventDefault(); }} onDrop={(event) => { event.preventDefault(); dropWidget(index); }}
             onClick={draft ? () => configure(index) : undefined}>
-            {draft && <div className="flex items-center gap-1" onClick={(event) => event.stopPropagation()}>
+            {draft && <div className="flex flex-wrap items-center gap-1" onClick={(event) => event.stopPropagation()}>
               <span className="hidden size-9 cursor-grab place-items-center rounded-lg text-[var(--kucur-text-muted)] lg:grid" title={copy.dragHint} aria-hidden="true"><svg className="size-4" viewBox="0 0 24 24" fill="currentColor"><circle cx="9" cy="6" r="1.6"/><circle cx="15" cy="6" r="1.6"/><circle cx="9" cy="12" r="1.6"/><circle cx="15" cy="12" r="1.6"/><circle cx="9" cy="18" r="1.6"/><circle cx="15" cy="18" r="1.6"/></svg></span>
               <button className={`min-h-9 min-w-9 rounded-lg border px-2 text-xs font-bold sm:px-2.5 ${index === activeWidget ? "border-[var(--kucur-green)] bg-[var(--kucur-green-soft)] text-[var(--kucur-green-ink)]" : "border-[var(--kucur-border-strong)] bg-[var(--kucur-surface)]"}`} type="button" aria-label={copy.configure} onClick={() => configure(index)}><span className="inline-flex items-center gap-1.5"><svg className="size-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true"><path d="M4 6h10M18 6h2M4 12h4M12 12h8M4 18h12M20 18h0"/><circle cx="16" cy="6" r="2"/><circle cx="10" cy="12" r="2"/><circle cx="18" cy="18" r="2"/></svg><span className="max-sm:sr-only">{copy.configure}</span></span></button>
               <button className="grid size-9 place-items-center rounded-lg border border-[var(--kucur-border-strong)] bg-[var(--kucur-surface)] disabled:opacity-40" type="button" aria-label={copy.up} title={copy.up} disabled={!index} onClick={() => moveWidget(index, -1)}><svg className="size-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true"><path d="m6 14 6-6 6 6"/></svg></button>
               <button className="grid size-9 place-items-center rounded-lg border border-[var(--kucur-border-strong)] bg-[var(--kucur-surface)] disabled:opacity-40" type="button" aria-label={copy.down} title={copy.down} disabled={index === report.widgets.length - 1} onClick={() => moveWidget(index, 1)}><svg className="size-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true"><path d="m6 10 6 6 6-6"/></svg></button>
+              <button className="grid size-9 place-items-center rounded-lg border border-[var(--kucur-border-strong)] bg-[var(--kucur-surface)] disabled:opacity-40" type="button" aria-label={copy.smaller} title={copy.smaller} disabled={sizeOf(item) === WIDGET_SIZES[0]} onClick={() => resizeWidget(index, -1)}><svg className="size-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.2" strokeLinecap="round" aria-hidden="true"><path d="M5 12h14"/></svg></button>
+              <button className="grid size-9 place-items-center rounded-lg border border-[var(--kucur-border-strong)] bg-[var(--kucur-surface)] disabled:opacity-40" type="button" aria-label={copy.bigger} title={copy.bigger} disabled={sizeOf(item) === WIDGET_SIZES.at(-1)} onClick={() => resizeWidget(index, 1)}><svg className="size-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.2" strokeLinecap="round" aria-hidden="true"><path d="M12 5v14M5 12h14"/></svg></button>
               <button className="ml-auto grid size-9 place-items-center rounded-lg border border-rose-300 bg-[var(--kucur-surface)] text-rose-700 dark:border-rose-800 dark:text-rose-300" type="button" aria-label={copy.delete} title={copy.delete} onClick={() => removeWidget(index)}><svg className="size-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true"><path d="M4 7h16M10 11v6M14 11v6M6 7l1 13h10l1-13M9 7V4h6v3"/></svg></button>
             </div>}
             {results[index] && <AnalyticsWidget widget={item} title={widgetTitle(item, lang)} result={results[index]} format={format} language={lang} emptyLabel={copy.empty} />}
+            {draft && <span className="absolute -right-2 top-1/2 z-10 hidden h-14 w-2.5 -translate-y-1/2 cursor-ew-resize touch-none rounded-full bg-[var(--kucur-green)] opacity-60 transition-opacity hover:opacity-100 lg:block" role="presentation" title={`${copy.bigger} / ${copy.smaller}`} draggable={false} onPointerDown={(event) => startResize(event, index)} onClick={(event) => event.stopPropagation()} />}
           </div>)}
-          {draft && !report.widgets.length && <p className="col-span-2 rounded-2xl border-[1.5px] border-dashed border-[var(--kucur-border-strong)] p-8 text-center text-sm text-[var(--kucur-text-muted)] lg:col-span-4">{copy.emptyReport}</p>}
+          {draft && !report.widgets.length && <p className="col-span-12 rounded-2xl border-[1.5px] border-dashed border-[var(--kucur-border-strong)] p-8 text-center text-sm text-[var(--kucur-text-muted)]">{copy.emptyReport}</p>}
         </div>
       </main>
 

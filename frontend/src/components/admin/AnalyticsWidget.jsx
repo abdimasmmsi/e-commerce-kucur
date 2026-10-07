@@ -1,6 +1,6 @@
 import { useState } from "react";
 import { ColumnChart, LineChart, Sparkline } from "./AnalyticsCharts";
-import { AVERAGE_METRICS, METRICS, formatMetric, shortMetric } from "../../utils/analytics";
+import { AVERAGE_METRICS, METRICS, formatMetric, shortMetric, sizeOf } from "../../utils/analytics";
 
 // Satu widget laporan Analitik. Warna seri dari token --chart-* (refine.css, divalidasi buta warna);
 // identitas tidak hanya dari warna: selalu ada label, nilai, dan tampilan Tabel.
@@ -43,10 +43,10 @@ function DataTable({ rows, value, copy, showShare }) {
 // Batang horizontal: label kiri, batang (maks. 12px, ujung membulat), nilai di ujung batang.
 function HorizontalBars({ rows, value }) {
   const max = Math.max(...rows.map((row) => row.value), 0) || 1;
-  return <ol className="grid gap-1">{rows.map((row, index) => <li className="group grid grid-cols-[1.25rem_minmax(0,9rem)_minmax(0,1fr)] items-center gap-2.5 rounded-lg px-1.5 py-1.5 text-sm hover:bg-[var(--kucur-surface-elevated)] sm:grid-cols-[1.25rem_minmax(0,11rem)_minmax(0,1fr)]" key={row.key} title={`${row.label}: ${value(row.value)}`}>
+  return <ol className="grid gap-1">{rows.map((row, index) => <li className="group grid grid-cols-[1.25rem_minmax(0,36%)_minmax(0,1fr)] items-center gap-2.5 rounded-lg px-1.5 py-1.5 text-sm hover:bg-[var(--kucur-surface-elevated)]" key={row.key} title={`${row.label}: ${value(row.value)}`}>
     <span className="text-right text-xs font-bold tabular-nums text-[var(--kucur-text-muted)]">{index + 1}</span>
     <span className="truncate font-semibold">{row.label}</span>
-    <span className="flex min-w-0 items-center gap-2"><span className="h-3 min-w-[3px] rounded-r-[4px] bg-[var(--chart-1)] transition-[width] duration-300" style={{ width: `${(row.value / max) * 100}%` }}/><span className="shrink-0 text-[13px] font-bold tabular-nums">{value(row.value)}</span></span>
+    <span className="flex min-w-0 items-center gap-2"><span className="min-w-0 flex-1"><span className="block h-3 min-w-[3px] rounded-r-[4px] bg-[var(--chart-1)] transition-[width] duration-300" style={{ width: `${(row.value / max) * 100}%` }}/></span><span className="shrink-0 text-[13px] font-bold tabular-nums">{value(row.value)}</span></span>
   </li>)}</ol>;
 }
 
@@ -92,6 +92,9 @@ export default function AnalyticsWidget({ widget, title, result, format, languag
   const total = isAverage ? result.total : rows.reduce((sum, row) => sum + (row.value ?? 0), 0);
   const short = (amount) => shortMetric(widget.metric, amount, language);
   const maxHint = METRICS[widget.metric]?.rating ? 5 : METRICS[widget.metric]?.percent ? 100 : null;
+  // Tinggi grafik: pilihan widget (pendek/normal/tinggi); widget lebar otomatis sedikit lebih tinggi supaya proporsional.
+  const wide = ["twothirds", "full"].includes(sizeOf(widget));
+  const chartHeight = widget.height === "short" ? 150 : widget.height === "tall" ? 340 : wide ? 260 : 220;
   // Ringkasan di bawah grafik waktu: angka penting terbaca tanpa hover.
   const timeSummary = (() => {
     if (!result.timeGroup || empty) return [];
@@ -115,8 +118,8 @@ export default function AnalyticsWidget({ widget, title, result, format, languag
     </header>
     {empty ? <p className="rounded-xl border border-dashed border-[var(--kucur-border-strong)] p-6 text-center text-sm text-[var(--kucur-text-muted)]">{emptyLabel}</p>
       : asTable || widget.view === "table" ? <DataTable rows={rows} value={value} copy={copy} showShare={widget.view === "share" || !["avgOrder", "avgRating", "cancelRate"].includes(widget.metric)}/>
-      : widget.view === "bar" ? <ColumnChart rows={rows} format={value} short={short} maxHint={maxHint} language={language} label={label}/>
-      : widget.view === "line" ? <LineChart rows={rows} format={value} short={short} maxHint={maxHint} language={language} label={label}/>
+      : widget.view === "bar" ? <ColumnChart rows={rows} format={value} short={short} maxHint={maxHint} height={chartHeight} language={language} label={label}/>
+      : widget.view === "line" ? <LineChart rows={rows} format={value} short={short} maxHint={maxHint} height={chartHeight} language={language} label={label}/>
       : widget.view === "share" ? <ShareBar rows={rows} value={value} language={language}/>
       : <HorizontalBars rows={rows} value={value}/>}
     {!empty && !asTable && timeSummary.length > 0 && widget.view !== "table" && <dl className="grid grid-cols-3 gap-2 border-t border-[var(--kucur-border)] pt-3">{timeSummary.map((item) => <div className="min-w-0" key={item.label}><dt className="truncate text-xs text-[var(--kucur-text-muted)]">{item.label}</dt><dd className="m-0 truncate text-sm font-extrabold sm:text-[15px]">{item.value}</dd>{item.note && <dd className="m-0 truncate text-xs text-[var(--kucur-text-muted)]">{item.note}</dd>}</div>)}</dl>}

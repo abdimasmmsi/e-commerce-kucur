@@ -32,11 +32,10 @@ function Tooltip({ point, left, top, width }) {
 // Kerangka bersama grafik waktu (batang atau garis): sumbu Y, garis bantu, label X, nilai, interaksi.
 // Nilai tampil tanpa hover: semua batang/titik diberi angka kalau muat, kalau tidak hanya tertinggi & terakhir.
 // Periode tanpa data (null, mis. rata-rata rating di minggu tanpa ulasan) tidak digambar sebagai 0.
-function TimeChart({ rows, format, short, language, label, kind, maxHint }) {
+function TimeChart({ rows, format, short, language, label, kind, maxHint, height = 220 }) {
   const [ref, width] = useWidth();
   const [active, setActive] = useState(null);
   const descriptionId = useId();
-  const height = 220;
   const pad = { top: 22, right: kind === "line" ? 20 : 12, bottom: 26, left: 52 };
   const values = rows.map((row) => row.value);
   const present = values.filter((value) => value !== null && value !== undefined);

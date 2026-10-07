@@ -190,9 +190,9 @@ export function periodRange(key, today = jakartaDay(new Date())) {
   return { from: back(29), to: today };
 }
 
-const widget = (id, title, metric, group, view, size = "half", limit = null) => ({ id, title, metric, group, view, size, limit, filters: { categories: [], storeIds: [] } });
+const widget = (id, title, metric, group, view, size = view === "kpi" ? "quarter" : "half", limit = null) => ({ id, title, metric, group, view, size, limit, filters: { categories: [], storeIds: [] } });
 // Laporan bawaan (tidak bisa dihapus; bisa disalin lalu diubah).
-export const BUILTIN_REPORTS = [
+const RAW_BUILTIN_REPORTS = [
   { id: "sales", builtin: true, name: { id: "Ringkasan Penjualan", en: "Sales Summary" }, widgets: [widget("k1", { id: "Pendapatan produk", en: "Product revenue" }, "revenue", "total", "kpi"), widget("k2", { id: "Pesanan selesai", en: "Completed orders" }, "completedOrders", "total", "kpi"), widget("k3", { id: "Rata-rata belanja", en: "Average order value" }, "avgOrder", "total", "kpi"), widget("k4", { id: "Tingkat pembatalan", en: "Cancellation rate" }, "cancelRate", "total", "kpi"), widget("w1", { id: "Pendapatan per hari", en: "Revenue per day" }, "revenue", "day", "bar", "full"), widget("w2", { id: "Kategori terlaris", en: "Top categories" }, "revenue", "category", "hbar"), widget("w3", { id: "Lapak teratas", en: "Top stores" }, "revenue", "store", "table"), widget("w4", { id: "Status pesanan", en: "Order status" }, "orders", "status", "share", "full")] },
   { id: "stores", builtin: true, name: { id: "Lapak & Produk", en: "Stores & Products" }, widgets: [widget("k1", { id: "Barang terjual", en: "Items sold" }, "itemsSold", "total", "kpi"), widget("k2", { id: "Jumlah ulasan", en: "Reviews" }, "reviewCount", "total", "kpi"), widget("w1", { id: "Pendapatan per lapak", en: "Revenue per store" }, "revenue", "store", "table"), widget("w2", { id: "Produk terlaris", en: "Best-selling products" }, "itemsSold", "product", "hbar", "half", 10), widget("w3", { id: "Rating per lapak", en: "Rating per store" }, "avgRating", "store", "table", "full")] },
   { id: "delivery", builtin: true, name: { id: "Pengiriman & Kurir", en: "Delivery & Couriers" }, widgets: [widget("k1", { id: "Pesanan selesai", en: "Completed orders" }, "completedOrders", "total", "kpi"), widget("k2", { id: "Pengiriman gagal", en: "Failed deliveries" }, "failedDeliveries", "total", "kpi"), widget("k3", { id: "Ongkir", en: "Delivery fees" }, "deliveryFee", "total", "kpi"), widget("k4", { id: "Tip kurir", en: "Courier tips" }, "courierTip", "total", "kpi"), widget("w1", { id: "Pesanan selesai per kurir", en: "Completed orders per courier" }, "completedOrders", "courier", "hbar"), widget("w2", { id: "Pengiriman per hari", en: "Deliveries per day" }, "completedOrders", "day", "bar"), widget("w3", { id: "Status pesanan", en: "Order status" }, "orders", "status", "share", "full")] },
@@ -275,3 +275,39 @@ export function buildHighlights(data, { from, to, storeId = "", category = "" },
 
   return out.slice(0, 6);
 }
+
+// ---- Tata letak widget (grid 12 kolom) ----
+// Ukuran → jumlah kolom di layar lebar. Di tablet/HP kolom otomatis menyesuaikan (lihat spanClass di halaman).
+export const WIDGET_SIZES = ["quarter", "third", "half", "twothirds", "full"];
+export const SIZE_COLUMNS = { quarter: 3, third: 4, half: 6, twothirds: 8, full: 12 };
+export const WIDGET_HEIGHTS = ["short", "normal", "tall"];
+export const sizeOf = (widget) => (WIDGET_SIZES.includes(widget?.size) ? widget.size : widget?.view === "kpi" ? "quarter" : "half");
+export const shiftSize = (size, delta) => WIDGET_SIZES[Math.min(Math.max(WIDGET_SIZES.indexOf(size) + delta, 0), WIDGET_SIZES.length - 1)];
+export const nearestSize = (columns) => WIDGET_SIZES.reduce((best, key) => (Math.abs(SIZE_COLUMNS[key] - columns) < Math.abs(SIZE_COLUMNS[best] - columns) ? key : best), "half");
+const sizeForCount = (count) => (count >= 4 ? "quarter" : count === 3 ? "third" : count === 2 ? "half" : "full");
+
+// Rapikan otomatis: urutan widget tetap, ukuran diatur supaya tiap baris penuh 12 kolom tanpa celah.
+// Kartu angka dikelompokkan (maks. 4 per baris, dibagi rata); grafik waktu yang lebar dapat jatah 2/3 bila dipasangkan.
+export function arrangeWidgets(widgets) {
+  const list = widgets.map((item) => ({ ...item }));
+  const sizes = new Map();
+  const kpis = list.filter((item) => item.view === "kpi");
+  const rows = Math.ceil(kpis.length / 4);
+  let cursor = 0;
+  for (let row = 0; row < rows; row += 1) {
+    const count = Math.ceil((kpis.length - cursor) / (rows - row));
+    kpis.slice(cursor, cursor + count).forEach((item) => sizes.set(item.id, sizeForCount(count)));
+    cursor += count;
+  }
+  const charts = list.filter((item) => item.view !== "kpi");
+  const isWide = (item) => (isTimeGroup(item.group) || isCyclicGroup(item.group)) && ["bar", "line"].includes(item.view);
+  for (let index = 0; index < charts.length; index += 2) {
+    const first = charts[index]; const second = charts[index + 1];
+    if (!second) { sizes.set(first.id, "full"); continue; }
+    if (isWide(first) !== isWide(second)) { sizes.set(first.id, isWide(first) ? "twothirds" : "third"); sizes.set(second.id, isWide(second) ? "twothirds" : "third"); }
+    else { sizes.set(first.id, "half"); sizes.set(second.id, "half"); }
+  }
+  return list.map((item) => ({ ...item, size: sizes.get(item.id) ?? sizeOf(item) }));
+}
+
+export const BUILTIN_REPORTS = RAW_BUILTIN_REPORTS.map((report) => ({ ...report, widgets: arrangeWidgets(report.widgets) }));

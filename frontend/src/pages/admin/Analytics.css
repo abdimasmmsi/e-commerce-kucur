@@ -1,0 +1,4 @@
+/* Halaman Analitik memakai lebar layar penuh (bukan dibatasi 1440px) supaya grafik & tabel punya ruang. */
+.page-container.analytics-wide { width: min(100%, 2400px); }
+/* Mode layar penuh: tanpa animasi masuk agar tidak berkedip saat berpindah. */
+.analytics-immersive { animation: none; }
