@@ -3,6 +3,16 @@
 
 const DAY = 86400000;
 const jakartaDay = (value) => new Intl.DateTimeFormat("en-CA", { timeZone: "Asia/Jakarta", year: "numeric", month: "2-digit", day: "2-digit" }).format(new Date(value));
+const jakartaHour = (value) => Number(new Intl.DateTimeFormat("en-GB", { timeZone: "Asia/Jakarta", hour: "2-digit", hourCycle: "h23" }).format(new Date(value)));
+const WEEKDAY_ORDER = { Mon: 0, Tue: 1, Wed: 2, Thu: 3, Fri: 4, Sat: 5, Sun: 6 };
+const jakartaWeekday = (value) => WEEKDAY_ORDER[new Intl.DateTimeFormat("en-US", { timeZone: "Asia/Jakarta", weekday: "short" }).format(new Date(value))] ?? 0;
+const WEEKDAY_LABELS = { id: ["Senin", "Selasa", "Rabu", "Kamis", "Jumat", "Sabtu", "Minggu"], en: ["Mon", "Tue", "Wed", "Thu", "Fri", "Sat", "Sun"] };
+// Pengelompokan siklik: jumlah ember tetap & berurutan (bukan diurut nilai), ember kosong = 0.
+const CYCLIC = {
+  weekday: { count: 7, keyOf: (date) => jakartaWeekday(date), label: (index, lang) => (WEEKDAY_LABELS[lang] ?? WEEKDAY_LABELS.id)[index] },
+  hour: { count: 24, keyOf: (date) => jakartaHour(date), label: (index) => `${String(index).padStart(2, "0")}:00` },
+};
+export const isCyclicGroup = (group) => group === "weekday" || group === "hour";
 const COMPLETED = new Set(["completed", "delivered"]);
 
 // grain = jenis baris data yang dihitung; menentukan pengelompokan yang masuk akal.
@@ -26,14 +36,14 @@ export const METRICS = {
 };
 export const GROUPS = {
   total: { id: "Total saja", en: "Total only" }, day: { id: "Hari", en: "Day" }, week: { id: "Minggu", en: "Week" }, month: { id: "Bulan", en: "Month" },
-  store: { id: "Lapak", en: "Store" }, category: { id: "Kategori", en: "Category" }, product: { id: "Produk", en: "Product" }, courier: { id: "Kurir", en: "Courier" }, status: { id: "Status pesanan", en: "Order status" },
+  weekday: { id: "Hari", en: "Day of week" }, hour: { id: "Jam", en: "Hour" }, store: { id: "Lapak", en: "Store" }, category: { id: "Kategori", en: "Category" }, product: { id: "Produk", en: "Product" }, courier: { id: "Kurir", en: "Courier" }, status: { id: "Status pesanan", en: "Order status" },
 };
 export const VIEWS = {
   kpi: { id: "Angka", en: "Number" }, bar: { id: "Batang", en: "Bars" }, line: { id: "Garis", en: "Line" },
   hbar: { id: "Horizontal", en: "Horizontal" }, table: { id: "Tabel", en: "Table" }, share: { id: "Tumpuk", en: "Stacked" },
 };
 const GRAIN_GROUPS = {
-  order: ["total", "day", "week", "month", "store", "courier", "status"],
+  order: ["total", "day", "week", "month", "weekday", "hour", "store", "courier", "status"],
   item: ["total", "day", "week", "month", "store", "category", "product"],
   review: ["total", "day", "week", "month", "store"],
   fee: ["total", "day", "week", "month", "store"],
@@ -41,7 +51,7 @@ const GRAIN_GROUPS = {
 };
 export const groupsFor = (metric) => GRAIN_GROUPS[METRICS[metric]?.grain] ?? ["total"];
 export const isTimeGroup = (group) => ["day", "week", "month"].includes(group);
-export const viewsFor = (group) => (group === "total" ? ["kpi"] : isTimeGroup(group) ? ["bar", "line", "table"] : ["hbar", "table", "share", "bar"]);
+export const viewsFor = (group) => (group === "total" ? ["kpi"] : isTimeGroup(group) || isCyclicGroup(group) ? ["bar", "line", "table"] : ["hbar", "table", "share", "bar"]);
 
 const STATUS_LABEL = {
   id: { pending: "Menunggu", confirmed: "Diterima", processing: "Dikemas", "ready-for-pickup": "Siap diambil", "courier-assigned": "Siap diambil", "picked-up": "Diantar", "on-delivery": "Diantar", delivered: "Selesai", completed: "Selesai", cancelled: "Dibatalkan" },
@@ -138,14 +148,16 @@ export function computeWidget(widget, data, { from, to, storeId = "", category =
     if (timeGroup === "day" && timeBuckets("day", from, to).length > 62) timeGroup = "week";
     if (timeGroup === "week" && timeBuckets("week", from, to).length > 60) timeGroup = "month";
   }
+  const cyclic = isCyclicGroup(widget.group) ? CYCLIC[widget.group] : null;
   const groups = new Map();
   for (const entry of current) {
-    const key = isTimeGroup(widget.group) ? bucketKey(timeGroup, jakartaDay(entry.date)) : widget.group === "status" ? (STATUS_LABEL[language] ?? STATUS_LABEL.id)[entry.row.status] ?? entry.row.status : entry.row[widget.group] || (language === "en" ? "Not set" : "Belum ada");
+    const key = isTimeGroup(widget.group) ? bucketKey(timeGroup, jakartaDay(entry.date)) : cyclic ? cyclic.keyOf(entry.date) : widget.group === "status" ? (STATUS_LABEL[language] ?? STATUS_LABEL.id)[entry.row.status] ?? entry.row.status : entry.row[widget.group] || (language === "en" ? "Not set" : "Belum ada");
     groups.set(key, [...(groups.get(key) ?? []), entry.value]);
   }
   let rows;
   // Rata-rata/persentase tanpa data di satu periode = kosong (null), bukan 0, supaya grafik tidak menyesatkan.
   if (isTimeGroup(widget.group)) rows = timeBuckets(timeGroup, from, to).map((key) => ({ key, label: bucketLabel(timeGroup, key, language), value: AVERAGE_METRICS.has(widget.metric) && !groups.get(key)?.length ? null : aggregate(widget.metric, groups.get(key) ?? []) }));
+  else if (cyclic) rows = Array.from({ length: cyclic.count }, (_, index) => ({ key: index, label: cyclic.label(index, language), value: AVERAGE_METRICS.has(widget.metric) && !groups.get(index)?.length ? null : aggregate(widget.metric, groups.get(index) ?? []) }));
   else {
     const sorted = [...groups.entries()].map(([key, values]) => ({ key, label: key, value: aggregate(widget.metric, values), values })).sort((a, b) => b.value - a.value);
     if (widget.view === "share") {
@@ -217,4 +229,49 @@ export function shortMetric(metricKey, value, language) {
   if (metric?.percent) return `${value.toLocaleString(locale, { maximumFractionDigits: 1 })}%`;
   const compact = Math.abs(value) >= 1000 ? compactNumber(value, language) : Math.round(value).toLocaleString(locale);
   return metric?.money ? `${language === "en" ? "IDR" : "Rp"} ${compact}` : compact;
+}
+
+// "Sorotan": beberapa kalimat ringkas yang dihitung dari data pada filter aktif, supaya admin desa
+// langsung paham tanpa membaca grafik. Memakai ulang computeWidget agar angkanya konsisten dengan widget.
+export function buildHighlights(data, { from, to, storeId = "", category = "" }, language = "id", { formatCurrency } = {}) {
+  if (!data) return [];
+  const scope = { from, to, storeId, category };
+  const id = language !== "en";
+  const w = (metric, group) => computeWidget({ metric, group, view: group === "total" ? "kpi" : "table", filters: { categories: [], storeIds: [] } }, data, scope, language);
+  const fmt = (metric, value) => formatMetric(metric, value, { formatCurrency, language });
+  const num = (value) => Number(value).toLocaleString(id ? "id-ID" : "en-US");
+  const topRow = (rows) => rows.filter((row) => row.value > 0).sort((a, b) => b.value - a.value)[0];
+  const out = [];
+
+  const orders = w("orders", "total");
+  if (!orders.total) return [];
+
+  const rev = w("revenue", "total");
+  if (rev.total > 0) {
+    let note = "";
+    if (rev.previous > 0) {
+      const change = Math.round(((rev.total - rev.previous) / rev.previous) * 100);
+      if (Math.abs(change) >= 1) note = id ? ` (${change > 0 ? "naik" : "turun"} ${Math.abs(change)}% dari periode lalu)` : ` (${change > 0 ? "up" : "down"} ${Math.abs(change)}% vs last period)`;
+    }
+    out.push({ tone: rev.previous > 0 && rev.total < rev.previous ? "warn" : "good", icon: "money", text: (id ? `Pendapatan produk ${fmt("revenue", rev.total)}` : `Product revenue ${fmt("revenue", rev.total)}`) + note });
+  }
+
+  const day = topRow(w("orders", "weekday").rows);
+  if (day) out.push({ tone: "info", icon: "calendar", text: id ? `Hari tersibuk: ${day.label} (${num(day.value)} pesanan)` : `Busiest day: ${day.label} (${num(day.value)} orders)` });
+  const hour = topRow(w("orders", "hour").rows);
+  if (hour) out.push({ tone: "info", icon: "clock", text: id ? `Jam tersibuk: ${hour.label}` : `Busiest hour: ${hour.label}` });
+
+  if (!storeId) {
+    const store = topRow(w("revenue", "store").rows);
+    if (store) out.push({ tone: "info", icon: "store", text: id ? `Lapak teratas: ${store.label} (${fmt("revenue", store.value)})` : `Top store: ${store.label} (${fmt("revenue", store.value)})` });
+  }
+  const product = topRow(w("itemsSold", "product").rows);
+  if (product) out.push({ tone: "info", icon: "box", text: id ? `Produk terlaris: ${product.label} (${num(product.value)} terjual)` : `Best seller: ${product.label} (${num(product.value)} sold)` });
+
+  const cancelRate = w("cancelRate", "total").total;
+  if (cancelRate >= 15) out.push({ tone: "warn", icon: "alert", text: id ? `Tingkat pembatalan tinggi: ${fmt("cancelRate", cancelRate)}` : `High cancellation rate: ${fmt("cancelRate", cancelRate)}` });
+  const failed = w("failedDeliveries", "total").total;
+  if (failed > 0) out.push({ tone: "warn", icon: "alert", text: id ? `${num(failed)} pengiriman gagal pada periode ini` : `${num(failed)} failed deliveries this period` });
+
+  return out.slice(0, 6);
 }
