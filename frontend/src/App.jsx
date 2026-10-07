@@ -7,6 +7,7 @@ import PasswordSecurityNotice from "./components/PasswordSecurityNotice";
 import MobileBackToTop from "./components/MobileBackToTop";
 import FaqBot from "./components/FaqBot";
 import RouteProgress from "./components/RouteProgress";
+import ScrollToTop from "./components/ScrollToTop";
 import LoadingPanel from "./components/ui/LoadingPanel";
 
 import CustomerLayout from "./layouts/CustomerLayout";
@@ -83,7 +84,7 @@ function App() {
       <PasswordSecurityNotice />
       <MobileBackToTop />
       <FaqBot />
-      <RouteProgress />
+      <RouteProgress /><ScrollToTop />
       <Suspense fallback={<div className="page-container"><LoadingPanel label="Memuat halaman" rows={4} /></div>}><Routes>
         {import.meta.env.DEV && <Route path="/dev" element={<Dev />} />}
         {import.meta.env.DEV && <Route path="/dev/courier-assignment" element={<CourierAssignmentLab />} />}
