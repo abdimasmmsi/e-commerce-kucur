@@ -97,9 +97,9 @@ test("final Delivery service completes readiness, pickup, proof, history, and ba
   const traveling = await service.outForDelivery(order.id, {}, { id: f.courierId });
   assert.equal(traveling.status, "OUT_FOR_DELIVERY");
   assert.ok(traveling.outForDeliveryAt);
-  const proof = await service.proof(order.id, { photoUrl: "https://qa.invalid/proof.jpg", recipientName: "Recipient", note: "Done" }, { id: f.courierId });
-  assert.equal(proof.photoUrl, "https://qa.invalid/proof.jpg");
-  assert.equal((await service.proof(order.id, { photoUrl: "https://qa.invalid/other.jpg" }, { id: f.courierId })).id, proof.id);
+  const proof = await service.proof(order.id, { photoUrl: "/uploads/proofs/proof.jpg", recipientName: "Recipient", note: "Done" }, { id: f.courierId });
+  assert.equal(proof.photoUrl, "/uploads/proofs/proof.jpg");
+  assert.equal((await service.proof(order.id, { photoUrl: "/uploads/proofs/other.jpg" }, { id: f.courierId })).id, proof.id);
   const assignment = await repository.delivery.latestAssignment(order.id);
   assert.equal(assignment.status, "DELIVERED");
   const finished = await repository.commerce.findOrder(order.id);
@@ -138,7 +138,7 @@ test("final cancelling a batched order removes it from the courier run so it can
   await createCommerceService(repository).cancel(order.id, "Salah pesan", { id: f.customerId, roles: ["customer"] });
   assert.equal((await repository.delivery.latestAssignment(order.id)).status, "CANCELLED");
   await assert.rejects(service.pickup(order.id, {}, { id: f.courierId }), /tidak ditugaskan/i);
-  await assert.rejects(service.proof(order.id, { photoUrl: "https://qa.invalid/p.jpg" }, { id: f.courierId }), /tidak ditugaskan/i);
+  await assert.rejects(service.proof(order.id, { photoUrl: "/uploads/proofs/p.jpg" }, { id: f.courierId }), /tidak ditugaskan/i);
   const stored = await tx.targetCommerceOrder.findUnique({ where: { id: order.id }, include: { paymentAttempts: true } });
   assert.equal(stored.fulfillmentStatus, "CANCELLED");
   assert.equal(stored.paymentAttempts[0].status, "CANCELLED");

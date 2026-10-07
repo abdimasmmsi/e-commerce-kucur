@@ -3,7 +3,7 @@ const assert = require("node:assert/strict");
 const { createApp } = require("./app");
 const { createMemoryRepository } = require("./repositories/memoryRepository");
 const { hashPassword } = require("./services/authService");
-const { createAuthRateLimits, createRateLimiter, isLoopback } = require("./middleware/rateLimit");
+const { createAuthRateLimits, createRateLimiter, isLoopback, createApiRateLimits } = require("./middleware/rateLimit");
 
 const address = { label: "Rumah", recipientName: "Warga", phone: "081299999999", address: "Dusun Krajan, Desa Kucur", latitude: -7.955, longitude: 112.548 };
 
@@ -103,3 +103,17 @@ test("default skip exempts loopback client IPs unless RATE_LIMIT_LOCAL=true, and
     for (const [name, value] of Object.entries(saved)) { if (value === undefined) delete process.env[name]; else process.env[name] = value; }
   }
 });
+
+test("batas API: umum per IP, tulis per pengguna, dan checkout lebih ketat", () => {
+  const limits = createApiRateLimits({ skip: () => false, limits: { general: { max: 3 }, writes: { max: 2 }, checkout: { max: 1 } } });
+  try {
+    const run = (limiter, ip, authorization = "") => { let result; limiter({ ip, headers: { authorization }, body: {} }, { set() {}, on() {} }, (error) => { result = error?.statusCode || 200; }); return result; };
+    assert.deepEqual([1, 2, 3, 4].map(() => run(limits.general, "10.0.0.5")), [200, 200, 200, 429]);
+    assert.equal(run(limits.general, "10.0.0.6"), 200); // IP lain tidak terpengaruh
+    // aksi tulis dihitung per pengguna (token berbeda di IP sama tidak saling memblokir)
+    assert.deepEqual([run(limits.writes, "10.0.0.7", "Bearer a"), run(limits.writes, "10.0.0.7", "Bearer a"), run(limits.writes, "10.0.0.7", "Bearer a")], [200, 200, 429]);
+    assert.equal(run(limits.writes, "10.0.0.7", "Bearer b"), 200);
+    assert.deepEqual([run(limits.checkout, "10.0.0.8", "Bearer c"), run(limits.checkout, "10.0.0.8", "Bearer c")], [200, 429]);
+  } finally { Object.values(limits).forEach((limiter) => limiter.stop()); }
+});
+

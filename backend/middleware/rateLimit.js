@@ -1,3 +1,4 @@
+const crypto = require("node:crypto");
 const { errors } = require("../errors/AppError");
 
 // Batas percobaan endpoint auth (ubah di sini bila perlu).
@@ -7,6 +8,13 @@ const LOGIN_FAILED_PER_IP = { max: 30, windowMs: 15 * MINUTE };
 const REGISTER_PER_IP = { max: 10, windowMs: 60 * MINUTE };
 const EMAIL_STATUS_PER_IP = { max: 30, windowMs: 10 * MINUTE };
 const MAX_KEYS = 50000;
+// Batas umum seluruh API (di luar auth). Longgar untuk pemakaian normal (satu halaman ±10-30 permintaan, desa bisa berbagi satu IP Wi-Fi),
+// tapi menghentikan banjir permintaan. Bisa disesuaikan lewat env tanpa mengubah kode.
+const num = (value, fallback) => (Number.isFinite(Number(value)) && Number(value) > 0 ? Number(value) : fallback);
+const API_PER_IP = { max: num(process.env.API_RATE_LIMIT_PER_MINUTE, 600), windowMs: MINUTE };
+const WRITE_PER_USER = { max: num(process.env.API_WRITE_LIMIT_PER_MINUTE, 120), windowMs: MINUTE };
+const CHECKOUT_PER_USER = { max: 20, windowMs: MINUTE };
+const CHAT_SEND_PER_USER = { max: 60, windowMs: MINUTE };
 
 const isLoopback = (ip) => ip === "::1" || /^(::ffff:)?127\./.test(String(ip || ""));
 
@@ -54,6 +62,8 @@ function createRateLimiter({ max, windowMs, key, onSuccess = null, skip = defaul
 }
 
 const ipKey = (req) => String(req.ip || "unknown");
+// Kunci per pengguna: IP + sidik jari token (token asli tidak disimpan). Tanpa token → hanya IP.
+const userKey = (req) => `${ipKey(req)}|${crypto.createHash("sha256").update(String(req.headers.authorization || "")).digest("hex").slice(0, 16)}`;
 const emailKey = (req) => `${ipKey(req)}|${String(req.body?.email || "").trim().toLowerCase().slice(0, 254)}`;
 
 // limits: override per limiter (dipakai test), mis. { register: { max: 2 } }.
@@ -67,4 +77,16 @@ function createAuthRateLimits({ skip, now, limits = {} } = {}) {
   };
 }
 
-module.exports = { createRateLimiter, createAuthRateLimits, isLoopback, LOGIN_PER_ACCOUNT, LOGIN_FAILED_PER_IP, REGISTER_PER_IP, EMAIL_STATUS_PER_IP };
+// Batas untuk seluruh API: umum per IP, aksi tulis per pengguna, serta checkout dan kirim chat yang lebih ketat.
+function createApiRateLimits({ skip, now, limits = {} } = {}) {
+  const message = "Terlalu banyak permintaan. Tunggu sebentar lalu coba lagi.";
+  const build = (name, limit, key) => createRateLimiter({ ...limit, ...limits[name], key, skip, now, message });
+  return {
+    general: build("general", API_PER_IP, ipKey),
+    writes: build("writes", WRITE_PER_USER, userKey),
+    checkout: build("checkout", CHECKOUT_PER_USER, userKey),
+    chatSend: build("chatSend", CHAT_SEND_PER_USER, userKey),
+  };
+}
+
+module.exports = { createRateLimiter, createAuthRateLimits, createApiRateLimits, isLoopback, LOGIN_PER_ACCOUNT, LOGIN_FAILED_PER_IP, REGISTER_PER_IP, EMAIL_STATUS_PER_IP };

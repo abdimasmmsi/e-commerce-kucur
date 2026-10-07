@@ -105,7 +105,28 @@ function createCommerceService(repository) {
         throw error;
       }
     },
-    async list(actor, filters = {}) { let orders = await repository.commerce.listOrders(); if (actor.roles.includes("admin")) { if (filters.storeId) orders = orders.filter((order) => order.storeId === String(filters.storeId)); return orders; } if (actor.roles.includes("merchant")) { const owned = new Set((await repository.stores.list()).filter((store) => store.merchantUserId === actor.id).map((store) => store.id)); orders = orders.filter((order) => owned.has(order.storeId)); if (filters.storeId) orders = orders.filter((order) => order.storeId === String(filters.storeId)); return orders; } return orders.filter((order) => order.customerUserId === actor.id); },
+    // Daftar pesanan menurut scope (disaring di database, tidak memuat pesanan semua orang):
+    //  - tanpa scope / "customer": pesanan belanja milik pengguna sendiri (juga untuk penjual/admin yang berbelanja);
+    //  - "merchant": pesanan toko milik pengguna (opsional storeId); - "admin": semua pesanan (hanya admin).
+    // since (tanggal ISO) dan limit membatasi jumlah; admin tanpa batas eksplisit dibatasi 2000 pesanan terbaru.
+    async list(actor, filters = {}) {
+      const scope = String(filters.scope || "customer");
+      const sinceTime = filters.since ? Date.parse(filters.since) : NaN;
+      const since = Number.isFinite(sinceTime) ? new Date(sinceTime).toISOString() : undefined;
+      const requested = Number.parseInt(filters.limit, 10);
+      const limit = Number.isInteger(requested) && requested > 0 ? Math.min(requested, 5000) : undefined;
+      if (scope === "admin") {
+        if (!actor.roles.includes("admin")) throw errors.forbidden();
+        return repository.commerce.listOrders({ ...(filters.storeId ? { storeId: String(filters.storeId) } : {}), since, limit: limit ?? 2000 });
+      }
+      if (scope === "merchant") {
+        if (!actor.roles.includes("merchant") && !actor.roles.includes("admin")) throw errors.forbidden();
+        const owned = (await repository.stores.list()).filter((store) => store.merchantUserId === actor.id).map((store) => store.id);
+        const storeIds = filters.storeId ? owned.filter((id) => id === String(filters.storeId)) : owned;
+        return repository.commerce.listOrders({ storeIds, since, limit: limit ?? 2000 });
+      }
+      return repository.commerce.listOrders({ customerUserId: actor.id, since, limit });
+    },
     async get(id, actor) { const order = await repository.commerce.findOrder(id); if (!order) throw errors.notFound("Order tidak ditemukan."); await access(order, actor); return order; },
     // Lapak (pemilik) dan admin hanya memajukan tahap lapak. Pembatalan wajib lewat cancel() supaya aturan tahap,
     // alasan, dan pengembalian stok berlaku; tahap diambil/diantar/sampai hanya lewat layanan pengiriman kurir.

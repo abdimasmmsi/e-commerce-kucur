@@ -65,3 +65,27 @@ test("Store or admin cancellation requires a reason for the buyer", async () => 
   await assert.rejects(commerce.cancel(order.id, "   ", merchantA), (error) => error.code === "VALIDATION_ERROR" && Boolean(error.details?.reason));
   assert.equal((await commerce.cancel(order.id, "Stok habis", merchantA)).fulfillmentStatus, "cancelled");
 });
+
+test("Daftar pesanan mengikuti scope: milik sendiri, toko milik, atau semua (admin) — tanpa menarik pesanan orang lain", async () => {
+  const { repository, commerce } = fixture();
+  const first = await commerce.create(checkout, customer, "scope-a");
+  const merchantOwnPurchase = await commerce.create({ ...checkout, items: [{ productId: "PRODUCT-A", quantity: 1 }] }, merchantA, "scope-b");
+  const ids = (rows) => rows.map((order) => order.id).sort();
+  // pembeli biasa: hanya miliknya
+  assert.deepEqual(ids(await commerce.list(customer)), [first.orders[0].id]);
+  // penjual yang juga pembeli: tanpa scope = belanjanya sendiri (bukan pesanan toko), scope merchant = pesanan tokonya
+  assert.deepEqual(ids(await commerce.list(merchantA)), [merchantOwnPurchase.orders[0].id]);
+  assert.deepEqual(ids(await commerce.list(merchantA, { scope: "merchant" })), ids([first.orders[0], merchantOwnPurchase.orders[0]]));
+  assert.deepEqual(await commerce.list(merchantB, { scope: "merchant" }), []);
+  assert.deepEqual(await commerce.list(merchantA, { scope: "merchant", storeId: "STORE-LAIN" }), []);
+  // scope admin hanya untuk admin
+  await assert.rejects(commerce.list(customer, { scope: "admin" }), (error) => error.code === "FORBIDDEN");
+  await assert.rejects(commerce.list(merchantA, { scope: "admin" }), (error) => error.code === "FORBIDDEN");
+  await assert.rejects(commerce.list(customer, { scope: "merchant" }), (error) => error.code === "FORBIDDEN");
+  assert.equal((await commerce.list(admin, { scope: "admin" })).length, 2);
+  // batas jumlah & tanggal
+  assert.equal((await commerce.list(admin, { scope: "admin", limit: "1" })).length, 1);
+  assert.equal((await commerce.list(admin, { scope: "admin", since: "2999-01-01" })).length, 0);
+  assert.equal(repository.products.findById("PRODUCT-A").stock, 0);
+});
+

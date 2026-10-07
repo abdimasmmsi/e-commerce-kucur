@@ -2,6 +2,7 @@ const express = require("express");
 const path = require("node:path");
 const cors = require("cors");
 const env = require("./config/env");
+const { createApiRateLimits } = require("./middleware/rateLimit");
 const { createPrismaRepository } = require("./repositories/prismaRepository");
 const { createFinalPrismaRepository } = require("./repositories/finalPrismaRepository");
 const { createRepositoryReadRouter } = require("./repositories/repositoryReadRouter");
@@ -68,6 +69,12 @@ function createApp(options = {}) {
   // req.ip diambil dari X-Forwarded-For hanya bila koneksi datang dari 127.0.0.1/::1 (dipakai rate limit auth).
   app.set("trust proxy", "loopback");
   app.use(cors({ origin(origin, callback) { if (!origin || env.allowedOrigins.includes(origin)) return callback(null, true); return callback(null, false); }, credentials: false }));
+  // Batas permintaan seluruh API (login/daftar punya batas sendiri di authRoutes).
+  const apiLimits = options.apiRateLimits || createApiRateLimits();
+  app.use("/api", apiLimits.general);
+  app.use("/api", (req, res, next) => (["GET", "HEAD", "OPTIONS"].includes(req.method) ? next() : apiLimits.writes(req, res, next)));
+  app.post("/api/checkout/orders", apiLimits.checkout);
+  app.post("/api/conversations/:conversationId/messages", apiLimits.chatSend);
   app.use(express.json({ limit: "1mb" }));
   app.use("/uploads", express.static(path.resolve(__dirname, "uploads"), { immutable: true, maxAge: "7d", fallthrough: true }));
   app.use(readContextMiddleware);

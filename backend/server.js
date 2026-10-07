@@ -6,6 +6,7 @@ const env = require("./config/env");
 const { connectPrisma, disconnectPrisma } = require("./config/prisma");
 const { startDeliveryDraftJob } = require("./services/deliveryDraftJob");
 const { startFinanceReconcileJob } = require("./services/financeReconcileJob");
+const { productionWarnings } = require("./config/productionChecks");
 async function start() {
   if (!env.databaseUrl) throw new Error("DATABASE_URL wajib dikonfigurasi untuk menjalankan backend.");
   await connectPrisma();
@@ -18,6 +19,7 @@ async function start() {
     console.log(`Server running on http://localhost:${env.port}`);
     console.log(`Repository routing: reads=${app.locals.repositoryRead.config.mode || "legacy"}, writes=${app.locals.repositoryWrite.config.mode || "legacy"}, shadowSync=${process.env.FINAL_REPOSITORY_SHADOW_SYNC_WRITES === "true"}, legacyMirror=${process.env.FINAL_REPOSITORY_LEGACY_MIRROR_WRITES === "true"}`);
   });
+  productionWarnings({ repository: app.locals.dependencies.repository, env }).then((warnings) => warnings.forEach((warning) => console.warn(`[produksi] ${warning}`))).catch(() => {});
   const shutdown = async (signal) => {
     console.log(`${signal} received, shutting down.`);
     stopDraftJob();

@@ -62,7 +62,14 @@ function createMemoryRepository(seed = {}) {
       findCheckout: (customerUserId, idempotencyKey) => { const checkout = state.checkouts.find((row) => row.customerUserId === customerUserId && row.idempotencyKey === idempotencyKey); return checkout && ({ ...clone(checkout), orders: state.orders.filter((order) => order.checkoutTransactionId === checkout.id).map(hydratedOrder) }); },
       createCheckout: (data) => { const row = { ...clone(data), id: id("CHECKOUT"), createdAt: new Date().toISOString() }; state.checkouts.push(row); return clone(row); },
       createOrder: (data) => { const now = new Date().toISOString(); const nested = (value) => value?.create ? (Array.isArray(value.create) ? value.create : [value.create]) : []; const row = { ...clone(data), id: id("ORDER"), createdAt: now, updatedAt: now, items: nested(data.items).map((item) => ({ ...item, id: id("ORDERITEM") })), reservations: nested(data.reservations).map((item) => ({ ...item, id: id("RESERVATION"), reservedAt: now, releasedAt: null, consumedAt: null })), activities: nested(data.activities).map((item) => ({ ...item, id: id("ACTIVITY"), orderId: null, createdAt: now })), paymentAttempts: nested(data.paymentAttempts).map((item) => ({ ...item, id: id("PAYMENT"), createdAt: now, updatedAt: now, paidAt: null })) }; delete row.items.create; delete row.reservations.create; delete row.activities.create; delete row.paymentAttempts.create; row.activities.forEach((activity) => { activity.orderId = row.id; }); row.reservations.forEach((reservation) => { reservation.orderId = row.id; }); row.items.forEach((item) => { item.orderId = row.id; }); state.orders.push(row); return hydratedOrder(row); },
-      listOrders: () => state.orders.map(hydratedOrder),
+      listOrders: (filter = {}) => {
+        const since = filter.since ? new Date(filter.since).getTime() : null;
+        const rows = state.orders.filter((order) => (!filter.customerUserId || order.customerUserId === filter.customerUserId)
+          && (Array.isArray(filter.storeIds) ? filter.storeIds.includes(order.storeId) : !filter.storeId || order.storeId === filter.storeId)
+          && (since === null || new Date(order.createdAt).getTime() >= since));
+        const sorted = [...rows].sort((a, b) => new Date(b.createdAt) - new Date(a.createdAt));
+        return (filter.limit ? sorted.slice(0, filter.limit) : sorted).map(hydratedOrder);
+      },
       findOrder: (orderId) => hydratedOrder(state.orders.find((row) => row.id === orderId)),
       listExpiredPaymentOrders: (now) => state.orders.filter((order) => order.paymentMethod === "MIDTRANS" && order.paymentStatus === "pending" && order.paymentAttempts.some((attempt) => attempt.status === "pending" && attempt.expiresAt && new Date(attempt.expiresAt) <= now)).map(hydratedOrder),
       updateOrder: (orderId, changes) => { const order = state.orders.find((row) => row.id === orderId); if (!order) return null; Object.assign(order, clone(changes), { updatedAt: new Date().toISOString() }); return hydratedOrder(order); },
