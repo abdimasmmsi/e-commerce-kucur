@@ -77,8 +77,8 @@ function Home() {
     <section className="home-banner relative isolate overflow-hidden rounded-2xl p-4 sm:p-6 lg:p-8" aria-label={text("deliveryBadgeGeneric")}>
       <span className="inline-flex rounded-full bg-[var(--kucur-amber)] px-2.5 py-0.5 text-xs font-extrabold text-[#2a1d00]">{cutoff ? text("deliveryBadge") : text("deliveryBadgeGeneric")}</span>
       <p className="mt-2 max-w-[17rem] text-xl font-extrabold leading-tight tracking-[-0.02em] sm:max-w-md sm:text-2xl lg:text-3xl">{cutoff ? text("deliveryTitle", { cutoff }) : text("deliveryTitleGeneric")}</p>
-      <p className="mt-1.5 max-w-md text-sm opacity-90 sm:text-[15px]">{dispatch ? text("deliveryText", { dispatch }) : text("deliveryTextGeneric")}</p>
-      <Icon className="pointer-events-none absolute -bottom-6 -right-4 -z-10 size-36 opacity-[0.16] sm:size-48" path="M5 19c0-8 5-14 15-15-1 10-7 15-15 15Zm0 0 8-8" />
+      <p className="mt-1.5 max-w-md text-sm opacity-90 max-sm:pr-12 sm:text-[15px]">{dispatch ? text("deliveryText", { dispatch }) : text("deliveryTextGeneric")}</p>
+      <Icon className="pointer-events-none absolute -bottom-8 -right-6 -z-10 size-28 opacity-[0.14] sm:-bottom-6 sm:-right-4 sm:size-48 sm:opacity-[0.16]" path="M5 19c0-8 5-14 15-15-1 10-7 15-15 15Zm0 0 8-8" />
     </section>
 
     {categories.length > 0 && <nav aria-label={text("categories")} className="-mx-2 grid grid-cols-5 gap-1 sm:mx-0 sm:flex sm:flex-wrap sm:gap-3">

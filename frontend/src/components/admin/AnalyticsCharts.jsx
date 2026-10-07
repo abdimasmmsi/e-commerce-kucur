@@ -6,17 +6,17 @@ import { compactNumber, niceTicks } from "../../utils/analytics";
 // tooltip saat hover/sentuh/fokus keyboard (panah kiri/kanan), dan semua angka juga ada di tampilan Tabel.
 
 // Lebar elemen (ResizeObserver) supaya teks sumbu tidak ikut melar seperti pada viewBox "none".
-function useWidth() {
+function useBox() {
   const ref = useRef(null);
-  const [width, setWidth] = useState(0);
+  const [box, setBox] = useState({ width: 0, height: 0 });
   useEffect(() => {
     const element = ref.current;
     if (!element) return undefined;
-    const observer = new ResizeObserver(([entry]) => setWidth(Math.round(entry.contentRect.width)));
+    const observer = new ResizeObserver(([entry]) => setBox({ width: Math.round(entry.contentRect.width), height: Math.round(entry.contentRect.height) }));
     observer.observe(element);
     return () => observer.disconnect();
   }, []);
-  return [ref, width];
+  return [ref, box];
 }
 
 function Tooltip({ point, left, top, width }) {
@@ -29,13 +29,42 @@ function Tooltip({ point, left, top, width }) {
   </div>;
 }
 
+// Kurva halus monoton (Fritsch–Carlson): mulus seperti grafik aplikasi keuangan, tapi tidak pernah melewati nilai data.
+function smoothPath(points) {
+  const n = points.length;
+  if (!n) return "";
+  if (n === 1) return `M${points[0][0]},${points[0][1]}`;
+  const dx = []; const slope = [];
+  for (let i = 0; i < n - 1; i += 1) { dx[i] = points[i + 1][0] - points[i][0]; slope[i] = (points[i + 1][1] - points[i][1]) / (dx[i] || 1); }
+  const tangent = new Array(n);
+  tangent[0] = slope[0]; tangent[n - 1] = slope[n - 2];
+  for (let i = 1; i < n - 1; i += 1) tangent[i] = slope[i - 1] * slope[i] <= 0 ? 0 : (slope[i - 1] + slope[i]) / 2;
+  for (let i = 0; i < n - 1; i += 1) {
+    if (slope[i] === 0) { tangent[i] = 0; tangent[i + 1] = 0; continue; }
+    const a = tangent[i] / slope[i]; const b = tangent[i + 1] / slope[i]; const sum = a * a + b * b;
+    if (sum > 9) { const tau = 3 / Math.sqrt(sum); tangent[i] = tau * a * slope[i]; tangent[i + 1] = tau * b * slope[i]; }
+  }
+  let path = `M${points[0][0]},${points[0][1]}`;
+  for (let i = 0; i < n - 1; i += 1) {
+    const [x0, y0] = points[i]; const [x1, y1] = points[i + 1];
+    path += ` C${x0 + dx[i] / 3},${y0 + (tangent[i] * dx[i]) / 3} ${x1 - dx[i] / 3},${y1 - (tangent[i + 1] * dx[i]) / 3} ${x1},${y1}`;
+  }
+  return path;
+}
+
 // Kerangka bersama grafik waktu (batang atau garis): sumbu Y, garis bantu, label X, nilai, interaksi.
 // Nilai tampil tanpa hover: semua batang/titik diberi angka kalau muat, kalau tidak hanya tertinggi & terakhir.
 // Periode tanpa data (null, mis. rata-rata rating di minggu tanpa ulasan) tidak digambar sebagai 0.
-function TimeChart({ rows, format, short, language, label, kind, maxHint, height = 220 }) {
-  const [ref, width] = useWidth();
+function TimeChart({ rows, format, short, language, label, kind, maxHint, seriesLabel, height: heightProp = 220 }) {
+  let height = heightProp;
+  const [ref, box] = useBox();
+  const { width } = box;
+  // Tinggi grafik = tinggi minimal pilihan widget, atau lebih bila kartu diregangkan mengikuti widget di sebelahnya.
+  const minHeight = heightProp;
+  height = Math.max(minHeight, box.height);
   const [active, setActive] = useState(null);
   const descriptionId = useId();
+  const gradientId = `${useId().replace(/:/g, "")}-fill`;
   const pad = { top: 22, right: kind === "line" ? 20 : 12, bottom: 26, left: 52 };
   const values = rows.map((row) => row.value);
   const present = values.filter((value) => value !== null && value !== undefined);
@@ -74,7 +103,7 @@ function TimeChart({ rows, format, short, language, label, kind, maxHint, height
   // Garis terputus di periode kosong; area hanya di bawah segmen yang ada datanya.
   const segments = [];
   rows.forEach((row, index) => { if (row.value === null || row.value === undefined) return; const previous = segments.at(-1); if (previous && previous.at(-1) === index - 1) previous.push(index); else segments.push([index]); });
-  const segmentPath = (segment) => segment.map((index, position) => `${position ? "L" : "M"}${x(index)},${y(rows[index].value)}`).join(" ");
+  const segmentPath = (segment) => smoothPath(segment.map((index) => [x(index), y(rows[index].value)]));
   const barPath = (index, value) => {
     const height0 = y(0) - y(value);
     if (!(height0 > 0)) return "";
@@ -82,11 +111,12 @@ function TimeChart({ rows, format, short, language, label, kind, maxHint, height
     const left = x(index) - barWidth / 2; const right = left + barWidth; const base = y(0); const tip = y(value);
     return `M${left},${base} L${left},${tip + r} Q${left},${tip} ${left + r},${tip} L${right - r},${tip} Q${right},${tip} ${right},${tip + r} L${right},${base} Z`;
   };
-  const showDots = kind === "line" && band >= 14;
+  const showDots = kind === "line" && band >= 20;
 
-  return <div className="relative" ref={ref}>
+  return <div className="flex flex-1 flex-col">
+    <div className="relative flex-1" style={{ minHeight }} ref={ref}>
     <p className="sr-only" id={descriptionId}>{label}. {language === "en" ? "Use the left and right arrow keys to read each value." : "Pakai tombol panah kiri dan kanan untuk membaca tiap nilai."}</p>
-    {width > 0 && <svg className="block touch-pan-y outline-none focus-visible:rounded-lg focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[var(--kucur-green)]" width={width} height={height} style={{ width, height }} role="img" aria-label={label} aria-describedby={descriptionId} tabIndex={0}
+    {width > 0 && <svg className="absolute left-0 top-0 block touch-pan-y outline-none focus-visible:rounded-lg focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[var(--kucur-green)]" width={width} height={height} style={{ width, height }} role="img" aria-label={label} aria-describedby={descriptionId} tabIndex={0}
       onPointerMove={(event) => pick(event.clientX)} onPointerDown={(event) => pick(event.clientX)} onPointerLeave={(event) => { if (event.pointerType === "mouse") setActive(null); }} onKeyDown={onKey} onBlur={() => setActive(null)}>
       {ticks.map((tick) => <g key={tick}>
         <line x1={pad.left} x2={width - pad.right} y1={y(tick)} y2={y(tick)} stroke={tick === 0 ? "var(--chart-axis)" : "var(--chart-grid)"} strokeWidth="1" shapeRendering="crispEdges" />
@@ -95,14 +125,17 @@ function TimeChart({ rows, format, short, language, label, kind, maxHint, height
       {active !== null && <rect x={x(active) - band / 2} y={pad.top} width={band} height={plotHeight} fill="var(--kucur-surface-elevated)" opacity="0.7" />}
       {kind === "bar" && rows.map((row, index) => row.value !== null && row.value !== undefined && <path key={row.key} d={barPath(index, row.value)} fill="var(--chart-1)" />)}
       {kind === "line" && <>
-        {segments.map((segment) => segment.length > 1 && <path key={`area-${segment[0]}`} d={`${segmentPath(segment)} L${x(segment.at(-1))},${y(0)} L${x(segment[0])},${y(0)} Z`} fill="var(--chart-1)" opacity="0.1" />)}
-        {segments.map((segment) => <path key={`line-${segment[0]}`} d={segmentPath(segment)} fill="none" stroke="var(--chart-1)" strokeWidth="2" strokeLinejoin="round" strokeLinecap="round" />)}
-        {rows.map((row, index) => row.value !== null && row.value !== undefined && (showDots || index === lastPresent || segments.some((segment) => segment.length === 1 && segment[0] === index)) && <circle key={row.key} cx={x(index)} cy={y(row.value)} r={index === active || index === lastPresent ? 4.5 : 3} fill="var(--chart-1)" stroke="var(--kucur-surface)" strokeWidth="2" />)}
+        <defs><linearGradient id={gradientId} x1="0" y1="0" x2="0" y2="1"><stop offset="0%" stopColor="var(--chart-1)" stopOpacity="0.28" /><stop offset="100%" stopColor="var(--chart-1)" stopOpacity="0.02" /></linearGradient></defs>
+        {segments.map((segment) => segment.length > 1 && <path key={`area-${segment[0]}`} d={`${segmentPath(segment)} L${x(segment.at(-1))},${y(0)} L${x(segment[0])},${y(0)} Z`} fill={`url(#${gradientId})`} />)}
+        {segments.map((segment) => <path key={`line-${segment[0]}`} d={segmentPath(segment)} fill="none" stroke="var(--chart-1)" strokeWidth="3" strokeLinejoin="round" strokeLinecap="round" />)}
+        {rows.map((row, index) => row.value !== null && row.value !== undefined && (showDots || index === peak || index === lastPresent || segments.some((segment) => segment.length === 1 && segment[0] === index)) && <circle key={row.key} cx={x(index)} cy={y(row.value)} r={index === active ? 6 : index === peak || index === lastPresent ? 5 : 4} fill="var(--chart-1)" stroke="var(--kucur-surface)" strokeWidth="2" />)}
       </>}
       {rows.map((row, index) => valueLabels[index] && <text key={`v-${row.key}`} x={x(index)} y={y(row.value) - 8} textAnchor="middle" className={`text-[11px] tabular-nums ${index === active ? "fill-[var(--kucur-text)] font-extrabold" : index === peak || index === lastPresent ? "fill-[var(--kucur-text)] font-bold" : "fill-[var(--kucur-text-muted)] font-semibold"}`}>{short(row.value)}</text>)}
       {rows.map((row, index) => (index % labelEvery === 0 || index === last) && (index === last || x(last) - x(index) >= labelWidth * (x(last) + labelWidth / 2 > width ? 1.5 : 1)) && <text key={row.key} x={index === last ? Math.min(x(index), width - 2) : index === 0 ? Math.max(x(index), 2) : x(index)} y={height - 8} textAnchor={index === last && x(index) + labelWidth / 2 > width ? "end" : index === 0 && x(index) - labelWidth / 2 < 0 ? "start" : "middle"} className={`text-[11px] ${index === active ? "fill-[var(--kucur-text)] font-bold" : "fill-[var(--kucur-text-muted)]"}`}>{row.label}</text>)}
     </svg>}
     {point && <Tooltip point={point} left={x(active)} top={Math.max(y(rows[active].value ?? 0), pad.top + 18)} width={width} />}
+    </div>
+    {seriesLabel && <div className="mt-1.5 flex items-center justify-center gap-2 text-[13px] text-[var(--kucur-text-muted)]"><span className="size-2.5 rounded-full bg-[var(--chart-1)]" aria-hidden="true" />{seriesLabel}</div>}
   </div>;
 }
 

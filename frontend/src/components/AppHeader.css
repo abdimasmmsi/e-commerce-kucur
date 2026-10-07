@@ -35,3 +35,5 @@
 @media(max-width:767px){.app-header .profile-menu-wrap{display:block}.app-header .profile-menu-trigger>:not(.user-avatar):not(.profile-avatar){display:none}}
 /* HP: kolom cari diberi jarak dari garis bawah header (sebelumnya menempel). */
 @media(max-width:767px){.app-header .customer-mobile-search{margin-bottom:12px}}
+/* HP: hanya logo "K" (teks merek tampil mulai >480px), memberi ruang lega untuk ikon pesan, notifikasi, keranjang, dan profil. */
+@media(max-width:480px){.app-brand>span:last-child{display:none}.customer-nav-utilities{gap:6px}}
