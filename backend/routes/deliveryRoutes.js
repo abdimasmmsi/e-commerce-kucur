@@ -17,7 +17,7 @@ function courierRoutes({ deliveryService, authMiddleware }) {
   // Kurir boleh mengirim foto langsung (photoDataUrl); disimpan dulu lalu dicatat sebagai photoUrl.
   router.post("/deliveries/:id/proof", handler(async (req) => {
     const input = { ...(req.body || {}) };
-    if (input.photoDataUrl) { input.photoUrl = `${req.protocol}://${req.get("host")}${await saveProofImage(input.photoDataUrl)}`; delete input.photoDataUrl; }
+    if (input.photoDataUrl) { input.photoUrl = await saveProofImage(input.photoDataUrl); delete input.photoDataUrl; }
     return deliveryService.proof(req.params.id, input, req.auth.user);
   }, 201));
   return router;

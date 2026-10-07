@@ -13,6 +13,7 @@ import StatusTimeline from "../../components/ui/StatusTimeline";
 import { useChat } from "../../context/ChatContext";
 import { usePreferences } from "../../context/PreferencesContext";
 import { orderService } from "../../services/commerceService";
+import { apiAssetUrl } from "../../services/apiClient";
 import { reviewService } from "../../services/reviewService";
 import { shortOrderCode } from "../../utils/orderCode";
 import { buyAgain } from "../../utils/buyAgain";
@@ -141,7 +142,7 @@ export default function OrderDetail() {
         </section>
 
         {order.deliveryProof && <DetailSection title={copy.proof}>
-          <div className="grid gap-4 sm:grid-cols-[minmax(180px,280px)_minmax(0,1fr)]">{proofBroken ? <div className="grid aspect-[4/3] w-full place-items-center rounded-xl border border-dashed border-[var(--kucur-border-strong)] bg-[var(--kucur-surface-muted)] p-4 text-center text-sm text-[var(--kucur-text-muted)]">{copy.proofMissing}</div> : <img className="aspect-[4/3] w-full rounded-xl border border-[var(--kucur-border)] object-cover" src={order.deliveryProof.photoUrl} alt={copy.proofAlt} onError={() => setProofBroken(true)}/>}<div className="text-[15px] leading-6 text-[var(--kucur-text-muted)]"><p>{copy.received} {formatDate(order.deliveryProof.deliveredAt, { dateStyle: "medium", timeStyle: "short" })}{order.deliveryProof.recipientName ? ` ${copy.by} ${order.deliveryProof.recipientName}` : ""}.</p>{order.deliveryProof.note && <p className="mt-2 text-[var(--kucur-text)]">{order.deliveryProof.note}</p>}</div></div>
+          <div className="grid gap-4 sm:grid-cols-[minmax(180px,280px)_minmax(0,1fr)]">{proofBroken ? <div className="grid aspect-[4/3] w-full place-items-center rounded-xl border border-dashed border-[var(--kucur-border-strong)] bg-[var(--kucur-surface-muted)] p-4 text-center text-sm text-[var(--kucur-text-muted)]">{copy.proofMissing}</div> : <img className="aspect-[4/3] w-full rounded-xl border border-[var(--kucur-border)] object-cover" src={apiAssetUrl(order.deliveryProof.photoUrl)} alt={copy.proofAlt} onError={() => setProofBroken(true)}/>}<div className="text-[15px] leading-6 text-[var(--kucur-text-muted)]"><p>{copy.received} {formatDate(order.deliveryProof.deliveredAt, { dateStyle: "medium", timeStyle: "short" })}{order.deliveryProof.recipientName ? ` ${copy.by} ${order.deliveryProof.recipientName}` : ""}.</p>{order.deliveryProof.note && <p className="mt-2 text-[var(--kucur-text)]">{order.deliveryProof.note}</p>}</div></div>
         </DetailSection>}
 
         {order.fulfillmentStatus === "completed" && <DetailSection><div className="grid gap-4" aria-label={copy.reviews}>{order.items.map((item) => reviewedItemIds.has(String(item.id)) ? <p className="flex flex-wrap items-center justify-between gap-2 rounded-xl bg-[var(--kucur-green-soft)] p-3 text-[15px]" key={item.id}><strong className="break-words">{item.productName}</strong><span className="font-semibold text-[var(--kucur-green-ink)]">{copy.reviewed}</span></p> : <ReviewForm targetType="product" targetId={item.id} transactionId={order.id} transactionContext={{ title: item.productName, detail: Object.values(item.selectedOptions ?? {}).join(" · ") }} onSave={() => setReviewedItemIds((current) => new Set([...current, String(item.id)]))} key={item.id}/>)}</div></DetailSection>}
