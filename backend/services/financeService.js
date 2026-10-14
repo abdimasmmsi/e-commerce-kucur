@@ -114,7 +114,9 @@ function createFinanceService(repository) {
     async remindOutstanding(actor, input = {}, now = new Date()) {
       if (!actor?.roles?.includes("admin")) throw errors.forbidden();
       const storeId = input.storeId ? String(input.storeId) : null;
-      const rows = buildUnpaidByStore(await repository.finance.monitoring(), now).filter((row) => !storeId || row.storeId === storeId);
+      // dueWithinDays dipakai pengingat otomatis: hanya lapak yang tagihannya jatuh tempo dalam N hari ke depan atau sudah lewat jatuh tempo.
+      const horizon = input.dueWithinDays ? new Date(now).getTime() + Number(input.dueWithinDays) * 86400000 : null;
+      const rows = buildUnpaidByStore(await repository.finance.monitoring(), now).filter((row) => (!storeId || row.storeId === storeId) && (horizon === null || (row.nearestDueAt && new Date(row.nearestDueAt).getTime() <= horizon)));
       const notifications = createNotificationService(repository); const day = jakartaDay(now);
       let reminded = 0, alreadyReminded = 0, failed = 0;
       for (const row of rows) {
@@ -128,6 +130,31 @@ function createFinanceService(repository) {
         } catch (error) { failed += 1; console.warn(`[finance-reminder] ${error.message}`); }
       }
       return { reminded, alreadyReminded, failed, storesWithOutstanding: rows.length };
+    },
+    // Pengingat otomatis (dipanggil job tiap jam): tagihan jatuh tempo dalam 3 hari atau sudah lewat. Dedupe sama dengan pengingat manual (maks sekali per lapak per hari).
+    remindDueSoon: (now = new Date(), windowDays = 3) => service.remindOutstanding({ id: null, roles: ["admin"] }, { dueWithinDays: windowDays }, now),
+    // Admin mencatat biaya admin yang ditarik langsung (tunai/transfer di luar pengajuan penjual). Tagihan dengan pengajuan yang masih menunggu konfirmasi harus diselesaikan lewat konfirmasi/tolak dulu.
+    async collectAdminFees(storeId, input, actor) {
+      if (!actor?.roles?.includes("admin")) throw errors.forbidden();
+      const ids = [...new Set((input.obligationIds || []).map(String))]; if (!ids.length) throw errors.validation({ obligationIds: "Pilih minimal satu tagihan." });
+      const method = String(input.method || "CASH").toUpperCase(); if (!["CASH", "TRANSFER", "OTHER"].includes(method)) throw errors.validation({ method: "Pilih tunai, transfer, atau lainnya." });
+      const note = String(input.note || "").trim().slice(0, 200);
+      const store = await repository.stores.findById(storeId); if (!store) throw errors.notFound("Store tidak ditemukan.");
+      const result = await repository.transaction(async (tx) => {
+        const rows = await tx.finance.findAdminFees(ids); const settlementOf = (row) => row.settlementItem?.settlement;
+        if (rows.length !== ids.length || rows.some((row) => row.storeId !== storeId || row.status !== "OUTSTANDING")) throw errors.conflict("Tagihan tidak valid atau sudah lunas.");
+        if (rows.some((row) => upper(settlementOf(row)?.paymentStatus) === "PENDING")) throw errors.conflict("Ada pengajuan pembayaran yang menunggu konfirmasi. Konfirmasi atau tolak dulu.");
+        const now = new Date(); let total = 0n;
+        for (const row of rows) { await tx.finance.payAdminFee(row.id, now, { method }); await tx.finance.cancelPendingPaymentAttempts(row.id); total += moneyCents(row.feeAmount); await audit(tx, actor, "admin-fee-obligation", row.id, "ADMIN_FEE_COLLECTED", `Biaya admin ditandai sudah ditarik (${method})${note ? `: ${note}` : ""}.`); }
+        let storeReactivated = false; const fresh = await tx.stores.findById(storeId);
+        if (fresh?.status === "suspended_admin_fee" && await tx.finance.countOverdueAdminFees(storeId, now) === 0) { await tx.stores.update(storeId, { status: "active" }); await tx.finance.createStatusHistory({ storeId, oldStatus: "suspended_admin_fee", newStatus: "active", reason: "Biaya admin ditarik langsung oleh Admin.", changedByUserId: actor.id, metadata: { process: "admin-fee-collected", method } }); await audit(tx, actor, "store", storeId, "STORE_REACTIVATED_ADMIN_FEE", "Store aktif kembali setelah biaya admin ditarik langsung."); storeReactivated = true; }
+        return { collected: rows.length, amount: Number(fromCents(total)), storeReactivated };
+      });
+      const stamp = Date.now();
+      const items = [{ userId: store.merchantUserId, type: "ADMIN_FEE_PAID", title: "Biaya admin tercatat lunas", body: `Biaya admin lapak "${store.name}" sebesar ${rupiah(toCents(result.amount))} dicatat sudah ditarik admin. Terima kasih!`, entityType: "STORE_FINANCE", entityId: storeId, dedupeKey: `admin-fee-collected:${storeId}:${stamp}` }];
+      if (result.storeReactivated) items.push({ userId: store.merchantUserId, type: "STORE_REACTIVATED", title: "Lapak aktif kembali", body: `Biaya admin lunas. Lapak "${store.name}" aktif lagi dan bisa menerima pesanan.`, entityType: "STORE", entityId: storeId, dedupeKey: `store-reactivated:${storeId}:${stamp}` });
+      await notifySafe(repository, items);
+      return result;
     },
     async monitoring(actor) { if (!actor.roles.includes("admin")) throw errors.forbidden(); return repository.finance.monitoring(); },
   };

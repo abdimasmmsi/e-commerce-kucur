@@ -6,6 +6,7 @@ const env = require("./config/env");
 const { connectPrisma, disconnectPrisma } = require("./config/prisma");
 const { startDeliveryDraftJob } = require("./services/deliveryDraftJob");
 const { startFinanceReconcileJob } = require("./services/financeReconcileJob");
+const { startMaintenanceJob } = require("./services/maintenanceJob");
 const { productionWarnings } = require("./config/productionChecks");
 async function start() {
   if (!env.databaseUrl) throw new Error("DATABASE_URL wajib dikonfigurasi untuk menjalankan backend.");
@@ -14,6 +15,7 @@ async function start() {
   const server = createServer(app);
   const stopDraftJob = startDeliveryDraftJob(app.locals.dependencies.repository);
   const stopFinanceJob = startFinanceReconcileJob(app.locals.dependencies.repository, { financeService: app.locals.dependencies.financeService });
+  const stopMaintenanceJob = startMaintenanceJob(app.locals.dependencies.repository);
   const io = attachChatRealtime(server, { ...app.locals.dependencies, allowedOrigins: env.allowedOrigins });
   server.listen(env.port, () => {
     console.log(`Server running on http://localhost:${env.port}`);
@@ -24,6 +26,7 @@ async function start() {
     console.log(`${signal} received, shutting down.`);
     stopDraftJob();
     stopFinanceJob();
+    stopMaintenanceJob();
     io.close();
     server.close(async () => { await disconnectPrisma(); process.exit(0); });
   };

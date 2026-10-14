@@ -1,4 +1,4 @@
-import { useCallback, useEffect, useMemo, useState } from "react";
+import { Fragment, useCallback, useEffect, useMemo, useState } from "react";
 import { Link, useParams } from "react-router-dom";
 import ActionDialog from "../../components/ui/ActionDialog";
 import Button from "../../components/ui/Button";
@@ -21,6 +21,7 @@ const COPY = {
     kinds: { installment: "Cicilan iuran pokok ke-{number}", settlement: "Biaya admin ({count} tagihan)", contribution: "Iuran sukarela" },
     initialFee: "Iuran pokok", noPlan: "Lapak belum memilih skema iuran pokok.", plan: "Skema", plans: { FULL: "Lunas sekali", THREE_MONTHS: "Cicil 3 kali", SIX_MONTHS: "Cicil 6 kali" }, total: "Total", lateInterest: "Denda telat {percent}% per 7 hari dari sisa tagihan",
     installment: "Cicilan ke-{number}", installmentCol: "Cicilan", due: "Jatuh tempo", amount: "Jumlah", penalty: "Denda", status: "Status", paidOn: "Dibayar",
+    collect: "Tandai sudah ditarik", collectTitle: "Tandai biaya admin sudah ditarik?", collectBody: "Catat bahwa biaya admin bulan ini sudah kamu terima langsung dari pemilik lapak, tanpa menunggu pengajuan pembayaran.", collectMonth: "Bulan", collectCount: "Jumlah tagihan", collectTotal: "Total", collectMethod: "Cara penarikan", methods: { CASH: "Tunai", TRANSFER: "Transfer", OTHER: "Lainnya" }, collectNote: "Catatan (opsional)", collectNoteHint: "Contoh: diterima di balai desa", collectConfirm: "Konfirmasi", collected: "Biaya admin {amount} ({count} tagihan) ditandai sudah ditarik.", reactivated: "Lapak aktif kembali.", collectPending: "Menunggu konfirmasi: konfirmasi atau tolak dulu di atas", collectBills: "{count} tagihan belum dibayar",
     adminFees: "Biaya admin per bulan", adminFeesHint: "Ditagih per bulan; batas bayar tanggal 1 bulan berikutnya.", noAdminFees: "Belum ada biaya admin", noAdminFeesHint: "Biaya admin muncul setelah ada pesanan selesai.", month: "Bulan", orders: "Pesanan", cutoff: "Batas bayar",
     contributions: "Iuran sukarela", contributionsHint: "Sukarela, per akun penjual, tidak memengaruhi status lapak.", noContributions: "Belum ada iuran sukarela.",
     states: { paid: "Lunas", pending: "Menunggu konfirmasi", overdue: "Lewat jatuh tempo {days} hari", overdueToday: "Lewat jatuh tempo hari ini", dueSoon: "Jatuh tempo ≤7 hari", upcoming: "Belum jatuh tempo", cancelled: "Dibatalkan" },
@@ -37,6 +38,7 @@ const COPY = {
     kinds: { installment: "Membership fee installment {number}", settlement: "Admin fees ({count} bills)", contribution: "Voluntary contribution" },
     initialFee: "Membership fee", noPlan: "The store has not chosen a membership fee plan yet.", plan: "Plan", plans: { FULL: "Pay in full", THREE_MONTHS: "3 installments", SIX_MONTHS: "6 installments" }, total: "Total", lateInterest: "Late penalty {percent}% of the remaining bill every 7 days",
     installment: "Installment {number}", installmentCol: "Installment", due: "Due", amount: "Amount", penalty: "Penalty", status: "Status", paidOn: "Paid",
+    collect: "Mark as collected", collectTitle: "Mark admin fees as collected?", collectBody: "Record that this month's admin fees were received directly from the store owner, without waiting for a payment request.", collectMonth: "Month", collectCount: "Number of bills", collectTotal: "Total", collectMethod: "How it was collected", methods: { CASH: "Cash", TRANSFER: "Transfer", OTHER: "Other" }, collectNote: "Note (optional)", collectNoteHint: "Example: received at the village hall", collectConfirm: "Confirm", collected: "Admin fees {amount} ({count} bills) marked as collected.", reactivated: "The store is active again.", collectPending: "Awaiting confirmation: confirm or reject it above first", collectBills: "{count} unpaid bills",
     adminFees: "Admin fees per month", adminFeesHint: "Billed monthly; pay by the 1st of the next month.", noAdminFees: "No admin fees yet", noAdminFeesHint: "Admin fees appear after orders are completed.", month: "Month", orders: "Orders", cutoff: "Pay by",
     contributions: "Voluntary contributions", contributionsHint: "Optional, per merchant account, never affects store status.", noContributions: "No voluntary contributions yet.",
     states: { paid: "Paid", pending: "Awaiting confirmation", overdue: "{days} days overdue", overdueToday: "Overdue today", dueSoon: "Due in ≤7 days", upcoming: "Not due yet", cancelled: "Cancelled" },
@@ -63,6 +65,9 @@ export default function AdminFinanceStore() {
   const [busy, setBusy] = useState("");
   const [remindOpen, setRemindOpen] = useState(false);
   const [rejecting, setRejecting] = useState(null);
+  const [collecting, setCollecting] = useState(null);
+  const [method, setMethod] = useState("CASH");
+  const [note, setNote] = useState("");
 
   const load = useCallback(async () => {
     try { const next = await financeService.monitor(); setNow(Date.now()); setData(next); setError(""); }
@@ -72,8 +77,8 @@ export default function AdminFinanceStore() {
 
   const run = async (key, work, successText) => {
     setBusy(key); setFeedback({ type: "", text: "" });
-    try { const result = await work(); setFeedback({ type: "success", text: successText ? successText(result) : copy.done }); await load(); }
-    catch (cause) { setFeedback({ type: "error", text: language === "id" && cause?.message ? cause.message : copy.actionFailed }); }
+    try { const result = await work(); setFeedback({ type: "success", text: successText ? successText(result) : copy.done }); await load(); return true; }
+    catch (cause) { setFeedback({ type: "error", text: language === "id" && cause?.message ? cause.message : copy.actionFailed }); return false; }
     finally { setBusy(""); }
   };
 
@@ -84,6 +89,13 @@ export default function AdminFinanceStore() {
     if (state !== "overdue") return copy.states[state] || copy.states.upcoming;
     const days = daysBetween(dueAt, now);
     return days ? fill(copy.states.overdue, { days }) : copy.states.overdueToday;
+  };
+  const monthLabel = (month) => formatDate(new Date(month.year, month.month - 1, 1), { month: "long", year: "numeric" });
+  const openCollect = (month) => { setMethod("CASH"); setNote(""); setCollecting(month); };
+  const submitCollect = async () => {
+    const month = collecting;
+    const ok = await run("collect", () => financeService.collectAdminFees(storeId, { obligationIds: month.collectIds, method, note: note.trim() }), (result) => [fill(copy.collected, { amount: formatCurrency(result?.amount ?? month.unpaid), count: result?.collected ?? month.collectIds.length }), result?.storeReactivated ? copy.reactivated : ""].filter(Boolean).join(" "));
+    if (ok) setCollecting(null);
   };
   const kindText = (item) => fill(copy.kinds[item.kind], { number: item.number ?? "", count: item.count ?? "" });
   const backLink = <Link className="inline-flex min-h-11 items-center gap-1 text-sm font-bold text-[var(--kucur-green-ink)] hover:underline" to="/admin/finance"><svg className="size-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true"><path d="m15 6-6 6 6 6" /></svg>{copy.back}</Link>;
@@ -129,7 +141,9 @@ export default function AdminFinanceStore() {
     <section className={sectionClass} aria-labelledby="store-admin-fees">
       <div><h2 className="text-lg font-extrabold" id="store-admin-fees">{copy.adminFees}</h2><p className="text-sm text-[var(--kucur-text-muted)]">{copy.adminFeesHint}</p></div>
       {months.length ? <div className={tableWrap}><table className="w-full min-w-[620px] border-collapse text-sm"><thead><tr><th className={th} scope="col">{copy.month}</th><th className={`${th} text-right`} scope="col">{copy.orders}</th><th className={`${th} text-right`} scope="col">{copy.amount}</th><th className={th} scope="col">{copy.cutoff}</th><th className={th} scope="col">{copy.status}</th><th className={th} scope="col">{copy.paidOn}</th></tr></thead><tbody>
-        {months.map((month) => <tr className={month.state === "overdue" ? "bg-rose-50/60 dark:bg-rose-950/30" : ""} key={month.key}><th className={`${td} text-left font-bold`} scope="row">{formatDate(new Date(month.year, month.month - 1, 1), { month: "long", year: "numeric" })}</th><td className={`${td} text-right`}>{month.items.length}</td><td className={`${td} text-right font-semibold`}>{formatCurrency(month.total)}{month.unpaid > 0 && month.unpaid !== month.total ? <small className="block text-xs font-normal text-[var(--kucur-text-muted)]">{copy.outstanding}: {formatCurrency(month.unpaid)}</small> : null}</td><td className={td}>{day(month.dueAt)}</td><td className={td}><FinanceBadge tone={STATE_TONE[month.state]}>{stateText(month.state, month.dueAt)}</FinanceBadge></td><td className={td}>{month.state === "paid" ? day(month.paidAt) : "–"}</td></tr>)}
+        {months.map((month) => <Fragment key={month.key}><tr className={month.state === "overdue" ? "bg-rose-50/60 dark:bg-rose-950/30" : ""}><th className={`${td} text-left font-bold`} scope="row">{monthLabel(month)}</th><td className={`${td} text-right`}>{month.items.length}</td><td className={`${td} text-right font-semibold`}>{formatCurrency(month.total)}{month.unpaid > 0 && month.unpaid !== month.total ? <small className="block text-xs font-normal text-[var(--kucur-text-muted)]">{copy.outstanding}: {formatCurrency(month.unpaid)}</small> : null}</td><td className={td}>{day(month.dueAt)}</td><td className={td}><FinanceBadge tone={STATE_TONE[month.state]}>{stateText(month.state, month.dueAt)}</FinanceBadge></td><td className={td}>{month.state === "paid" ? day(month.paidAt) : "–"}</td></tr>
+          {month.pending > 0 ? <tr><td className="border-t border-dashed border-[var(--kucur-border)] bg-[var(--kucur-surface-muted)] px-3 py-2 text-sm text-[var(--kucur-text-muted)]" colSpan={6}><span className="sticky left-3 inline-block max-w-[calc(100vw-4rem)] whitespace-normal">{copy.collectPending}</span></td></tr> : month.collectIds.length > 0 ? <tr><td className="border-t border-dashed border-[var(--kucur-border)] bg-[var(--kucur-surface-muted)] px-3 py-2" colSpan={6}><div className="sticky left-3 flex max-w-[calc(100vw-4rem)] flex-wrap items-center gap-x-3 gap-y-2"><span className="text-sm text-[var(--kucur-text-muted)]">{fill(copy.collectBills, { count: month.collectIds.length })} · {formatCurrency(month.unpaid)}</span><Button variant="secondary" disabled={Boolean(busy)} onClick={() => openCollect(month)}>{copy.collect}</Button></div></td></tr> : null}
+        </Fragment>)}
       </tbody></table></div> : <EmptyState title={copy.noAdminFees} description={copy.noAdminFeesHint} />}
     </section>
 
@@ -139,6 +153,13 @@ export default function AdminFinanceStore() {
     </section>
 
     <ActionDialog open={remindOpen} title={copy.remindTitle} description={ledger.outstanding > 0 ? copy.remindBody : copy.nothingToRemind} cancelLabel={copy.cancel} confirmLabel={copy.remindSend} confirmDisabled={!(ledger.outstanding > 0)} busy={busy === "remind"} onCancel={() => setRemindOpen(false)} onConfirm={async () => { await run("remind", () => financeService.remind(storeId), (result) => (result.reminded ? copy.reminded : result.alreadyReminded ? copy.alreadyReminded : copy.nothingToRemind)); setRemindOpen(false); }} />
+    <ActionDialog open={Boolean(collecting)} title={copy.collectTitle} description={copy.collectBody} cancelLabel={copy.cancel} confirmLabel={copy.collectConfirm} busy={busy === "collect"} onCancel={() => setCollecting(null)} onConfirm={submitCollect}>
+      {collecting && <>
+        <dl className="grid grid-cols-[auto_1fr] gap-x-4 gap-y-1 text-[15px]"><dt className="text-[var(--kucur-text-muted)]">{copy.collectMonth}</dt><dd className="text-right font-bold">{monthLabel(collecting)}</dd><dt className="text-[var(--kucur-text-muted)]">{copy.collectCount}</dt><dd className="text-right font-bold">{collecting.collectIds.length}</dd><dt className="text-[var(--kucur-text-muted)]">{copy.collectTotal}</dt><dd className="text-right font-bold">{formatCurrency(collecting.unpaid)}</dd></dl>
+        <fieldset className="grid gap-2"><legend className="mb-1 text-sm font-semibold">{copy.collectMethod}</legend><div className="grid grid-cols-3 gap-2">{["CASH", "TRANSFER", "OTHER"].map((key) => <label className={`flex min-h-11 cursor-pointer items-center justify-center rounded-xl border px-2 text-sm font-bold ${method === key ? "border-[var(--kucur-green)] bg-[var(--kucur-green-soft)] text-[var(--kucur-green-ink)]" : "border-[var(--kucur-border-strong)] bg-[var(--kucur-surface)]"}`} key={key}><input className="sr-only" type="radio" name="collect-method" value={key} checked={method === key} onChange={() => setMethod(key)} />{copy.methods[key]}</label>)}</div></fieldset>
+        <label className="grid gap-1 text-sm font-semibold">{copy.collectNote}<input className="min-h-11 rounded-xl border border-[var(--kucur-border-strong)] bg-[var(--kucur-surface)] px-3 text-[15px] font-normal" type="text" maxLength={200} value={note} placeholder={copy.collectNoteHint} onChange={(event) => setNote(event.target.value)} /></label>
+      </>}
+    </ActionDialog>
     <ActionDialog open={Boolean(rejecting)} destructive title={copy.rejectTitle} description={copy.rejectBody} cancelLabel={copy.cancel} confirmLabel={copy.reject} busy={Boolean(busy)} onCancel={() => setRejecting(null)} onConfirm={async () => { const item = rejecting; await run(`reject-${item.id}`, () => financeService.confirm(item.kind, item.id, false)); setRejecting(null); }}>
       {rejecting && <p className="text-[15px]"><strong>{kindText(rejecting)}</strong> · {formatCurrency(rejecting.amount)}</p>}
     </ActionDialog>

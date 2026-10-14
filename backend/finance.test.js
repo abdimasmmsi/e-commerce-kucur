@@ -114,3 +114,34 @@ test("background reconcile job never throws and runs both reconciliations at sta
   finally { console.warn = original; }
   assert.deepEqual(calls, ["installments", "admin-fees"]);
 });
+
+test("Admin menandai biaya admin ditarik langsung: validasi, tolak bila ada pengajuan menunggu, lalu lunas dan lapak aktif lagi", async () => {
+  const { repository, service } = fixture({ adminFeeType: "fixed", adminFeeValue: 5000 }); const sent = fakeNotifications(repository);
+  await adminFeeFor(repository, "ORDER-K1", new Date("2026-01-01T00:00:00Z")); await adminFeeFor(repository, "ORDER-K2", new Date("2026-01-02T00:00:00Z"));
+  const [feeA, feeB] = await repository.finance.listAdminFees("STORE"); await repository.stores.update("STORE", { status: "suspended_admin_fee" });
+  await assert.rejects(service.collectAdminFees("STORE", { obligationIds: [feeA.id] }, merchant), (error) => error.statusCode === 403);
+  await assert.rejects(service.collectAdminFees("STORE", { obligationIds: [] }, admin));
+  await assert.rejects(service.collectAdminFees("STORE", { obligationIds: [feeA.id], method: "KOIN" }, admin));
+  await assert.rejects(service.collectAdminFees("NOPE", { obligationIds: [feeA.id] }, admin));
+  await service.createSettlement("STORE", { obligationIds: [feeB.id] }, merchant);
+  await assert.rejects(service.collectAdminFees("STORE", { obligationIds: [feeB.id] }, admin), /menunggu konfirmasi/);
+  const partial = await service.collectAdminFees("STORE", { obligationIds: [feeA.id], method: "TRANSFER", note: "Setor di balai desa" }, admin);
+  assert.deepEqual(partial, { collected: 1, amount: 5000, storeReactivated: false });
+  assert.equal((await repository.stores.findById("STORE")).status, "suspended_admin_fee");
+  const paid = (await repository.finance.listAdminFees("STORE")).find((row) => row.id === feeA.id); assert.equal(paid.status, "PAID"); assert.equal(paid.paymentMethod, "TRANSFER");
+  await assert.rejects(service.collectAdminFees("STORE", { obligationIds: [feeA.id] }, admin), /tidak valid atau sudah lunas/);
+  const pending = (await repository.finance.findAdminFees([feeB.id]))[0].settlementItem.settlement; await service.confirmPayment("settlement", pending.id, admin, false);
+  const rest = await service.collectAdminFees("STORE", { obligationIds: [feeB.id], method: "CASH" }, admin);
+  assert.deepEqual(rest, { collected: 1, amount: 5000, storeReactivated: true }); assert.equal((await repository.stores.findById("STORE")).status, "active");
+  assert.ok(sent.some((row) => row.type === "ADMIN_FEE_PAID" && /Rp5\.000/.test(row.body))); assert.ok(sent.some((row) => row.type === "STORE_REACTIVATED"));
+});
+
+test("pengingat otomatis hanya untuk tagihan jatuh tempo dalam 3 hari atau sudah lewat, maks sekali per lapak per hari", async () => {
+  const { repository, service } = fixture({ adminFeeType: "fixed", adminFeeValue: 5000 }); const sent = fakeNotifications(repository);
+  await adminFeeFor(repository, "ORDER-D1", new Date("2026-01-15T03:00:00Z"));
+  assert.equal((await service.remindDueSoon(new Date("2026-01-20T03:00:00Z"))).reminded, 0);
+  const near = new Date("2026-01-30T03:00:00Z");
+  assert.equal((await service.remindDueSoon(near)).reminded, 1); assert.equal((await service.remindDueSoon(near)).alreadyReminded, 1);
+  assert.equal((await service.remindDueSoon(new Date("2026-02-03T03:00:00Z"))).reminded, 1);
+  assert.equal(sent.length, 2); assert.ok(sent.every((row) => row.type === "MERCHANT_FEE_REMINDER" && row.userId === merchant.id));
+});

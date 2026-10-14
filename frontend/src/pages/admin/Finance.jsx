@@ -7,7 +7,7 @@ import LoadingPanel from "../../components/ui/LoadingPanel";
 import PageHeader from "../../components/ui/PageHeader";
 import { FinanceBadge as Badge, StoreFinanceStatus as StoreStatus } from "../../components/admin/FinanceBadges";
 import { downloadCsv, reportFileName } from "../../utils/csv";
-import { buildFinanceLedger, FINANCE_FILTERS, filterLedgers, sortLedgers } from "../../utils/adminFinance";
+import { buildAdminFeeRecap, buildFinanceLedger, FINANCE_FILTERS, filterLedgers, sortLedgers } from "../../utils/adminFinance";
 import { usePreferences } from "../../context/PreferencesContext";
 import { financeService } from "../../services/financeService";
 import "./AdminDeliveryFinance.css";
@@ -30,6 +30,7 @@ const COPY = {
     installmentsTitle: "Hitung denda cicilan", installmentsHelp: "Menandai cicilan iuran pokok yang lewat jatuh tempo dan menambahkan denda keterlambatan setiap 7 hari sesuai Pengaturan Platform. Aman dijalankan berkali-kali: denda tiap periode hanya dihitung sekali.",
     feesTitle: "Cek batas bayar biaya admin", feesHelp: "Menangguhkan lapak aktif yang biaya adminnya belum lunas melewati batas bayar (tanggal 1, sampai jam akhir masa tenggang), dan mengaktifkan lagi lapak yang sudah tidak punya tunggakan. Aman dijalankan berkali-kali.",
     installmentsDone: "Selesai: {count} cicilan diperiksa, {penalties} denda baru.", feesDone: "Selesai: {suspended} lapak ditangguhkan, {reactivated} lapak diaktifkan lagi.",
+    recap: "Rekap biaya admin per bulan", recapHint: "Total biaya admin dari pesanan selesai, dikelompokkan per bulan tagihan.", recapDownload: "Unduh rekap (CSV)", recapEmpty: "Belum ada biaya admin", recapEmptyHint: "Rekap muncul setelah ada pesanan selesai.", recapCols: { month: "Bulan", orders: "Pesanan", total: "Total tagihan", collected: "Sudah ditarik", outstanding: "Belum ditarik", owing: "Lapak menunggak" }, recapCsv: { month: "Bulan", store: "Lapak", orders: "Jumlah pesanan", total: "Total tagihan", collected: "Sudah ditarik", outstanding: "Belum ditarik" }, recapFile: "rekap-biaya-admin",
     loading: "Memuat keuangan", loadFailed: "Data keuangan gagal dimuat.", actionFailed: "Aksi gagal diproses. Coba lagi.", retry: "Coba lagi", done: "Berhasil diproses.",
   },
   en: {
@@ -49,6 +50,7 @@ const COPY = {
     installmentsTitle: "Calculate installment penalties", installmentsHelp: "Marks overdue membership fee installments and adds a late penalty every 7 days as set in Admin Settings. Safe to run repeatedly: each period's penalty is only added once.",
     feesTitle: "Check admin fee deadlines", feesHelp: "Suspends active stores whose admin fees are still unpaid after the deadline (the 1st, until the grace time), and reactivates stores that no longer owe anything. Safe to run repeatedly.",
     installmentsDone: "Done: {count} installments checked, {penalties} new penalties.", feesDone: "Done: {suspended} stores suspended, {reactivated} stores reactivated.",
+    recap: "Monthly admin fee recap", recapHint: "Admin fees from completed orders, grouped by billing month.", recapDownload: "Download recap (CSV)", recapEmpty: "No admin fees yet", recapEmptyHint: "The recap appears once orders are completed.", recapCols: { month: "Month", orders: "Orders", total: "Total billed", collected: "Collected", outstanding: "Not collected", owing: "Stores in arrears" }, recapCsv: { month: "Month", store: "Store", orders: "Orders", total: "Total billed", collected: "Collected", outstanding: "Not collected" }, recapFile: "admin-fee-recap",
     loading: "Loading finance monitoring", loadFailed: "Finance data could not be loaded.", actionFailed: "The action could not be completed. Please try again.", retry: "Try again", done: "Done.",
   },
 };
@@ -95,6 +97,16 @@ export default function AdminFinance() {
     atRisk: ledgers.filter((row) => row.atRisk).length,
     suspended: data?.suspendedStores?.length ?? ledgers.filter((row) => row.suspended).length,
   }), [data, ledgers]);
+  const recap = useMemo(() => buildAdminFeeRecap(ledgers), [ledgers]);
+  const monthName = (row) => formatDate(new Date(row.year, row.month - 1, 1), { month: "long", year: "numeric" });
+  const downloadRecap = () => downloadCsv(reportFileName(copy.recapFile), [
+    { label: copy.recapCsv.month, value: (row) => row.key },
+    { label: copy.recapCsv.store, value: (row) => row.storeName || copy.unknownStore },
+    { label: copy.recapCsv.orders, value: (row) => row.orders },
+    { label: copy.recapCsv.total, value: (row) => Math.round(row.total) },
+    { label: copy.recapCsv.collected, value: (row) => Math.round(row.paid) },
+    { label: copy.recapCsv.outstanding, value: (row) => Math.round(row.outstanding) },
+  ], recap.perStore);
   const confirmations = useMemo(() => ledgers.flatMap((row) => row.confirmations.map((item) => ({ ...item, storeId: row.storeId, storeName: row.storeName }))).sort((a, b) => new Date(a.createdAt || 0) - new Date(b.createdAt || 0)), [ledgers]);
 
   const day = (value) => (value ? formatDate(value, { day: "numeric", month: "short", year: "numeric", timeZone: "Asia/Jakarta" }) : "–");
@@ -151,6 +163,13 @@ export default function AdminFinance() {
             <ChevronIcon />
           </Link>
         </li>)}</ul> : <EmptyState title={copy.noRows} description={copy.noRowsHint} />}
+      </section>
+
+      <section className={sectionClass} aria-labelledby="finance-recap">
+        <div className="flex flex-wrap items-start justify-between gap-2"><div className="min-w-0"><h2 className="text-lg font-extrabold" id="finance-recap">{copy.recap}</h2><p className="text-sm text-[var(--kucur-text-muted)]">{copy.recapHint}</p></div>{recap.months.length > 0 && <Button variant="secondary" onClick={downloadRecap}><DownloadIcon />{copy.recapDownload}</Button>}</div>
+        {recap.months.length ? <div className="min-w-0 overflow-x-auto rounded-xl border border-[var(--kucur-border)]"><table className="w-full min-w-[640px] border-collapse text-sm"><thead><tr>{[["month", ""], ["orders", " text-right"], ["total", " text-right"], ["collected", " text-right"], ["outstanding", " text-right"], ["owing", " text-right"]].map(([key, align]) => <th className={`whitespace-nowrap bg-[var(--kucur-surface-muted)] px-3 py-2.5 text-left text-xs font-bold text-[var(--kucur-text-muted)]${align}`} scope="col" key={key}>{copy.recapCols[key]}</th>)}</tr></thead><tbody>
+          {recap.months.map((row) => <tr key={row.key}><th className="whitespace-nowrap border-t border-[var(--kucur-border)] px-3 py-3 text-left font-bold" scope="row">{monthName(row)}</th><td className="whitespace-nowrap border-t border-[var(--kucur-border)] px-3 py-3 text-right">{row.orders}</td><td className="whitespace-nowrap border-t border-[var(--kucur-border)] px-3 py-3 text-right font-semibold">{formatCurrency(row.total)}</td><td className="whitespace-nowrap border-t border-[var(--kucur-border)] px-3 py-3 text-right text-[var(--kucur-green-ink)]">{formatCurrency(row.paid)}</td><td className={`whitespace-nowrap border-t border-[var(--kucur-border)] px-3 py-3 text-right ${row.outstanding > 0 ? "font-semibold text-rose-700 dark:text-rose-300" : ""}`}>{formatCurrency(row.outstanding)}</td><td className="whitespace-nowrap border-t border-[var(--kucur-border)] px-3 py-3 text-right">{row.storesOwing}</td></tr>)}
+        </tbody></table></div> : <EmptyState title={copy.recapEmpty} description={copy.recapEmptyHint} />}
       </section>
 
       <section className={sectionClass} aria-labelledby="finance-automation">

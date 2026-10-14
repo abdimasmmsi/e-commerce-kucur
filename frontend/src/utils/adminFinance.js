@@ -136,11 +136,12 @@ export function groupAdminFeesByMonth(items, now = Date.now()) {
   const groups = new Map();
   for (const item of items) {
     const key = `${item.billingYear}-${String(item.billingMonth).padStart(2, "0")}`;
-    const group = groups.get(key) || { key, year: item.billingYear, month: item.billingMonth, items: [], total: 0, unpaid: 0, pending: 0, dueAt: null, unpaidDueAt: null, paidAt: null };
+    const group = groups.get(key) || { key, year: item.billingYear, month: item.billingMonth, items: [], total: 0, unpaid: 0, pending: 0, dueAt: null, unpaidDueAt: null, paidAt: null, collectIds: [] };
     group.items.push(item); group.total = money(group.total + item.amount);
     if (item.state === "pending") group.pending = money(group.pending + item.amount);
     else if (!item.paid && !item.cancelled) {
       group.unpaid = money(group.unpaid + item.amount);
+      group.collectIds.push(item.id);
       if (item.dueAt && (!group.unpaidDueAt || new Date(item.dueAt) < new Date(group.unpaidDueAt))) group.unpaidDueAt = item.dueAt;
     }
     if (item.dueAt && (!group.dueAt || new Date(item.dueAt) < new Date(group.dueAt))) group.dueAt = item.dueAt;
@@ -151,4 +152,23 @@ export function groupAdminFeesByMonth(items, now = Date.now()) {
     const state = group.unpaid > 0 ? itemState({ dueAt: group.unpaidDueAt }, now) : group.pending > 0 ? "pending" : "paid";
     return { ...group, dueAt: group.unpaidDueAt || group.dueAt, state };
   }).sort((a, b) => (b.year - a.year) || (b.month - a.month));
+}
+
+// Rekap biaya admin per bulan untuk semua lapak (dan per lapak per bulan untuk CSV). Tagihan dibatalkan tidak dihitung.
+export function buildAdminFeeRecap(ledgers) {
+  const months = new Map();
+  const perStore = [];
+  for (const ledger of ledgers) {
+    for (const group of groupAdminFeesByMonth(ledger.adminFees.filter((item) => !item.cancelled))) {
+      const paid = money(group.total - group.unpaid - group.pending);
+      const outstanding = money(group.unpaid + group.pending);
+      perStore.push({ key: group.key, year: group.year, month: group.month, storeId: ledger.storeId, storeName: ledger.storeName, orders: group.items.length, total: group.total, paid, outstanding });
+      const row = months.get(group.key) || { key: group.key, year: group.year, month: group.month, orders: 0, total: 0, paid: 0, outstanding: 0, storesOwing: 0 };
+      row.orders += group.items.length; row.total = money(row.total + group.total); row.paid = money(row.paid + paid); row.outstanding = money(row.outstanding + outstanding);
+      if (outstanding > 0) row.storesOwing += 1;
+      months.set(group.key, row);
+    }
+  }
+  const byMonth = (a, b) => (b.year - a.year) || (b.month - a.month);
+  return { months: [...months.values()].sort(byMonth), perStore: perStore.sort((a, b) => byMonth(a, b) || a.storeName.localeCompare(b.storeName)) };
 }

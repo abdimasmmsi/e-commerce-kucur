@@ -17,6 +17,10 @@ function startFinanceReconcileJob(repository, { intervalMs = 60 * 60 * 1000, fin
     try {
       await runWithReadContext("/api/admin/finance/reconcile-admin-fees", () => financeService.reconcileAdminFees(new Date(), null));
     } catch (error) { console.warn(`[finance-reconcile-job] biaya admin: ${error.message}`); }
+    try {
+      // Pengingat otomatis: tagihan jatuh tempo dalam 3 hari atau sudah lewat; maks sekali per lapak per hari (dedupe sama dengan tombol Ingatkan).
+      await runWithReadContext("/api/admin/finance/remind", () => financeService.remindDueSoon(new Date()));
+    } catch (error) { console.warn(`[finance-reconcile-job] pengingat: ${error.message}`); }
     finally { running = false; }
   };
   const timer = setInterval(() => { void tick(); }, intervalMs);
