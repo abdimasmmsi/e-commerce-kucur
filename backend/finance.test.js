@@ -145,3 +145,10 @@ test("pengingat otomatis hanya untuk tagihan jatuh tempo dalam 3 hari atau sudah
   assert.equal((await service.remindDueSoon(new Date("2026-02-03T03:00:00Z"))).reminded, 1);
   assert.equal(sent.length, 2); assert.ok(sent.every((row) => row.type === "MERCHANT_FEE_REMINDER" && row.userId === merchant.id));
 });
+
+test("batas bayar biaya admin mengikuti tanggal di pengaturan (tanggal 7 bulan berikutnya, pukul 12.00 WIB)", async () => {
+  assert.equal(cutoffFor(new Date("2026-10-31T10:00:00Z"), 7, "12:00").toISOString(), "2026-11-07T05:00:00.000Z");
+  const { repository } = fixture({ adminFeeType: "fixed", adminFeeValue: 5000, adminFeeCutoffDay: 7 });
+  await repository.transaction((tx) => generateCommerceFinance(tx, { id: "ORDER-T7", storeId: "STORE", customerUserId: "CUSTOMER", productTotal: 1000, paymentStatus: "paid" }, new Date("2026-10-31T10:00:00Z")));
+  assert.equal(new Date((await repository.finance.listAdminFees("STORE"))[0].cutoffAt).toISOString(), "2026-11-07T05:00:00.000Z");
+});

@@ -68,7 +68,7 @@ Satu kalimat inti (hafalkan): **"Platform ini membuat produk warga Desa Kucur bi
 
 ### 3.2 Uang di sistem
 - **Pembeli membayar** harga barang + PPN + ongkir + tip, tunai ke kurir (COD).
-- **Biaya admin** (saat ini 5% dari subtotal sebelum PPN, bisa diatur) **dibebankan ke penjual**, bukan pembeli. Tagihan dibuat otomatis tiap pesanan selesai dan dikelompokkan per bulan. Batas bayar tanggal 1 bulan berikutnya pukul 12.00. Kalau masih ada tunggakan, lapak ditangguhkan otomatis dan aktif lagi setelah lunas. Dana ini untuk menggaji pengelola.
+- **Biaya admin** (saat ini 5% dari subtotal sebelum PPN, bisa diatur) **dibebankan ke penjual**, bukan pembeli. Tagihan dibuat otomatis tiap pesanan selesai dan dikelompokkan per bulan. Batas bayar tanggal 7 bulan berikutnya pukul 12.00 WIB (tanggalnya diatur di Pengaturan Platform). Kalau masih ada tunggakan, lapak ditangguhkan otomatis dan aktif lagi setelah lunas. Dana ini untuk menggaji pengelola.
 - **Iuran pokok**: wajib saat membuka lapak, boleh dicicil (lunas, 3 kali, atau 6 kali). Lapak aktif setelah cicilan pertama dikonfirmasi. Terlambat dikenai denda persentase dari sisa tagihan tiap 7 hari.
 - **Iuran sukarela**: kapan saja, nominal bebas, tidak pernah menyebabkan lapak ditangguhkan.
 - **Admin mengonfirmasi** pembayaran yang diajukan penjual, atau (fitur baru) **menandai sudah ditarik langsung** untuk biaya admin yang dibayar tunai di luar sistem.
@@ -183,7 +183,7 @@ Satu kalimat inti (hafalkan): **"Platform ini membuat produk warga Desa Kucur bi
 11. **Kenapa 20 tabel?**
     Dirancang cukup untuk seluruh alur dengan relasi yang rapi. Beberapa data tambahan memakai kolom JSON (riwayat, alamat) supaya skema tetap ramping.
 12. **Bagaimana biaya admin dan siapa yang membayar?**
-    Dibebankan ke penjual, bukan pembeli, sebesar persentase dari subtotal sebelum PPN. Tagihan dikelompokkan per bulan, batas bayar tanggal 1 pukul 12.00, lapak ditangguhkan bila menunggak. Dana ini untuk menggaji pengelola.
+    Dibebankan ke penjual, bukan pembeli, sebesar persentase dari subtotal sebelum PPN. Tagihan dikelompokkan per bulan, batas bayar tanggal 7 bulan berikutnya pukul 12.00 WIB, lapak ditangguhkan bila menunggak. Dana ini untuk menggaji pengelola.
 13. **Kenapa PPN dikenakan?**
     Persentase global diatur admin dan disimpan sebagai snapshot di tiap pesanan; bisa diatur ke 0 bila pengelola memutuskan lain. Penetapan kebijakan pajaknya mengikuti arahan pengelola.
 14. **Bagaimana kalau kurir tidak bisa mengantar?**
