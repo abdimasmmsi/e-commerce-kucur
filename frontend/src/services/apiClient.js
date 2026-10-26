@@ -1,7 +1,7 @@
 import { requestFinished, requestStarted } from "../utils/loadingBus";
 import { getAuthToken } from "./authStorage";
 
-const API_BASE_URL = String(import.meta.env.VITE_API_BASE_URL || "http://localhost:3000").replace(/\/$/, "");
+const API_BASE_URL = String(import.meta.env.VITE_API_BASE_URL ?? "http://localhost:3000").replace(/\/$/, "");
 export const apiAssetUrl = (value) => value && String(value).startsWith("/") ? `${API_BASE_URL}${value}` : value || "";
 export const AUTH_INVALIDATED_EVENT = "kucur-auth-invalidated";
 const DEFAULT_TIMEOUT_MS = 10000;

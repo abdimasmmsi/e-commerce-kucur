@@ -1,0 +1,99 @@
+# Stack produksi/UAT Kucur: mysql + backend + web (Caddy).
+# Jalankan dari ROOT repo:
+#   docker compose --env-file deploy/.env.production -f deploy/docker-compose.prod.yml up -d --build
+# Nama project "kucur-prod" terpisah dari container dev (kucur-mysql-dev, port 3307).
+name: kucur-prod
+
+services:
+  mysql:
+    image: mysql:8.4
+    container_name: kucur-prod-mysql
+    restart: unless-stopped
+    command:
+      - --character-set-server=utf8mb4
+      - --collation-server=utf8mb4_unicode_ci
+      - --innodb-buffer-pool-size=256M
+      - --performance-schema=OFF
+    environment:
+      MYSQL_DATABASE: kucur
+      MYSQL_USER: kucur
+      MYSQL_PASSWORD: ${MYSQL_PASSWORD:?isi MYSQL_PASSWORD di deploy/.env.production}
+      MYSQL_ROOT_PASSWORD: ${MYSQL_ROOT_PASSWORD:?isi MYSQL_ROOT_PASSWORD di deploy/.env.production}
+      TZ: ${TZ:-Asia/Jakarta}
+    volumes:
+      - mysql_data:/var/lib/mysql
+    # Tidak ada "ports": database hanya bisa dicapai container lain di jaringan ini.
+    healthcheck:
+      test: ["CMD-SHELL", "mysqladmin ping --silent -h 127.0.0.1 -u$${MYSQL_USER} -p$${MYSQL_PASSWORD}"]
+      interval: 10s
+      timeout: 5s
+      retries: 20
+      start_period: 30s
+    networks: [internal]
+
+  backend:
+    build:
+      context: ..
+      dockerfile: deploy/Dockerfile.backend
+    image: kucur-prod-backend:latest
+    container_name: kucur-prod-backend
+    restart: unless-stopped
+    depends_on:
+      mysql:
+        condition: service_healthy
+    environment:
+      NODE_ENV: production
+      PORT: 3000
+      TZ: ${TZ:-Asia/Jakarta}
+      DATABASE_URL: mysql://kucur:${MYSQL_PASSWORD}@mysql:3306/kucur
+      TRUST_PROXY: uniquelocal
+      CORS_ALLOWED_ORIGINS: ${CORS_ALLOWED_ORIGINS:-https://${SITE_ADDRESS:?isi SITE_ADDRESS di deploy/.env.production}}
+      AUTH_SESSION_TTL_HOURS: ${AUTH_SESSION_TTL_HOURS:-12}
+      # Mode repository final (wajib: tanpa ALLOW, NODE_ENV=production menolak mode final).
+      FINAL_REPOSITORY_READ_MODE: final
+      FINAL_REPOSITORY_WRITE_MODE: final
+      FINAL_REPOSITORY_ALLOW_FINAL_IN_PRODUCTION: "true"
+      FINAL_REPOSITORY_SHADOW_SYNC_WRITES: "false"
+      FINAL_REPOSITORY_LEGACY_MIRROR_WRITES: "false"
+      WEB_PUSH_PUBLIC_KEY: ${WEB_PUSH_PUBLIC_KEY:-}
+      WEB_PUSH_PRIVATE_KEY: ${WEB_PUSH_PRIVATE_KEY:-}
+      WEB_PUSH_SUBJECT: ${WEB_PUSH_SUBJECT:-}
+      MIDTRANS_SERVER_KEY: ${MIDTRANS_SERVER_KEY:-}
+      MIDTRANS_CLIENT_KEY: ${MIDTRANS_CLIENT_KEY:-}
+    volumes:
+      - uploads:/app/uploads
+    # Tidak ada "ports": hanya Caddy yang boleh meneruskan lalu lintas ke sini.
+    networks: [internal]
+
+  web:
+    build:
+      context: ..
+      dockerfile: deploy/Dockerfile.web
+      args:
+        VITE_OPENROUTESERVICE_API_KEY: ${OPENROUTESERVICE_API_KEY:-}
+    image: kucur-prod-web:latest
+    container_name: kucur-prod-web
+    restart: unless-stopped
+    depends_on:
+      backend:
+        condition: service_healthy
+    environment:
+      SITE_ADDRESS: ${SITE_ADDRESS:?isi SITE_ADDRESS di deploy/.env.production}
+    ports:
+      # Hanya 80/443 yang terbuka ke luar. Untuk uji lokal ganti lewat HTTP_PORT/HTTPS_PORT.
+      - "${HTTP_PORT:-80}:80"
+      - "${HTTPS_PORT:-443}:443"
+      - "${HTTPS_PORT:-443}:443/udp"
+    volumes:
+      - caddy_data:/data
+      - caddy_config:/config
+    networks: [internal]
+
+networks:
+  internal:
+
+volumes:
+  mysql_data:
+  uploads:
+  caddy_data:
+  caddy_config:

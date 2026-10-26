@@ -1,0 +1,40 @@
+# SITE_ADDRESS = domain (mis. toko.contoh.id) -> HTTPS otomatis (Let's Encrypt).
+# Untuk uji lokal isi SITE_ADDRESS=localhost (sertifikat internal Caddy).
+{$SITE_ADDRESS} {
+	encode zstd gzip
+
+	header {
+		-Server
+		Strict-Transport-Security "max-age=31536000; includeSubDomains"
+		X-Content-Type-Options "nosniff"
+		X-Frame-Options "DENY"
+		Referrer-Policy "strict-origin-when-cross-origin"
+		# Kamera (foto bukti antar / produk) dan lokasi (alamat, peta) hanya untuk situs sendiri.
+		Permissions-Policy "camera=(self), geolocation=(self), microphone=(), payment=(), usb=(), bluetooth=(), serial=(), magnetometer=(), gyroscope=(), accelerometer=(), interest-cohort=()"
+	}
+
+	# API, berkas unggahan, dan WebSocket (Socket.IO) diteruskan ke backend.
+	# Header keamanan API (CSP default-src 'none', dsb.) dari backend tetap dipakai apa adanya.
+	handle /api/* {
+		reverse_proxy backend:3000
+	}
+	handle /uploads/* {
+		reverse_proxy backend:3000
+	}
+	handle /socket.io/* {
+		reverse_proxy backend:3000
+	}
+
+	# Frontend (SPA)
+	handle {
+		root * /srv
+		header Content-Security-Policy "default-src 'self'; script-src 'self'; style-src 'self' 'unsafe-inline' https://fonts.googleapis.com; font-src 'self' data: https://fonts.gstatic.com; img-src 'self' data: blob: https://*.tile.openstreetmap.org; connect-src 'self' wss://{$SITE_ADDRESS} https://api.openrouteservice.org; worker-src 'self' blob:; manifest-src 'self'; media-src 'self' blob:; object-src 'none'; base-uri 'self'; form-action 'self'; frame-ancestors 'none'"
+		# Berkas ber-hash di /assets di-cache lama; sisanya (index.html, sw.js, manifest, rute SPA) selalu dicek ulang.
+		@hashed path /assets/*
+		header @hashed Cache-Control "public, max-age=31536000, immutable"
+		@other not path /assets/*
+		header @other Cache-Control "no-cache"
+		try_files {path} /index.html
+		file_server
+	}
+}

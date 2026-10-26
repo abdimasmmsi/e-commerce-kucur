@@ -1,7 +1,7 @@
 import { io } from "socket.io-client";
 import { getAuthToken } from "./authStorage";
 
-const SOCKET_URL = String(import.meta.env.VITE_API_BASE_URL || "http://localhost:3000").replace(/\/$/, "");
+const SOCKET_URL = String(import.meta.env.VITE_API_BASE_URL ?? "http://localhost:3000").replace(/\/$/, "");
 let socket;
 const joinedConversations = new Set();
 

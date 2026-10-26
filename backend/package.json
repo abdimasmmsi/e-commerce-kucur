@@ -7,6 +7,7 @@
     "dev": "nodemon server.js",
     "start": "node server.js",
     "test": "node --test foundation.test.js product.test.js commerce.test.js finance.test.js review.test.js notification.test.js chat.test.js realtime.test.js delivery.test.js storeAvailability.test.js midtransService.test.js rateLimit.test.js settingsFaq.test.js tests/testDatabaseGuard.test.js",
+    "admin:create": "node scripts/createAdmin.js",
     "security:check": "node scripts/securityCheck.js",
     "security:passwords": "node scripts/defaultPasswordCheck.js",
     "check:concurrency": "node scripts/concurrencyCheck.js",
