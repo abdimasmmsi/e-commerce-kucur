@@ -39,6 +39,8 @@ async function verifyPassword(password, encoded) {
   return actual.length === expected.length && crypto.timingSafeEqual(actual, expected);
 }
 
+const DUMMY_PASSWORD_HASH = `scrypt:${"00".repeat(16)}:${"00".repeat(64)}`;
+
 function createAuthService(repository) {
   const tokenHash = (token) => crypto.createHash("sha256").update(token).digest("hex");
   const sessionLifetimeMs = Math.max(1, Number(process.env.AUTH_SESSION_TTL_HOURS) || 12) * 60 * 60 * 1000;
@@ -61,7 +63,9 @@ function createAuthService(repository) {
     },
     async login(input) {
       const user = await repository.users.findByEmail(validateEmail(input.email));
-      if (!user || user.status !== "active" || !(await verifyPassword(input.password, user.passwordHash))) throw errors.unauthenticated("Email atau password salah.");
+      // Hash selalu dihitung (pakai hash palsu bila email tidak ada) supaya waktu respons tidak membocorkan email yang terdaftar.
+      const passwordOk = await verifyPassword(input.password, user?.passwordHash || DUMMY_PASSWORD_HASH);
+      if (!user || user.status !== "active" || !passwordOk) throw errors.unauthenticated("Email atau password salah.");
       const token = crypto.randomBytes(32).toString("base64url");
       const expiresAt = new Date(Date.now() + sessionLifetimeMs);
       await repository.sessions.create({ tokenHash: tokenHash(token), userId: user.id, expiresAt });

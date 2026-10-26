@@ -18,6 +18,7 @@ const CustomerNotifications = lazy(() => import("./pages/customer/Notifications"
 const Cart = lazy(() => import("./pages/customer/Cart"));
 import Login from "./pages/auth/Login";
 const Register = lazy(() => import("./pages/auth/Register"));
+const Privacy = lazy(() => import("./pages/auth/Privacy"));
 import Unauthorized from "./pages/auth/Unauthorized";
 const Profile = lazy(() => import("./pages/auth/Profile"));
 const AccountSettings = lazy(() => import("./pages/auth/AccountSettings"));
@@ -101,6 +102,7 @@ function App() {
           <Route path="my-reviews" element={<ProtectedRoute allowedRoles={["customer"]}><MyReviews /></ProtectedRoute>} />
           <Route path="login" element={<Login />} />
           <Route path="register" element={<Register />} />
+          <Route path="privacy" element={<Privacy />} />
           <Route path="unauthorized" element={<Unauthorized />} />
         </Route>
 

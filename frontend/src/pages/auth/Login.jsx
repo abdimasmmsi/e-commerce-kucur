@@ -11,7 +11,7 @@ function Login() {
   const location = useLocation();
   const [searchParams] = useSearchParams();
   const { activeRole, initialized, isAuthenticated, login, user } = useAuth();
-  const { t } = usePreferences();
+  const { language, t } = usePreferences();
   const [email, setEmail] = useState(() => location.state?.email ?? "");
   const [password, setPassword] = useState("");
   const [error, setError] = useState("");
@@ -66,6 +66,7 @@ function Login() {
     </form>
     {(import.meta.env.DEV || import.meta.env.VITE_SHOW_DEMO_ACCOUNTS === "true") && <DevelopmentQaAccounts onSelect={fillQaAccount} />}
     <p className="auth-switch-copy">{t("auth.noAccount")} <Link to="/register">{t("auth.registerCustomer")}</Link></p>
+    <p className="auth-switch-copy"><Link to="/privacy">{language === "id" ? "Kebijakan Privasi" : "Privacy Policy"}</Link></p>
   </section></div>;
 }
 

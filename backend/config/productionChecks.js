@@ -6,6 +6,7 @@ async function productionWarnings({ repository, env }) {
   if (!process.env.CORS_ALLOWED_ORIGINS) warnings.push("CORS_ALLOWED_ORIGINS belum diatur: hanya localhost yang diizinkan, domain asli akan ditolak browser.");
   if (env.allowedOrigins.some((origin) => origin.startsWith("http://") && !local.test(origin))) warnings.push("Ada origin http:// (bukan HTTPS) di CORS_ALLOWED_ORIGINS.");
   if (env.allowedOrigins.some((origin) => local.test(origin))) warnings.push("Origin localhost masih diizinkan di CORS_ALLOWED_ORIGINS.");
+  if (!process.env.TRUST_PROXY) warnings.push("TRUST_PROXY belum diatur: bila backend ada di belakang Caddy/Nginx, semua pengguna terlihat satu IP dan batas permintaan bisa mengenai semuanya sekaligus (isi \"uniquelocal\" untuk Docker).");
   try {
     const users = await repository.users.list();
     const qa = users.filter((user) => /@kucur\.test$/i.test(String(user.email))).length;

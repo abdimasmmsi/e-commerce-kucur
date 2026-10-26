@@ -1,0 +1,7 @@
+# CONTOH FIKTIF, BUKAN DATA ASLI. Hapus baris ini dan isi dengan data UAT sebenarnya.
+id,peran,q1,q2,q3,q4,q5,q6,q7,q8,q9,q10
+CONTOH-01,Pembeli,4,2,4,2,4,2,4,2,4,2
+CONTOH-02,Pembeli,5,1,5,2,4,1,5,1,4,2
+CONTOH-03,Penjual,3,3,4,3,3,2,4,3,3,3
+CONTOH-04,Kurir,4,2,3,2,4,3,4,2,3,2
+CONTOH-05,Admin,5,2,5,1,4,2,5,1,5,1

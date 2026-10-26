@@ -18,6 +18,10 @@ function Register() {
   const addressCopy = language === "id" ? { title: "Alamat pengiriman utama", hint: "Dipakai otomatis saat checkout. Kamu bisa menambah sampai 5 alamat nanti di menu Akun." } : { title: "Main delivery address", hint: "Used automatically at checkout. You can add up to 5 addresses later from Account." };
   const [error, setError] = useState("");
   const [submitting, setSubmitting] = useState(false);
+  const [agreed, setAgreed] = useState(false);
+  const consentCopy = language === "id"
+    ? { before: "Saya sudah membaca dan menyetujui", link: "Kebijakan Privasi", required: "Centang persetujuan Kebijakan Privasi untuk melanjutkan." }
+    : { before: "I have read and agree to the", link: "Privacy Policy", required: "Tick the Privacy Policy agreement to continue." };
   const handleChange = (event) => { const { name, value } = event.target; setForm((current) => ({ ...current, [name]: value })); setError(""); };
   const [emailTaken, setEmailTaken] = useState("");
   const emailCopy = language === "id"
@@ -39,6 +43,7 @@ function Register() {
     const delivery = { ...address, recipientName: address.recipientName.trim() || form.fullName.trim(), phone: address.phone.trim() || form.phone.trim() };
     const problem = addressProblem(delivery, language);
     if (problem) return setError(problem);
+    if (!agreed) return setError(consentCopy.required);
     setSubmitting(true); const result = await register({ ...form, address: { ...delivery, latitude: Number(delivery.latitude), longitude: Number(delivery.longitude) } }); setSubmitting(false);
     if (!result.success) { if (result.code === "CONFLICT") { setEmailTaken(form.email.trim().toLowerCase()); return setError(""); } return setError(result.message); }
     navigate("/login", { replace: true, state: { message: "Akun berhasil dibuat. Silakan login." } });
@@ -55,6 +60,7 @@ function Register() {
       <label><span>{t("auth.password")}</span><input name="password" type="password" value={form.password} onChange={handleChange} placeholder="Minimal 8 karakter" /></label>
       <label><span>{t("auth.confirmPassword")}</span><input name="confirmPassword" type="password" value={form.confirmPassword} onChange={handleChange} placeholder={t("auth.confirmPassword")} /></label>
       <fieldset className="register-full grid min-w-0 gap-3 border-t border-[var(--kucur-border)] pt-4"><legend className="sr-only">{addressCopy.title}</legend><div><strong className="block text-base">{addressCopy.title}</strong><span className="text-sm text-[var(--kucur-text-muted)]">{addressCopy.hint}</span></div><AddressForm value={{ ...address, recipientName: address.recipientName || form.fullName, phone: address.phone || form.phone }} onChange={setAddress} /></fieldset>
+      <label className="register-full flex min-h-11 items-start gap-3 text-[15px]"><input className="mt-1 h-5 w-5 shrink-0" type="checkbox" checked={agreed} onChange={(event) => { setAgreed(event.target.checked); setError(""); }} /><span>{consentCopy.before} <Link className="font-bold text-[var(--kucur-green-ink)] underline" to="/privacy" target="_blank" rel="noreferrer">{consentCopy.link}</Link>.</span></label>
       {error && <p className="auth-error register-full" role="alert">{error}</p>}
       <button className="primary-button register-full" type="submit" disabled={submitting}>{submitting ? t("auth.creating") : t("auth.createAccount")}</button>
     </form>

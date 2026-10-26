@@ -67,7 +67,10 @@ function createApp(options = {}) {
   });
   // Proxy Vite (dev:phone) berjalan di laptop yang sama, jadi hanya proxy loopback yang dipercaya:
   // req.ip diambil dari X-Forwarded-For hanya bila koneksi datang dari 127.0.0.1/::1 (dipakai rate limit auth).
-  app.set("trust proxy", "loopback");
+  // Di server (Caddy/Nginx di depan backend, mis. container Docker) set TRUST_PROXY ke "uniquelocal" (jaringan privat) atau jumlah hop
+  // ("1"); tanpa itu semua pengguna terlihat berasal dari IP proxy dan batas permintaan per IP mengenai semua orang sekaligus.
+  const trustProxy = process.env.TRUST_PROXY;
+  app.set("trust proxy", trustProxy === undefined || trustProxy === "" ? "loopback" : /^\d+$/.test(trustProxy) ? Number(trustProxy) : trustProxy);
   app.use(cors({ origin(origin, callback) { if (!origin || env.allowedOrigins.includes(origin)) return callback(null, true); return callback(null, false); }, credentials: false }));
   // Batas permintaan seluruh API (login/daftar punya batas sendiri di authRoutes).
   const apiLimits = options.apiRateLimits || createApiRateLimits();
