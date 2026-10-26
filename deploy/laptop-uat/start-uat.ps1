@@ -6,6 +6,11 @@ param([switch]$NoTunnel, [int]$Port = 8080)
 $ErrorActionPreference = "Stop"
 $repo = (Resolve-Path (Join-Path $PSScriptRoot "..\..")).Path
 Set-Location $repo
+# Variabel di terminal bisa menimpa file .env.production (Docker Compose mengutamakan variabel terminal), mis. MYSQL_PASSWORD
+# bawaan dari pengembangan. Bersihkan semua nama yang dipakai compose supaya hanya file .env.production yang berlaku.
+foreach ($name in @("MYSQL_PASSWORD", "MYSQL_ROOT_PASSWORD", "SITE_ADDRESS", "HTTP_PORT", "HTTPS_PORT", "CORS_ALLOWED_ORIGINS", "TZ", "AUTH_SESSION_TTL_HOURS", "WEB_PUSH_PUBLIC_KEY", "WEB_PUSH_PRIVATE_KEY", "WEB_PUSH_SUBJECT", "MIDTRANS_SERVER_KEY", "MIDTRANS_CLIENT_KEY", "OPENROUTESERVICE_API_KEY", "DATABASE_URL")) { Remove-Item "Env:$name" -ErrorAction SilentlyContinue }
+# Segarkan PATH dari registry supaya program yang baru dipasang (mis. cloudflared) langsung dikenali tanpa membuka terminal baru.
+$env:Path = [Environment]::GetEnvironmentVariable("Path", "Machine") + ";" + [Environment]::GetEnvironmentVariable("Path", "User")
 $envFile = Join-Path $repo "deploy\.env.production"
 $credFile = Join-Path $repo "deploy\.uat-credentials.txt"
 $tunnelLog = Join-Path $PSScriptRoot "tunnel.log"
