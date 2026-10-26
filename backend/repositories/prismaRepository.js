@@ -278,7 +278,15 @@ function createPrismaRepository(client = getPrisma()) {
       deleteDraft: async (id) => { await client.conversationContext.deleteMany({ where: { conversationId: id } }); await client.conversationParticipant.deleteMany({ where: { conversationId: id } }); return client.conversation.delete({ where: { id } }); },
     },
     audits: {
-      append: async (input) => client.auditRecord.create({ data: { entityType: input.entityType, entityId: input.entityId, actorId: input.actorId || null, actorRole: input.actorRole || null, activityType: input.activityType, previousStatus: input.previousStatus || null, nextStatus: input.nextStatus || null, description: input.description, reason: input.reason || null, isSystem: Boolean(input.isSystem), ...(input.createdAt ? { createdAt: new Date(input.createdAt) } : {}) } }),
+      append: async (input) => {
+        const data = { entityType: input.entityType, entityId: input.entityId, actorId: input.actorId || null, actorRole: input.actorRole || null, activityType: input.activityType, previousStatus: input.previousStatus || null, nextStatus: input.nextStatus || null, description: input.description, reason: input.reason || null, isSystem: Boolean(input.isSystem), ...(input.createdAt ? { createdAt: new Date(input.createdAt) } : {}) };
+        try { return await client.auditRecord.create({ data }); } catch (error) {
+          // audit_records memiliki FK ke tabel pengguna lama. Di database baru (tanpa data lama) aktornya hanya ada di tabel final,
+          // sehingga FK gagal dan aksi Admin (mis. buat kurir) ikut gagal. Catat tanpa FK dan simpan ID aktor di deskripsi.
+          if (error?.code !== "P2003" || !data.actorId) throw error;
+          return client.auditRecord.create({ data: { ...data, actorId: null, description: `${data.description} [aktor: ${data.actorId}]` } });
+        }
+      },
       list: async () => client.auditRecord.findMany({ orderBy: { createdAt: "asc" } }),
     },
     transaction: (work) => client.$transaction((tx) => work(createPrismaRepository(tx))),
