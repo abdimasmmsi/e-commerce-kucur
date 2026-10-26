@@ -4,6 +4,7 @@ import { useAuth } from "../../context/AuthContext";
 import DevelopmentQaAccounts from "../../components/DevelopmentQaAccounts";
 import { usePreferences } from "../../context/PreferencesContext";
 import { getAuthenticatedHome, getRequiredRoleForPath, roleHomePaths } from "../../utils/authNavigation";
+import { uatAccounts } from "../../utils/uatAccounts";
 import "./Login.css";
 
 function Login() {
@@ -64,7 +65,7 @@ function Login() {
       {error && <p className="auth-error">{error}</p>}
       <button className="primary-button" type="submit" disabled={submitting}>{submitting ? t("auth.processing") : t("auth.loginButton")}</button>
     </form>
-    {(import.meta.env.DEV || import.meta.env.VITE_SHOW_DEMO_ACCOUNTS === "true") && <DevelopmentQaAccounts onSelect={fillQaAccount} />}
+    {(import.meta.env.DEV || import.meta.env.VITE_SHOW_DEMO_ACCOUNTS === "true" || uatAccounts.length > 0) &&<DevelopmentQaAccounts onSelect={fillQaAccount} />}
     <p className="auth-switch-copy">{t("auth.noAccount")} <Link to="/register">{t("auth.registerCustomer")}</Link></p>
     <p className="auth-switch-copy"><Link to="/privacy">{language === "id" ? "Kebijakan Privasi" : "Privacy Policy"}</Link></p>
   </section></div>;

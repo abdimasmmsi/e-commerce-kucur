@@ -71,6 +71,7 @@ services:
       dockerfile: deploy/Dockerfile.web
       args:
         VITE_OPENROUTESERVICE_API_KEY: ${OPENROUTESERVICE_API_KEY:-}
+        VITE_UAT_ACCOUNTS: ${UAT_ACCOUNTS_JSON:-}
     image: kucur-prod-web:latest
     container_name: kucur-prod-web
     restart: unless-stopped

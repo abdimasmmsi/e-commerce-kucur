@@ -20,7 +20,7 @@ Setelah `start-uat.ps1`, isi server dengan 3 lapak contoh dan 11 produk, lalu si
 ```
 powershell -ExecutionPolicy Bypass -File deploy\laptop-uat\seed-uat.ps1
 ```
-- Lapak dibuat lewat alur asli (pengajuan, persetujuan admin, Iuran Pokok lunas), tanpa akun `@kucur.test`. Akun pemilik lapak contoh (kata sandi acak) ada di `deploy\.uat-sample-accounts.txt`, tidak masuk git. Skrip aman dijalankan ulang.
+- Lapak dibuat lewat alur asli (pengajuan, persetujuan admin, Iuran Pokok lunas), tanpa akun `@kucur.test`. Tiga akun pemilik lapak contoh memakai satu kata sandi acak (`UAT_SAMPLE_PASSWORD` di `deploy\.env.production`), tercatat di `deploy\.uat-sample-accounts.txt` (tidak masuk git), dan **ditampilkan di halaman Masuk** lewat build web (`UAT_ACCOUNTS_JSON` -> `VITE_UAT_ACCOUNTS`). Akun admin tidak pernah ditampilkan karena alamat tunnel bersifat publik. Skrip aman dijalankan ulang (kata sandi pemilik yang sudah ada diselaraskan, lalu web dibangun ulang).
 - Snapshot `baseline` disimpan di `deploy\backups-uat\baseline.sql` dan tidak ditimpa bila seed dijalankan lagi (paksa dengan `-ForceSnapshot`, jangan dilakukan setelah ada data peserta).
 - Kembalikan ke kondisi awal kapan saja (antar hari sesi atau setelah UAT): `powershell -ExecutionPolicy Bypass -File deploy\laptop-uat\snapshot-uat.ps1 -Restore`. Ini menghapus akun peserta, pesanan, dan ulasan sejak baseline; foto unggahan tidak ikut dipulihkan.
 - Simpan snapshot lain (mis. sebelum sesi): `snapshot-uat.ps1 -Name sebelum-sesi-kurir`, lalu pulihkan dengan `-Restore -Name sebelum-sesi-kurir`.

@@ -6,7 +6,9 @@ COPY frontend/package.json frontend/package-lock.json ./
 RUN npm ci --no-audit --no-fund
 COPY frontend/ ./
 # Same-origin: string kosong = frontend memanggil /api dan /socket.io di domain yang sama.
-# VITE_SHOW_DEMO_ACCOUNTS sengaja TIDAK diset (akun demo tidak tampil di halaman Masuk).
+# VITE_SHOW_DEMO_ACCOUNTS sengaja TIDAK diset. Khusus UAT, VITE_UAT_ACCOUNTS (JSON akun penjual contoh, tanpa admin) boleh diisi.
+ARG VITE_UAT_ACCOUNTS=
+ENV VITE_UAT_ACCOUNTS=${VITE_UAT_ACCOUNTS}
 ENV VITE_API_BASE_URL=""
 # Opsional: kunci OpenRouteService (tanpa ini jarak dihitung Haversine). Kunci ini terlihat di browser, pakai kunci khusus & batasi domain.
 ARG VITE_OPENROUTESERVICE_API_KEY=

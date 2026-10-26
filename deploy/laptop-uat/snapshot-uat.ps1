@@ -6,7 +6,7 @@ param([switch]$Restore, [string]$Name = "baseline")
 $ErrorActionPreference = "Stop"
 $repo = (Resolve-Path (Join-Path $PSScriptRoot "..\..")).Path
 Set-Location $repo
-foreach ($var in @("MYSQL_PASSWORD", "MYSQL_ROOT_PASSWORD", "SITE_ADDRESS", "HTTP_PORT", "HTTPS_PORT", "CORS_ALLOWED_ORIGINS", "TZ", "DATABASE_URL")) { Remove-Item "Env:$var" -ErrorAction SilentlyContinue }
+foreach ($var in @("MYSQL_PASSWORD", "MYSQL_ROOT_PASSWORD", "SITE_ADDRESS", "HTTP_PORT", "HTTPS_PORT", "CORS_ALLOWED_ORIGINS", "TZ", "DATABASE_URL", "UAT_ACCOUNTS_JSON", "UAT_SAMPLE_PASSWORD")) { Remove-Item "Env:$var" -ErrorAction SilentlyContinue }
 $envFile = Join-Path $repo "deploy\.env.production"
 if (-not (Test-Path $envFile)) { throw "Belum ada deploy\.env.production." }
 $root = ((Get-Content $envFile | Where-Object { $_ -match "^MYSQL_ROOT_PASSWORD=" }) -replace "^MYSQL_ROOT_PASSWORD=", "").Trim()

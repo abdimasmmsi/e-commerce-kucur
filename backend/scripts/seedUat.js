@@ -7,7 +7,7 @@ require("dotenv").config();
 const crypto = require("node:crypto");
 const { getPrisma, disconnectPrisma } = require("../config/prisma");
 const { createFinalPrismaRepository } = require("../repositories/finalPrismaRepository");
-const { createAuthService } = require("../services/authService");
+const { createAuthService, hashPassword } = require("../services/authService");
 const { createStoreService } = require("../services/storeService");
 const { createFinanceService } = require("../services/financeService");
 const { createProductService } = require("../services/productService");
@@ -62,8 +62,16 @@ async function main() {
   const admin = { id: adminRow.id, roles: ["admin"] };
 
   for (const def of defs) {
-    if (await prisma.targetStore.findFirst({ where: { name: def.store.name } })) { console.log(`Lewati (sudah ada): ${def.store.name}`); continue; }
-    const password = crypto.randomBytes(9).toString("hex");
+    const password = process.env.SAMPLE_PASSWORD || crypto.randomBytes(9).toString("hex");
+    if (await prisma.targetStore.findFirst({ where: { name: def.store.name } })) {
+      console.log(`Lewati (sudah ada): ${def.store.name}`);
+      // Kata sandi bersama (SAMPLE_PASSWORD) diterapkan juga ke pemilik yang sudah ada supaya cocok dengan panel akun di halaman Masuk.
+      if (process.env.SAMPLE_PASSWORD) {
+        const result = await prisma.targetUser.updateMany({ where: { email: def.owner.email }, data: { passwordHash: await hashPassword(password), passwordChangedAt: new Date(), passwordResetRequired: false } });
+        if (result.count) console.log(`SAMPLE ${def.owner.email} ${password} ${def.store.name}`);
+      }
+      continue;
+    }
     const home = def.store.location;
     const owner = await auth.register({ ...def.owner, password, address: { label: "Rumah", recipientName: def.owner.fullName, phone: def.owner.phone, address: home.address, latitude: home.latitude, longitude: home.longitude } });
     const actor = { id: owner.id, roles: ["customer", "merchant"] };
