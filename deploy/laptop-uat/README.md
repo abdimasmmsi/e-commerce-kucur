@@ -15,6 +15,16 @@ Skrip akan: menyalakan Docker, membuat `deploy/.env.production` dengan kata sand
 
 Alamat tunnel **berubah setiap kali tunnel dimulai ulang**. Bagikan alamat ke peserta setelah server stabil dan jangan matikan tunnel selama UAT. Kalau perlu alamat tetap, buat tunnel bernama dengan domain milik sendiri di Cloudflare.
 
+## Data contoh dan kondisi awal (baseline)
+Setelah `start-uat.ps1`, isi server dengan 3 lapak contoh dan 11 produk, lalu simpan kondisi awalnya:
+```
+powershell -ExecutionPolicy Bypass -File deploy\laptop-uat\seed-uat.ps1
+```
+- Lapak dibuat lewat alur asli (pengajuan, persetujuan admin, Iuran Pokok lunas), tanpa akun `@kucur.test`. Akun pemilik lapak contoh (kata sandi acak) ada di `deploy\.uat-sample-accounts.txt`, tidak masuk git. Skrip aman dijalankan ulang.
+- Snapshot `baseline` disimpan di `deploy\backups-uat\baseline.sql` dan tidak ditimpa bila seed dijalankan lagi (paksa dengan `-ForceSnapshot`, jangan dilakukan setelah ada data peserta).
+- Kembalikan ke kondisi awal kapan saja (antar hari sesi atau setelah UAT): `powershell -ExecutionPolicy Bypass -File deploy\laptop-uat\snapshot-uat.ps1 -Restore`. Ini menghapus akun peserta, pesanan, dan ulasan sejak baseline; foto unggahan tidak ikut dipulihkan.
+- Simpan snapshot lain (mis. sebelum sesi): `snapshot-uat.ps1 -Name sebelum-sesi-kurir`, lalu pulihkan dengan `-Restore -Name sebelum-sesi-kurir`.
+
 ## Selama UAT
 - Laptop harus menyala, terhubung internet, dicolok listrik, dan tidak sleep. Jangan restart Windows saat sesi.
 - Pantau: `docker compose --env-file deploy\.env.production -f deploy\docker-compose.prod.yml logs -f backend`.

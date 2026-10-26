@@ -11,6 +11,8 @@ dist-ssr/
 !.env.production.example
 *.local
 deploy/.uat-credentials.txt
+deploy/.uat-sample-accounts.txt
+deploy/backups-uat/
 deploy/laptop-uat/tunnel.pid
 
 # Runtime data
