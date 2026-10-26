@@ -44,7 +44,7 @@ Tidak ada.
 8. **Backup otomatis belum terpasang di server** (A5). Skrip `deploy/backup.sh` dan `restore.sh` sudah diuji (backup, cek gzip, rotasi, dan pemulihan). Yang harus dikerjakan saat deploy: pasang cron harian dan salin backup ke luar server.
 
 ### Sedang (masih terbuka)
-9. **Token sesi di `localStorage`** (D2): berbahaya bila ada celah XSS. Tidak ada sink XSS yang ditemukan dan CSP di Caddy membatasi sumber skrip, tetapi CSP belum diuji di browser sungguhan (tile peta, font, unggah foto, kamera/GPS, push, ekspor PDF/Excel). Uji manual sebelum UAT.
+9. **Token sesi di `localStorage`** (D2): berbahaya bila ada celah XSS. Tidak ada sink XSS yang ditemukan dan CSP di Caddy membatasi sumber skrip, CSP sudah diuji di Chrome terhadap stack lokal (halaman utama, masuk, daftar, privasi, tile peta OpenStreetMap, font): tidak ada yang diblokir. Yang belum diuji: unggah foto, kamera/GPS di HP, push, ekspor PDF/Excel. Uji manual di HP sebelum UAT.
 10. **`GET /api/auth/email-status` mengungkap apakah email terdaftar** (I1). Dibatasi rate limit dan dipakai untuk UX daftar. Opsi bila ingin lebih ketat: hapus endpoint ini di produksi.
 11. **Kebijakan kata sandi hanya minimal 8 karakter** (B1). Pertimbangkan minimal 10 dan blokir kata sandi umum.
 12. **Belum ada pemantauan dan peringatan** (A4). Pasang pemantau uptime gratis (mis. UptimeRobot) dan biasakan memeriksa `docker compose logs`.

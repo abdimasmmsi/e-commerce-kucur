@@ -28,7 +28,7 @@
 	# Frontend (SPA)
 	handle {
 		root * /srv
-		header Content-Security-Policy "default-src 'self'; script-src 'self'; style-src 'self' 'unsafe-inline' https://fonts.googleapis.com; font-src 'self' data: https://fonts.gstatic.com; img-src 'self' data: blob: https://*.tile.openstreetmap.org; connect-src 'self' wss://{$SITE_ADDRESS} https://api.openrouteservice.org; worker-src 'self' blob:; manifest-src 'self'; media-src 'self' blob:; object-src 'none'; base-uri 'self'; form-action 'self'; frame-ancestors 'none'"
+		header Content-Security-Policy "default-src 'self'; script-src 'self'; style-src 'self' 'unsafe-inline' https://fonts.googleapis.com; font-src 'self' data: https://fonts.gstatic.com; img-src 'self' data: blob: https://*.tile.openstreetmap.org; connect-src 'self' wss://{http.request.host} https://api.openrouteservice.org; worker-src 'self' blob:; manifest-src 'self'; media-src 'self' blob:; object-src 'none'; base-uri 'self'; form-action 'self'; frame-ancestors 'none'"
 		# Berkas ber-hash di /assets di-cache lama; sisanya (index.html, sw.js, manifest, rute SPA) selalu dicek ulang.
 		@hashed path /assets/*
 		header @hashed Cache-Control "public, max-age=31536000, immutable"

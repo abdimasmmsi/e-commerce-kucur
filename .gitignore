@@ -10,6 +10,8 @@ dist-ssr/
 !.env.docker.example
 !.env.production.example
 *.local
+deploy/.uat-credentials.txt
+deploy/laptop-uat/tunnel.pid
 
 # Runtime data
 backend/uploads/
