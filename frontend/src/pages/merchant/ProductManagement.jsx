@@ -29,6 +29,7 @@ const copyByLanguage = {
     errorsTitle: "{count} kesalahan, perbaiki file lalu impor lagi", row: "Baris {row}", skippedTitle: "Dilewati",
     nothing: "Tidak ada perubahan untuk disimpan.", confirm: "Impor {count} produk", cancel: "Batal", close: "Tutup", done: "Selesai",
     progress: "Mengimpor {done}/{total}...", resultTitle: "Impor selesai", resultDescription: "{ok} produk tersimpan.", failedTitle: "{count} baris gagal disimpan",
+    inactiveTitle: "Produk belum tampil ke pembeli", inactiveBody: "Lapak ini belum aktif. Bayar cicilan pertama iuran pokok di Keuangan Lapak; setelah Admin mengonfirmasi, produk langsung tampil.", inactiveAction: "Buka Keuangan Lapak",
   },
   en: {
     views7: "Viewed 7 days: {count}", views30: "30 days: {count}",
@@ -40,6 +41,7 @@ const copyByLanguage = {
     errorsTitle: "{count} errors, fix the file and import again", row: "Row {row}", skippedTitle: "Skipped",
     nothing: "There are no changes to save.", confirm: "Import {count} products", cancel: "Cancel", close: "Close", done: "Done",
     progress: "Importing {done}/{total}...", resultTitle: "Import finished", resultDescription: "{ok} products saved.", failedTitle: "{count} rows could not be saved",
+    inactiveTitle: "Products are not visible to buyers yet", inactiveBody: "This store is not active yet. Pay the first membership fee installment in Store Finance; once the Admin confirms it, your products show right away.", inactiveAction: "Open Store Finance",
   },
 };
 const fill = (text, values) => Object.entries(values).reduce((result, [key, value]) => result.replace(`{${key}}`, value), text);
@@ -147,6 +149,7 @@ function ProductManagement() {
       </div>
       <div className="-mx-4 flex gap-2 overflow-x-auto px-4 [scrollbar-width:none] sm:mx-0 sm:flex-wrap sm:px-0 [&::-webkit-scrollbar]:hidden">{filters.map((item) => <button className={chipClass(status === item.value)} type="button" key={item.value} aria-pressed={status === item.value} onClick={() => changeStatus(item.value)}>{item.label}{item.value !== "all" && counts[item.value] > 0 && <span className="ml-2 rounded-full bg-[var(--kucur-green-soft)] px-2 text-xs text-[var(--kucur-green-ink)]">{counts[item.value]}</span>}</button>)}</div>
     </section>
+    {String(store?.status || "").toLowerCase().replace(/-/g, "_") === "pending_initial_payment" && <section role="status" className="grid gap-2 rounded-2xl border border-amber-300 bg-amber-50 p-4 text-amber-900 dark:border-amber-700 dark:bg-amber-950 dark:text-amber-100"><strong>{copy.inactiveTitle}</strong><p>{copy.inactiveBody}</p><Link className="inline-flex min-h-11 w-fit items-center rounded-xl border border-current px-4 font-bold" to={`/merchant/stores/${storeId}/finance`}>{copy.inactiveAction}</Link></section>}
     {error && <section role="alert" className="grid gap-2 rounded-2xl border border-rose-300 bg-rose-50 p-4 text-rose-800 dark:border-rose-800 dark:bg-rose-950 dark:text-rose-200"><strong>{t("productManagement.loadFailed")}</strong><p>{errorMessage(error.code, t("productManagement.loadFailed"))}</p><button className="w-fit min-h-11 rounded-xl border border-current px-4 font-bold" type="button" onClick={load}>{t("productManagement.retry")}</button></section>}
     {!error && shown.length ? <><div className="grid gap-2 max-sm:-mx-4 max-sm:!max-w-none sm:gap-3 md:grid-cols-2 xl:grid-cols-3">{visibleProducts.map((product) => {
       const stock = getProductTotalStock(product);
