@@ -12,7 +12,8 @@ import LoadingPanel from "../../components/ui/LoadingPanel";
 import EmptyState from "../../components/ui/EmptyState";
 import Button from "../../components/ui/Button";
 import PageContainer from "../../components/ui/PageContainer";
-import { deleteProductImage, saveProductImage } from "../../services/productImageStorage";
+import { deleteProductImage, getProductImage, saveProductImage } from "../../services/productImageStorage";
+import { uploadStoreImage } from "../../services/storeImageService";
 import "./ProductFormEdit.css";
 
 const emptyForm = {
@@ -234,23 +235,33 @@ function ProductFormWorkspace({ mode, storeId, productId, routeStore }) {
       return;
     }
 
-    const values = {
-      name: form.name.trim(),
-      category: form.category,
-      price: Number(form.price),
-      compareAtPrice: !hasVariants && hasCompareAt(form.compareAtPrice) ? Number(form.compareAtPrice) : null,
-      stock: Number(form.stock),
-      description: form.description.trim(),
-      images,
-      image: images.find((image) => image.isPrimary)?.url ?? "",
-      status: form.status,
-      hasVariants,
-      variantGroups: hasVariants ? variantGroups : [],
-      variants: hasVariants ? variants.map((variant) => ({ ...variant, compareAtPrice: hasCompareAt(variant.compareAtPrice) ? Number(variant.compareAtPrice) : null })) : [],
-    };
-
     setSaving(true); setApiError("");
     try {
+      // Foto baru masih di browser (IndexedDB); unggah ke server dulu supaya pembeli bisa melihatnya.
+      const uploadIfNeeded = async (image) => {
+        if (!image || image.url || !image.storageKey) return image;
+        const blob = await getProductImage(image.storageKey);
+        if (!blob) throw new Error("PRODUCT_IMAGE_MISSING");
+        return { ...image, url: await uploadStoreImage(blob) };
+      };
+      const uploadedImages = await Promise.all(images.map(uploadIfNeeded));
+      const uploadedVariants = hasVariants ? await Promise.all(variants.map(async (variant) => ({ ...variant, image: await uploadIfNeeded(variant.image) }))) : [];
+      setImages(uploadedImages);
+      if (hasVariants) setVariants(uploadedVariants);
+      const values = {
+        name: form.name.trim(),
+        category: form.category,
+        price: Number(form.price),
+        compareAtPrice: !hasVariants && hasCompareAt(form.compareAtPrice) ? Number(form.compareAtPrice) : null,
+        stock: Number(form.stock),
+        description: form.description.trim(),
+        images: uploadedImages,
+        image: uploadedImages.find((image) => image.isPrimary)?.url ?? "",
+        status: form.status,
+        hasVariants,
+        variantGroups: hasVariants ? variantGroups : [],
+        variants: hasVariants ? uploadedVariants.map((variant) => ({ ...variant, compareAtPrice: hasCompareAt(variant.compareAtPrice) ? Number(variant.compareAtPrice) : null })) : [],
+      };
       if (isEdit) await productService.update(productId, values);
       else await productService.create({ storeId, ...values });
       await Promise.all([...removedStorageKeys.current]
@@ -260,6 +271,7 @@ function ProductFormWorkspace({ mode, storeId, productId, routeStore }) {
       saved.current = true;
       navigate(`/merchant/stores/${storeId}/products`);
     } catch (error) {
+      if (error?.message === "PRODUCT_IMAGE_MISSING") { setApiError(language === "id" ? "Foto tidak ditemukan di perangkat ini. Unggah ulang fotonya." : "Photo not found on this device. Please upload it again."); setSaving(false); return; }
       // Pesan rinci dari backend (berbahasa Indonesia) ditampilkan supaya penjual tahu isian mana yang salah.
       const detail = language === "id" && error.code === "VALIDATION_ERROR" && error.details && typeof error.details === "object" ? Object.values(error.details).find((value) => typeof value === "string") : "";
       setApiError(detail || errorMessage(error.code, t("productForm.saveFailed")));

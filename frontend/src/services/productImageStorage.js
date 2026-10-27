@@ -3,7 +3,8 @@ const STORE_NAME = "images";
 const DB_VERSION = 1;
 const MAX_FILE_SIZE = 8 * 1024 * 1024;
 const MIN_DIMENSION = 800;
-const MAX_DIMENSION = 1600;
+const MAX_DIMENSION = 1280;
+const MAX_UPLOAD_BYTES = 620 * 1024;
 const ACCEPTED_TYPES = new Set(["image/jpeg", "image/png", "image/webp"]);
 
 function openDatabase() {
@@ -73,10 +74,12 @@ export async function saveProductImage(file) {
   const outputType = file.type === "image/png" ? "image/webp" : file.type;
   let quality = 0.85;
   let blob = await canvasToBlob(canvas, outputType, quality);
-  while (blob.size > 1024 * 1024 && quality > 0.65) {
+  // Foto diunggah ke server (batas 650 KB setelah diproses), jadi dikecilkan sampai muat.
+  while (blob.size > MAX_UPLOAD_BYTES && quality > 0.45) {
     quality -= 0.05;
     blob = await canvasToBlob(canvas, outputType, quality);
   }
+  if (blob.size > MAX_UPLOAD_BYTES) throw new Error("Foto terlalu besar setelah diproses. Coba foto lain atau yang lebih sederhana.");
   const id = `IMG-${Date.now()}-${crypto.randomUUID()}`;
   const storageKey = `product-image-${id}`;
   await withStore("readwrite", (store) => store.put(blob, storageKey));

@@ -21,7 +21,8 @@ module.exports = ({ repository, storeService, productService, reviewService, aut
   router.post("/images", authMiddleware.requireRole("merchant"), async (req, res, next) => {
     try {
       const relativeUrl = await saveStoreImage(req.body?.dataUrl);
-      res.status(201).json({ data: { url: `${req.protocol}://${req.get("host")}${relativeUrl}` } });
+      // `path` (relatif) dipakai frontend yang satu origin dengan API (produksi, di belakang proxy HTTPS); `url` absolut untuk mode dev beda port.
+      res.status(201).json({ data: { url: `${req.protocol}://${req.get("host")}${relativeUrl}`, path: relativeUrl } });
     } catch (error) { next(error); }
   });
   router.get("/:storeId", authMiddleware.requireRole("customer", "merchant", "admin"), controller.get);

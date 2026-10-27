@@ -45,7 +45,9 @@ const blobToDataUrl = (blob) => new Promise((resolve, reject) => {
   reader.readAsDataURL(blob);
 });
 
+// Produksi satu origin (VITE_API_BASE_URL kosong): simpan path relatif supaya ikut HTTPS dan lolos CSP img-src 'self'.
 export async function uploadStoreImage(blob) {
   const dataUrl = await blobToDataUrl(blob);
-  return (await apiData("/api/stores/images", { method: "POST", body: { dataUrl }, timeoutMs: 30000 })).url;
+  const data = await apiData("/api/stores/images", { method: "POST", body: { dataUrl }, timeoutMs: 30000 });
+  return import.meta.env.VITE_API_BASE_URL === "" && data.path ? data.path : data.url;
 }
