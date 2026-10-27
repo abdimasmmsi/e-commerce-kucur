@@ -21,9 +21,8 @@ const COPY = {
     village: "Mitra desa",
     villageValue: "Pengelola Desa Wisata Kucur",
     help: "Butuh bantuan?",
-    helpBody: "Tanya lewat Bantuan (FAQ), atau hubungi pengembang lewat email untuk kendala teknis.",
+    helpBody: "Tanya lewat Bantuan (FAQ). Kalau belum terjawab, hubungi Admin desa lewat Chat Bantuan.",
     faq: "Bantuan (FAQ)",
-    email: "Email pengembang",
     tech: "Teknologi dan lisensi",
     techItems: ["Peta © kontributor OpenStreetMap (lisensi ODbL)", "Leaflet dan React Leaflet untuk tampilan peta", "OpenRouteService untuk perhitungan jarak", "React, Vite, Tailwind CSS", "Node.js, Express, Prisma, Socket.IO", "MySQL"],
     privacy: "Kebijakan Privasi",
@@ -42,9 +41,8 @@ const COPY = {
     village: "Village partner",
     villageValue: "Kucur Tourism Village managers",
     help: "Need help?",
-    helpBody: "Ask through Help (FAQ), or email the developer for technical problems.",
+    helpBody: "Ask through Help (FAQ). If it is not answered, contact the village Admin through Support Chat.",
     faq: "Help (FAQ)",
-    email: "Email the developer",
     tech: "Technology and licenses",
     techItems: ["Map © OpenStreetMap contributors (ODbL license)", "Leaflet and React Leaflet for the map view", "OpenRouteService for distance calculation", "React, Vite, Tailwind CSS", "Node.js, Express, Prisma, Socket.IO", "MySQL"],
     privacy: "Privacy Policy",
@@ -79,9 +77,7 @@ export default function About() {
             <DeveloperPhoto label={copy.photoLabel} />
             <div className="grid min-w-0 gap-0.5">
               <strong className="text-base">{APP_INFO.developer.name}</strong>
-              <span className="text-sm text-[var(--kucur-text-muted)]">{APP_INFO.developer.affiliation}</span>
-              <a className="inline-flex min-h-11 items-center [overflow-wrap:anywhere] text-sm font-semibold text-[var(--kucur-green-ink)] underline" href={`mailto:${APP_INFO.developer.email}`}>{APP_INFO.developer.email}</a>
-            </div>
+              <span className="text-sm text-[var(--kucur-text-muted)]">{APP_INFO.developer.affiliation}</span>            </div>
           </div>
           <p className="text-sm leading-relaxed text-[var(--kucur-text-muted)]">{copy.builtByNote}</p>
         </section>
@@ -99,9 +95,7 @@ export default function About() {
         <h2 className="text-lg font-extrabold" id="about-help">{copy.help}</h2>
         <p className="text-sm leading-relaxed text-[var(--kucur-text-muted)]">{copy.helpBody}</p>
         <div className="flex flex-wrap gap-2">
-          <button className={`${buttonClass} border-[var(--kucur-green)] text-[var(--kucur-green-ink)]`} type="button" onClick={openFaqBot}>{copy.faq}</button>
-          <a className={`${buttonClass} border-[var(--kucur-border-strong)]`} href={`mailto:${APP_INFO.developer.email}`}>{copy.email}</a>
-        </div>
+          <button className={`${buttonClass} border-[var(--kucur-green)] text-[var(--kucur-green-ink)]`} type="button" onClick={openFaqBot}>{copy.faq}</button>        </div>
       </section>
 
       <details className={`${cardClass} group`}>

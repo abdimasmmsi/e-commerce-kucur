@@ -9,9 +9,9 @@ test("visitor opens About from the login footer and sees developer, supervisor a
   await expect(page.getByRole("heading", { level: 1, name: "Tentang Kucur Local Market" })).toBeVisible();
   await expect(page.getByText("Steven Danendra").first()).toBeVisible();
   await expect(page.getByText("Meme Susilowati, S.Kom, MMSI")).toBeVisible();
-  const mail = page.getByRole("link", { name: "stevendanendra16@gmail.com" });
-  await expect(mail).toHaveAttribute("href", "mailto:stevendanendra16@gmail.com");
-  await expect(page.getByRole("link", { name: "Email pengembang" })).toHaveAttribute("href", "mailto:stevendanendra16@gmail.com");
+  // Proyek diteruskan ke tim dosen pembimbing: tidak ada kontak email pengembang di halaman ini.
+  await expect(page.locator("a[href^='mailto:']")).toHaveCount(0);
+  await expect(page.getByText("gmail.com")).toHaveCount(0);
   await assertNoHorizontalOverflow(page);
   // Halaman ini memakai header publik, bukan layout panel kerja.
   await expect(page.locator(".workspace-shell, .workspace-sidebar")).toHaveCount(0);
