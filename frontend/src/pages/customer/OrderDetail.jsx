@@ -17,6 +17,7 @@ import { apiAssetUrl } from "../../services/apiClient";
 import { reviewService } from "../../services/reviewService";
 import { shortOrderCode } from "../../utils/orderCode";
 import { buyAgain } from "../../utils/buyAgain";
+import { useLiveRefresh } from "../../utils/liveRefresh";
 
 // Pembeli hanya bisa batal sebelum lapak mulai mengemas.
 const cancellable = ["pending", "confirmed"];
@@ -72,6 +73,8 @@ export default function OrderDetail() {
       .finally(() => { if (active) setLoading(false); });
     return () => { active = false; };
   }, [errorMessage, orderId]);
+  // Status/lacak diperbarui diam-diam; tidak menyentuh dialog, alasan batal, atau galat yang tampil.
+  useLiveRefresh(() => orderService.get(orderId).then((value) => { if (value) setOrder(value); }).catch(() => {}), { enabled: !busy });
 
   // Ulasan unik per barang pesanan: sembunyikan form untuk barang yang sudah diulas.
   const completed = order?.fulfillmentStatus === "completed";

@@ -7,6 +7,7 @@ import LoadingPanel from "../../components/ui/LoadingPanel";
 import { FinanceBadge, StoreFinanceStatus } from "../../components/admin/FinanceBadges";
 import { buildFinanceLedger, daysBetween, groupAdminFeesByMonth, STATE_TONE } from "../../utils/adminFinance";
 import { usePreferences } from "../../context/PreferencesContext";
+import { useLiveRefresh } from "../../utils/liveRefresh";
 import { financeService } from "../../services/financeService";
 import "./AdminDeliveryFinance.css";
 
@@ -74,6 +75,8 @@ export default function AdminFinanceStore() {
     catch { setError(copy.loadFailed); }
   }, [copy.loadFailed]);
   useEffect(() => { const timer = window.setTimeout(() => { void load(); }, 0); return () => window.clearTimeout(timer); }, [load]);
+  const silentRefresh = useCallback(async () => { try { const next = await financeService.monitor(); setNow(Date.now()); setData(next); } catch { /* data lama tetap tampil */ } }, []);
+  useLiveRefresh(silentRefresh);
 
   const run = async (key, work, successText) => {
     setBusy(key); setFeedback({ type: "", text: "" });

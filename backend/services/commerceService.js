@@ -2,6 +2,7 @@ const { notifySafe } = require("./notifyHelpers");
 const crypto = require("node:crypto");
 const { errors } = require("../errors/AppError");
 const { requiredString } = require("../validation/sharedValidation");
+const { DEFAULT_MAX_DELIVERY_KM, assertInServiceArea } = require("../validation/serviceArea");
 const midtransConfig = require("../midtransConfig");
 const { sellable, quantity } = require("./cartService");
 const { generateCommerceFinance } = require("./financeService");
@@ -51,9 +52,10 @@ function createCommerceService(repository) {
     for (const item of resolved) { const group = groups.get(item.product.storeId) || { store: item.product.store, items: [], productTotal: 0 }; group.items.push(item); group.productTotal += item.subtotal; groups.set(item.product.storeId, group); }
     const resultGroups = [...groups.values()].map((group) => {
       const destination = delivery.location || { latitude: delivery.latitude, longitude: delivery.longitude };
+      assertInServiceArea(Number(destination.latitude), Number(destination.longitude), "deliveryLocation");
       const distanceKm = coordinateDistanceKm(group.store.location, destination); if (!Number.isFinite(distanceKm) || distanceKm < 0) throw errors.validation({ distanceKm: `Koordinat pengiriman untuk ${group.store.name} belum tersedia.` });
-      const maxDistance = Number(settings.maxDeliveryDistanceKm);
-      if (settings.maxDeliveryDistanceKm != null && Number.isFinite(maxDistance) && distanceKm > maxDistance) throw errors.validation({ distanceKm: `Alamat di luar jangkauan pengiriman ${group.store.name} (maksimal ${maxDistance} km, jarak ${Math.ceil(distanceKm)} km).` });
+      const maxDistance = settings.maxDeliveryDistanceKm != null && Number.isFinite(Number(settings.maxDeliveryDistanceKm)) ? Number(settings.maxDeliveryDistanceKm) : DEFAULT_MAX_DELIVERY_KM;
+      if (distanceKm > maxDistance) throw errors.validation({ distanceKm: `Alamat di luar jangkauan pengiriman ${group.store.name} (maksimal ${maxDistance} km, jarak ${Math.ceil(distanceKm)} km).` });
       const roundedDistanceKm = Math.ceil(distanceKm); const deliveryFee = roundedDistanceKm * Number(settings.deliveryRatePerKm);
       const courierTip = money(input.tipsByStore?.[group.store.id] ?? input.courierTip, "courierTip");
       const taxPercent = Number(settings.taxPercent) || 0; const taxAmount = Math.round(group.productTotal * taxPercent / 100);

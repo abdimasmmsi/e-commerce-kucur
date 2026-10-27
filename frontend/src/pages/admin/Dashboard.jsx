@@ -5,6 +5,7 @@ import PageHeader from "../../components/ui/PageHeader";
 import StatusBadge from "../../components/ui/StatusBadge";
 import { usePreferences } from "../../context/PreferencesContext";
 import { getAdminDashboardMetrics } from "../../services/dashboardMetricsService";
+import { useLiveRefresh } from "../../utils/liveRefresh";
 import "./AdminOperations.css";
 import "./Dashboard.css";
 
@@ -27,6 +28,7 @@ export default function Dashboard() {
     getAdminDashboardMetrics().then((data) => { if (active) setMetrics(data); }).catch((caught) => { if (active) setError(caught.message || c.failed); });
     return () => { active = false; };
   }, []); // eslint-disable-line react-hooks/exhaustive-deps
+  useLiveRefresh(() => getAdminDashboardMetrics().then((data) => { if (data) setMetrics(data); }).catch(() => {}), { enabled: Boolean(metrics) });
 
   if (!metrics) return <div className="page-container admin-operations-page admin-dashboard-page min-w-0"><PageHeader eyebrow={c.eyebrow} title={c.title} description={c.description} />{error ? <section className="admin-feedback error" role="alert"><strong>{c.failed}</strong><p>{error}</p><button type="button" onClick={load}>{c.retry}</button></section> : <LoadingPanel label={c.loading} rows={5} />}</div>;
   const primary = [

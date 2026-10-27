@@ -7,6 +7,7 @@ import Pagination from "../../components/ui/Pagination";
 import StatusBadge from "../../components/ui/StatusBadge";
 import { usePreferences } from "../../context/PreferencesContext";
 import { storeService } from "../../services/storeService";
+import { useLiveRefresh } from "../../utils/liveRefresh";
 import { matchesStatusFilter } from "../../utils/statusFilter";
 import "./AdminOperations.css";
 
@@ -16,6 +17,7 @@ export default function MerchantApproval() {
   const c = language === "id" ? { eyebrow: "Admin Desa", title: "Persetujuan Lapak", description: "Tinjau identitas penjual, informasi usaha, dan status setiap pengajuan lapak.", search: "Cari", searchHint: "Nama lapak, pemilik, atau email", status: "Status pengajuan", all: "Semua status", store: "Lapak", owner: "Penjual", category: "Kategori", submitted: "Diajukan", action: "Aksi", review: "Tinjau", load: "Memuat pengajuan lapak", failed: "Pengajuan belum dapat dimuat.", retry: "Coba Lagi", empty: "Tidak ada pengajuan lapak", emptyHint: "Semua pengajuan pada filter ini sudah ditinjau atau belum ada pengajuan baru.", unavailable: "Belum tersedia", ecommerce: "Produk lokal / E-Commerce", location: "Lokasi lapak" } : { eyebrow: "Village admin", title: "Store Approvals", description: "Review merchant identity, business information, and the status of each store application.", search: "Search", searchHint: "Store name, owner, or email", status: "Application status", all: "All statuses", store: "Store", owner: "Merchant", category: "Category", submitted: "Submitted", action: "Action", review: "Review", load: "Loading store applications", failed: "Store applications could not be loaded.", retry: "Try Again", empty: "No store applications", emptyHint: "All applications in this view have been reviewed, or no new applications exist.", unavailable: "Unavailable", ecommerce: "Local product / E-Commerce" , location: "Store location" };
   const load = async () => { setLoading(true); setError(""); try { setStores(await storeService.applications()); } catch (caught) { setError(caught.message); } finally { setLoading(false); } };
   useEffect(() => { queueMicrotask(() => void load()); }, []);
+  useLiveRefresh(() => storeService.applications().then(setStores).catch(() => {}), { enabled: !loading });
   const rows = useMemo(() => stores.filter((store) => { const query = search.trim().toLowerCase(); return (!query || `${store.name} ${store.merchant?.fullName} ${store.merchant?.email}`.toLowerCase().includes(query)) && matchesStatusFilter(store.approvalStatus, status, ["APPROVED", "REJECTED"]); }), [search, status, stores]);
   const pageSize = 8; const visibleRows = rows.slice((page - 1) * pageSize, page * pageSize);
   return <div className="page-container admin-operations-page min-w-0">

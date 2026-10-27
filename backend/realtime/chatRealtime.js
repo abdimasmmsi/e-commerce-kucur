@@ -1,7 +1,9 @@
 const { Server } = require("socket.io");
 const chatEvents = require("../services/chatEventBus");
+const dataEvents = require("../services/dataEventBus");
 
 const userRoom = (userId) => `user:${String(userId)}`;
+const roleRoom = (role) => `role:${String(role)}`;
 const conversationRoom = (conversationId) => `conversation:${String(conversationId)}`;
 const bearerToken = (header) => /^Bearer\s+(.+)$/i.exec(String(header || ""))?.[1] || null;
 const socketToken = (socket) => socket.handshake.auth?.token || bearerToken(socket.handshake.headers.authorization);
@@ -43,6 +45,8 @@ function attachChatRealtime(httpServer, { authService, chatService, allowedOrigi
   io.on("connection", (socket) => {
     const actor = socket.data.user;
     socket.join(userRoom(actor.id));
+    // Ruang per peran: admin menerima sinyal perubahan data dari semua aksi.
+    for (const role of actor.roles || []) { const name = typeof role === "string" ? role : role?.role?.name ?? role?.name; if (name) socket.join(roleRoom(name)); }
     socket.on("chat:join", async ({ conversationId } = {}, acknowledge = () => {}) => {
       try {
         const currentUser = await authService.authenticate(socket.data.token);
@@ -67,8 +71,12 @@ function attachChatRealtime(httpServer, { authService, chatService, allowedOrigi
     if (event === "chat:closed") io.to(room).emit(event, { conversationId: payload.conversationId, closedByUserId: payload.closedByUserId, closedAt: payload.closedAt });
     for (const userId of payload.participantUserIds || []) io.to(userRoom(userId)).emit("chat:inbox-updated", { conversationId: payload.conversationId, reason: event });
   });
-  httpServer.once("close", unsubscribe);
+  const unsubscribeData = dataEvents.subscribe(({ userIds, roles }) => {
+    const rooms = [...userIds.map(userRoom), ...roles.map(roleRoom)];
+    if (rooms.length) io.to(rooms).emit("data:changed", { at: Date.now() });
+  });
+  httpServer.once("close", () => { unsubscribe(); unsubscribeData(); });
   return io;
 }
 
-module.exports = { attachChatRealtime, bearerToken, conversationRoom, messagePayload, socketToken, userRoom };
+module.exports = { attachChatRealtime, bearerToken, conversationRoom, roleRoom, messagePayload, socketToken, userRoom };

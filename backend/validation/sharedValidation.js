@@ -1,4 +1,5 @@
 const { errors } = require("../errors/AppError");
+const { assertInServiceArea } = require("./serviceArea");
 
 const roles = ["customer", "merchant", "courier", "admin"];
 const storeTypes = ["product"];
@@ -30,6 +31,7 @@ const validateLocation = (location) => {
   if ((latitude == null) !== (longitude == null)) throw errors.validation({ location: "Latitude dan longitude harus diisi bersama." });
   if (latitude != null && (!Number.isFinite(latitude) || latitude < -90 || latitude > 90)) throw errors.validation({ latitude: "Latitude harus antara -90 dan 90." });
   if (longitude != null && (!Number.isFinite(longitude) || longitude < -180 || longitude > 180)) throw errors.validation({ longitude: "Longitude harus antara -180 dan 180." });
+  if (latitude != null) assertInServiceArea(latitude, longitude);
   return {
     label: location.label == null ? null : String(location.label).trim().slice(0, 160) || null,
     address: location.address == null ? null : String(location.address).trim().slice(0, 500) || null,

@@ -8,6 +8,7 @@ import LoadingPanel from "../../components/ui/LoadingPanel";
 import { usePreferences } from "../../context/PreferencesContext";
 import { useStore } from "../../context/StoreContext";
 import { getAverageRating, reviewService } from "../../services/reviewService";
+import { useLiveRefresh } from "../../utils/liveRefresh";
 import { paginate } from "../../utils/pagination";
 import "./Reviews.css";
 
@@ -53,6 +54,9 @@ function Reviews() {
       .finally(() => { if (active) { setLoadedStoreId(activeStoreId); setLoading(false); } });
     return () => { active = false; };
   }, [activeStoreId, errorMessage]);
+
+  // Muat ulang diam-diam: hanya daftar ulasan; balasan yang diketik, dialog, filter, dan halaman tidak disentuh.
+  useLiveRefresh(() => reviewService.merchant(activeStoreId).then(setRows), { enabled: !loading && loadedStoreId === activeStoreId && !saving });
 
   useEffect(() => {
     if (!replying && !preview) return undefined;

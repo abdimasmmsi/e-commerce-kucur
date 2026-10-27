@@ -6,6 +6,7 @@ import PageHeader from "../../components/ui/PageHeader";
 import StatusBadge from "../../components/ui/StatusBadge";
 import { usePreferences } from "../../context/PreferencesContext";
 import { deliveryApi } from "../../services/deliveryApiService";
+import { useLiveRefresh } from "../../utils/liveRefresh";
 
 export default function CourierDetail() {
   const { courierId } = useParams();
@@ -15,6 +16,7 @@ export default function CourierDetail() {
   const [loading, setLoading] = useState(true);
   const [, setError] = useState("");
   useEffect(() => { let active = true; deliveryApi.couriers().then((items) => { if (active) setRow(items.find((item) => item.userId === courierId) || null); }).catch((caught) => { if (active) setError(caught.message); }).finally(() => { if (active) setLoading(false); }); return () => { active = false; }; }, [courierId]);
+  useLiveRefresh(() => deliveryApi.couriers().then((items) => setRow(items.find((item) => item.userId === courierId) || null)).catch(() => {}), { enabled: !loading });
   if (loading) return <div className="page-container"><LoadingPanel label={copy.loading} rows={4} /></div>;
   if (!row) return <div className="page-container"><EmptyState title={copy.missing} description={copy.missingHint} action={<Link className="secondary-button" to="/admin/couriers">{copy.back}</Link>} /></div>;
   return <div className="page-container admin-operations-page"><PageHeader eyebrow={t("workspace.adminEyebrow")} title={row.user.fullName} description={copy.description} actions={<Link className="secondary-button" to="/admin/couriers">{copy.back}</Link>} /><section className="card"><dl className="admin-info-grid"><div><span>{copy.email}</span><strong className="break-all">{row.user.email}</strong></div><div><span>{copy.phone}</span><strong>{row.user.phone || "—"}</strong></div><div><span>{copy.status}</span><StatusBadge status={row.isActive ? "active" : "inactive"}>{row.isActive ? copy.active : copy.inactive}</StatusBadge></div><div><span>{copy.capacity}</span><strong>{row.maxActiveDeliveries}</strong></div></dl></section></div>;

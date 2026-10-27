@@ -4,7 +4,11 @@ import Button from "../ui/Button";
 import StatusBadge from "../ui/StatusBadge";
 import { usePreferences } from "../../context/PreferencesContext";
 import { deliveryApi } from "../../services/deliveryApiService";
+import { useLiveRefresh } from "../../utils/liveRefresh";
 import { shortOrderCode } from "../../utils/orderCode";
+
+// Tanggal pengiriman tidak boleh sebelum hari ini (WIB); backend juga menolaknya.
+const todayWib = () => new Intl.DateTimeFormat("en-CA", { timeZone: "Asia/Jakarta" }).format(new Date());
 
 const copyByLanguage = {
   id: {
@@ -43,6 +47,22 @@ export default function DeliveryDraftPanel({ onApproved }) {
   }, []);
   const load = useCallback((date) => deliveryApi.drafts(date).then(apply).catch((caught) => setMessage({ type: "error", text: caught.message })), [apply]);
   useEffect(() => { void load(deliveryDate); }, [deliveryDate, load]);
+  // Muat ulang diam-diam: pindahan manual Admin dipertahankan untuk pesanan yang masih ada; pesanan baru memakai usulan sistem.
+  const silentRefresh = useCallback(async () => {
+    try {
+      const data = await deliveryApi.drafts(deliveryDate);
+      setDraft(data); setNow(Date.now());
+      setPlan((previous) => {
+        const validCouriers = new Set(data.couriers.filter((courier) => !courier.onLeave).map((courier) => courier.courierUserId));
+        const next = {};
+        for (const courier of data.couriers) for (const order of courier.orders) next[order.id] = courier.courierUserId;
+        for (const order of data.unassigned) next[order.id] = "";
+        for (const id of Object.keys(next)) if (id in previous && (previous[id] === "" || validCouriers.has(previous[id]))) next[id] = previous[id];
+        return next;
+      });
+    } catch { /* data lama tetap tampil */ }
+  }, [deliveryDate]);
+  useLiveRefresh(silentRefresh, { enabled: !confirming && !busy });
 
   const clock = (value) => formatDate(value, { hour: "2-digit", minute: "2-digit" });
   const orders = useMemo(() => draft ? [...draft.couriers.flatMap((courier) => courier.orders), ...draft.unassigned] : [], [draft]);
@@ -70,7 +90,7 @@ export default function DeliveryDraftPanel({ onApproved }) {
   return <section className="admin-ops-panel grid gap-4" aria-labelledby="delivery-draft-title">
     <div className="flex flex-wrap items-start justify-between gap-3">
       <div className="min-w-0 max-w-3xl"><h2 className="text-lg font-extrabold" id="delivery-draft-title">{copy.title}</h2><p className="mt-1 text-sm text-[var(--kucur-text-muted)]">{copy.hint}</p></div>
-      <label className="grid gap-1 text-sm font-semibold">{copy.date}<input className="min-h-11 rounded-xl border border-[var(--kucur-border-strong)] bg-[var(--kucur-surface)] px-3 text-[var(--kucur-text)]" type="date" value={deliveryDate || draft?.deliveryDate || ""} onChange={(event) => event.target.value && setDeliveryDate(event.target.value)} /></label>
+      <label className="grid gap-1 text-sm font-semibold">{copy.date}<input className="min-h-11 rounded-xl border border-[var(--kucur-border-strong)] bg-[var(--kucur-surface)] px-3 text-[var(--kucur-text)]" type="date" min={todayWib()} value={deliveryDate || draft?.deliveryDate || ""} onChange={(event) => event.target.value && event.target.value >= todayWib() && setDeliveryDate(event.target.value)} /></label>
     </div>
     {draft && <dl className="flex flex-wrap gap-x-6 gap-y-1 text-sm"><div className="flex gap-1.5"><dt className="text-[var(--kucur-text-muted)]">{copy.cutoff}</dt><dd className="font-bold">{clock(draft.cutoffAt)}</dd></div><div className="flex gap-1.5"><dt className="text-[var(--kucur-text-muted)]">{copy.dispatch}</dt><dd className="font-bold">{clock(draft.dispatchAt)}</dd></div><div className="flex gap-1.5"><dt className="text-[var(--kucur-text-muted)]">{copy.reminder}</dt><dd className="font-bold">{clock(draft.reminderAt)}</dd></div></dl>}
     {message.text && <p className={`rounded-xl p-3 text-[15px] font-semibold ${message.type === "error" ? "bg-rose-50 text-rose-800 dark:bg-rose-950 dark:text-rose-200" : "bg-[var(--kucur-green-soft)] text-[var(--kucur-text)]"}`} role={message.type === "error" ? "alert" : "status"}>{message.text}</p>}

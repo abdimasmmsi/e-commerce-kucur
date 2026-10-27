@@ -5,6 +5,7 @@ import PageContainer from "../../components/ui/PageContainer";
 import StatusBadge from "../../components/ui/StatusBadge";
 import { usePreferences } from "../../context/PreferencesContext";
 import { financeService } from "../../services/financeService";
+import { useLiveRefresh } from "../../utils/liveRefresh";
 
 const presets = [10000, 25000, 50000, 100000];
 
@@ -30,6 +31,8 @@ export default function MerchantFinance() {
     finally { setLoading(false); }
   }, [errorMessage, loadFailed]);
   useEffect(() => { queueMicrotask(() => void load()); }, [load]);
+  // Muat ulang diam-diam: hanya riwayat; nominal yang diketik tidak disentuh.
+  useLiveRefresh(() => financeService.contributions().then(setItems), { enabled: !loading && !submitting });
 
   const value = Number(amount);
   const valid = Number.isFinite(value) && value > 0;

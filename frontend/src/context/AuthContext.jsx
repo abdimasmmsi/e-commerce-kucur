@@ -3,6 +3,7 @@ import { AUTH_INVALIDATED_EVENT, ApiError } from "../services/apiClient";
 import { authService, normalizeAuthUser } from "../services/authService";
 import { AUTH_TOKEN_STORAGE_KEY, clearAuthToken, clearLegacyAuthStorage, getActiveRole, getAuthExpiresAt, getAuthToken, setActiveRole, setAuthExpiresAt, setAuthToken } from "../services/authStorage";
 import { usePreferences } from "./PreferencesContext";
+import { useLiveRefresh } from "../utils/liveRefresh";
 
 const AuthContext = createContext(null);
 const emptySession = { user: null, activeRole: null };
@@ -41,6 +42,24 @@ export function AuthProvider({ children }) {
       return null;
     }
   }, [acceptUser, clearSession]);
+
+  // Muat ulang profil/peran diam-diam (mis. pengajuan lapak disetujui Admin): hanya mengganti sesi bila datanya berubah,
+  // peran aktif dipertahankan, bahasa/tema tidak ditimpa, dan galat (termasuk jaringan putus) diabaikan.
+  const silentRefreshUser = useCallback(async () => {
+    if (!getAuthToken()) return;
+    try {
+      const user = normalizeAuthUser(await authService.me());
+      if (!user.roles.length) return;
+      setSession((current) => {
+        if (!current.user || current.user.id !== user.id) return current;
+        if (JSON.stringify(current.user) === JSON.stringify(user)) return current;
+        const activeRole = fallbackRole(user.roles, current.activeRole);
+        setActiveRole(user.id, activeRole);
+        return { user, activeRole };
+      });
+    } catch { /* data lama tetap tampil; sesi tidak dihapus dari jalur ini */ }
+  }, []);
+  useLiveRefresh(silentRefreshUser, { enabled: Boolean(session.user) });
 
   useEffect(() => {
     clearLegacyAuthStorage();

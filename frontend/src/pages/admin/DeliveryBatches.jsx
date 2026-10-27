@@ -11,6 +11,7 @@ import { orderService } from "../../services/commerceService";
 import { shortOrderCode } from "../../utils/orderCode";
 import DeliveryDraftPanel from "../../components/admin/DeliveryDraftPanel";
 import { jakartaToday } from "../../utils/deliveryDraft";
+import { useLiveRefresh } from "../../utils/liveRefresh";
 import "./AdminDeliveryFinance.css";
 
 const TERMINAL = new Set(["DELIVERED", "FAILED", "CANCELLED"]);
@@ -39,6 +40,9 @@ export default function AdminDeliveryBatches() {
   }, [t]);
 
   useEffect(() => { const timer = window.setTimeout(() => { void load(); }, 0); return () => window.clearTimeout(timer); }, [load]);
+  // Muat ulang diam-diam: tanpa mengubah `loading` supaya panel draf dan dialog yang terbuka tidak ikut terbongkar.
+  const silentRefresh = useCallback(async () => { try { setBatches(await deliveryApi.adminBatches()); } catch { /* data lama tetap tampil */ } }, []);
+  useLiveRefresh(silentRefresh, { enabled: !loading && !busy });
   const failedCopy = language === "id"
     ? { cancel: "Batalkan pesanan", title: "Batalkan pesanan {code}?", text: "Pakai ini kalau pembeli menolak atau pesanan tidak bisa diantar. Stok dikembalikan ke lapak, pembeli dan lapak mendapat notifikasi. Kurir mengembalikan barang ke lapak dan lapak mengembalikan uang talangan ke kurir.", reason: "Alasan pembatalan", reasonHint: "Wajib diisi, terlihat oleh pembeli.", back: "Kembali", orderCancelled: "Pesanan dibatalkan" }
     : { cancel: "Cancel order", title: "Cancel order {code}?", text: "Use this when the buyer refuses or the order cannot be delivered. Stock returns to the store, and the buyer and store are notified. The courier returns the items to the store and the store refunds the courier's advance.", reason: "Cancellation reason", reasonHint: "Required, visible to the buyer.", back: "Go back", orderCancelled: "Order cancelled" };

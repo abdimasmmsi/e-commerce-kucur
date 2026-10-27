@@ -7,6 +7,7 @@ import StatusBadge from "../../components/ui/StatusBadge";
 import { useAuth } from "../../context/AuthContext";
 import { usePreferences } from "../../context/PreferencesContext";
 import { useSystemSettings } from "../../context/SystemSettingsContext";
+import { useLiveRefresh } from "../../utils/liveRefresh";
 import { deliveryApi } from "../../services/deliveryApiService";
 
 export default function Settings() {
@@ -22,6 +23,8 @@ export default function Settings() {
     deliveryApi.profile().then((profile) => { if (active) setState({ loading: false, profile, error: "" }); }).catch((error) => { if (active) setState({ loading: false, profile: null, error: error.message }); });
     return () => { active = false; };
   }, []);
+  // Muat ulang diam-diam: hanya profil; galat sementara diabaikan.
+  useLiveRefresh(() => deliveryApi.profile().then((profile) => setState({ loading: false, profile, error: "" })), { enabled: !state.loading });
 
   return <div className="page-container min-w-0 text-[var(--kucur-text)]">
     <PageHeader eyebrow={t("workspace.courierEyebrow")} title={t("workspace.settings")} description={copy.description}/>

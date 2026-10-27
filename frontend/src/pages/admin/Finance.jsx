@@ -7,6 +7,7 @@ import LoadingPanel from "../../components/ui/LoadingPanel";
 import PageHeader from "../../components/ui/PageHeader";
 import { FinanceBadge as Badge, StoreFinanceStatus as StoreStatus } from "../../components/admin/FinanceBadges";
 import { downloadCsv, reportFileName } from "../../utils/csv";
+import { useLiveRefresh } from "../../utils/liveRefresh";
 import { buildAdminFeeRecap, buildFinanceLedger, FINANCE_FILTERS, filterLedgers, sortLedgers } from "../../utils/adminFinance";
 import { usePreferences } from "../../context/PreferencesContext";
 import { financeService } from "../../services/financeService";
@@ -75,6 +76,8 @@ export default function AdminFinance() {
     catch { setError(copy.loadFailed); }
   }, [copy.loadFailed]);
   useEffect(() => { const timer = window.setTimeout(() => { void load(); }, 0); return () => window.clearTimeout(timer); }, [load]);
+  const silentRefresh = useCallback(async () => { try { const next = await financeService.monitor(); setNow(Date.now()); setData(next); } catch { /* data lama tetap tampil */ } }, []);
+  useLiveRefresh(silentRefresh);
 
   const failText = (cause) => (language === "id" && cause?.message ? cause.message : copy.actionFailed);
   const run = async (key, work, successText) => {

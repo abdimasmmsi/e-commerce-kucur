@@ -13,6 +13,7 @@ import { reviewService } from "../../services/reviewService";
 import { BUILTIN_REPORTS, GROUPS, METRICS, VIEWS, WIDGET_HEIGHTS, WIDGET_SIZES, arrangeWidgets, buildDatasets, buildHighlights, buildReportHighlights, computeWidget, formatMetric, groupsFor, nearestSize, newWidgetId, periodRange, reportName, shiftSize, sizeOf, viewsFor, widgetTitle } from "../../utils/analytics";
 import "./Analytics.css";
 import { exportExcel, exportPdf } from "../../utils/analyticsExport";
+import { useLiveRefresh } from "../../utils/liveRefresh";
 
 const copyByLanguage = {
   id: {
@@ -80,6 +81,13 @@ export default function AdminAnalytics() {
       .catch((caught) => { if (active) setError(caught.message); });
     return () => { active = false; };
   }, []);
+  // Segar otomatis hanya mengganti data mentah; ditahan saat mode edit atau dialog ekspor terbuka.
+  useLiveRefresh(async () => {
+    try {
+      const [orders, products, reviews, finance] = await Promise.all([orderService.list({ scope: "admin" }), productService.list(), reviewService.admin().catch(() => []), financeService.monitor().catch(() => ({}))]);
+      setData(buildDatasets({ orders, products, reviews: Array.isArray(reviews) ? reviews : reviews?.items ?? [], finance }));
+    } catch { /* data lama tetap tampil */ }
+  }, { enabled: Boolean(data) && !draft && !exporting });
 
   const customReports = useMemo(() => (Array.isArray(settings?.analyticsReports) ? settings.analyticsReports : []), [settings]);
   const report = draft ?? [...BUILTIN_REPORTS, ...customReports].find((item) => item.id === selectedId) ?? BUILTIN_REPORTS[0];

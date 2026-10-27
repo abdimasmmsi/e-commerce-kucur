@@ -4,6 +4,7 @@ import EmptyState from "../../components/ui/EmptyState";
 import LoadingPanel from "../../components/ui/LoadingPanel";
 import { usePreferences } from "../../context/PreferencesContext";
 import { canonicalStoreId } from "../../services/legacyStoreReferences";
+import { useLiveRefresh } from "../../utils/liveRefresh";
 import { getProductTotalStock, productService } from "../../services/productService";
 
 const stockInputs = (product) => product?.hasVariants
@@ -30,6 +31,13 @@ export default function StockManagement() {
   };
   useEffect(() => { queueMicrotask(() => void load()); }, [storeId]); // eslint-disable-line react-hooks/exhaustive-deps
   const selected = useMemo(() => products.find((row) => row.id === selectedId) ?? null, [products, selectedId]);
+  // Muat ulang diam-diam: hanya daftar produk yang diganti; isian stok yang sedang diubah tidak ditimpa
+  // (pembaruan ditahan selama isian berbeda dari data tersimpan atau sedang menyimpan).
+  const stockDirty = Boolean(selected) && JSON.stringify(stockValues) !== JSON.stringify(stockInputs(selected));
+  useLiveRefresh(
+    () => productService.list({ storeId, scope: "manage" }).then((rows) => setProducts(rows.filter((product) => product.storeId === storeId))),
+    { enabled: !loading && !saving && !stockDirty },
+  );
   const save = async (event) => {
     event.preventDefault();
     if (!selected || saving) return;

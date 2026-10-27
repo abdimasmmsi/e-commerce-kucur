@@ -8,6 +8,7 @@ import { usePreferences } from "../../context/PreferencesContext";
 import { getProductDisplayPrice, productService } from "../../services/productService";
 import { reviewService } from "../../services/reviewService";
 import { productStockBadge } from "../../utils/productStock";
+import { useLiveRefresh } from "../../utils/liveRefresh";
 
 const REVIEW_PREVIEW = 3;
 
@@ -38,6 +39,11 @@ export default function StorePage() {
     reviewService.publicForStore(storeId).then((result) => { if (active) setReviews((result?.items ?? result ?? []).filter((review) => !review.isHidden)); }).catch(() => { if (active) setReviews([]); });
     return () => { active = false; };
   }, [storeId]);
+  // Produk/stok/ulasan lapak diperbarui diam-diam; galat diabaikan.
+  useLiveRefresh(() => Promise.all([
+    productService.publicStore(storeId).then((row) => { if (row) setStore(row); }).catch(() => {}),
+    reviewService.publicForStore(storeId).then((result) => setReviews((result?.items ?? result ?? []).filter((review) => !review.isHidden))).catch(() => {}),
+  ]));
 
   // Produk terlaris di depan, stok habis paling belakang.
   const products = useMemo(() => [...(store?.products ?? [])].sort((a, b) => Number(productStockBadge(a, t).stockTone === "out") - Number(productStockBadge(b, t).stockTone === "out") || b.soldCount - a.soldCount || a.name.localeCompare(b.name)), [store, t]);

@@ -6,6 +6,7 @@ import PageContainer from "../../components/ui/PageContainer";
 import StatusBadge from "../../components/ui/StatusBadge";
 import { usePreferences } from "../../context/PreferencesContext";
 import { financeService } from "../../services/financeService";
+import { useLiveRefresh } from "../../utils/liveRefresh";
 
 // Keuangan per lapak: yang perlu dibayar di atas, lalu iuran pokok (progres + cicilan) dan biaya admin per bulan.
 export default function StoreFinance() {
@@ -42,6 +43,8 @@ export default function StoreFinance() {
     finally { setLoading(false); }
   }, [copy.loadFailed, errorMessage, storeId]);
   useEffect(() => { queueMicrotask(() => void load()); }, [load]);
+  // Muat ulang diam-diam: hanya ringkasan; tanpa loading, umpan balik dan pilihan cicilan tetap.
+  useLiveRefresh(() => financeService.summary(storeId).then(setData), { enabled: !loading && !busyAction });
 
   // Kunci sinkron supaya ketukan ganda tidak mengirim pembayaran dua kali; data selalu dimuat ulang (berhasil/gagal).
   const act = async (key, work) => {

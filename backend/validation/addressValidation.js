@@ -1,5 +1,6 @@
 const crypto = require("node:crypto");
 const { errors } = require("../errors/AppError");
+const { assertInServiceArea } = require("./serviceArea");
 
 const MAX_ADDRESSES = 5;
 const phonePattern = /^\+?[0-9][0-9\s-]{7,19}$/;
@@ -23,6 +24,7 @@ function normalizeAddresses(list) {
     if (!phonePattern.test(phone)) throw errors.validation({ [field("phone")]: "Nomor HP penerima tidak valid." });
     if (!address || address.length > 500) throw errors.validation({ [field("address")]: "Alamat lengkap wajib diisi (maks 500 karakter)." });
     if (!Number.isFinite(latitude) || !Number.isFinite(longitude) || Math.abs(latitude) > 90 || Math.abs(longitude) > 180 || (latitude === 0 && longitude === 0)) throw errors.validation({ [field("location")]: "Tandai titik alamat di peta." });
+    assertInServiceArea(latitude, longitude, field("location"));
     return { id: typeof item?.id === "string" && item.id.length <= 40 ? item.id : crypto.randomUUID(), label, recipientName, phone, address, latitude, longitude, isPrimary: Boolean(item?.isPrimary) };
   });
   if (rows.length) {

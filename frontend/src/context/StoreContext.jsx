@@ -1,4 +1,5 @@
-import { createContext, useCallback, useContext, useEffect, useMemo, useState } from "react";
+import { useLiveRefresh } from "../utils/liveRefresh";
+import { createContext, useCallback, useContext, useEffect, useMemo, useRef, useState } from "react";
 import { useAuth } from "./AuthContext";
 import { storeService } from "../services/storeService";
 import { normalizeStoreType } from "../utils/storeScope";
@@ -34,15 +35,28 @@ export function StoreProvider({ children }) {
     return sorted;
   }, [storageKey]);
 
+  const lastStoresJson = useRef("");
   const refreshStores = useCallback(async () => {
     if (!canLoad) { setStores([]); setActiveStoreId(null); setError(null); return []; }
     setLoading(true); setError(null);
-    try { return acceptStores(await storeService.list()); }
+    try { const rows = await storeService.list(); lastStoresJson.current = JSON.stringify(rows); return acceptStores(rows); }
     catch (nextError) { setError(nextError); throw nextError; }
     finally { setLoading(false); }
   }, [acceptStores, canLoad]);
 
   useEffect(() => { queueMicrotask(() => void refreshStores().catch(() => {})); }, [refreshStores]);
+  // Muat ulang diam-diam (mis. persetujuan lapak dari Admin): tanpa loading/galat, state hanya diganti bila isinya berubah.
+  const silentRefreshStores = useCallback(async () => {
+    if (!canLoad) return;
+    try {
+      const rows = await storeService.list();
+      const json = JSON.stringify(rows);
+      if (json === lastStoresJson.current) return;
+      lastStoresJson.current = json;
+      acceptStores(rows);
+    } catch { /* data lama tetap tampil */ }
+  }, [acceptStores, canLoad]);
+  useLiveRefresh(silentRefreshStores, { enabled: canLoad });
 
   const setActiveStore = useCallback((storeId) => {
     const next = resolveActiveStoreId(stores, storeId);

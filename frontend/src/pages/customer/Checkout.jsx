@@ -10,6 +10,7 @@ import { getDrivingDistanceKm, isOpenRouteServiceConfigured } from "../../servic
 import { productService } from "../../services/productService";
 import { clearCheckoutDraft, readCheckoutDraft, saveCheckoutDraft } from "../../utils/address";
 import { getPreciseLocation } from "../../utils/geolocation";
+import { inServiceArea } from "../../utils/serviceArea";
 import { shortOrderCode } from "../../utils/orderCode";
 
 const makeKey = () => globalThis.crypto?.randomUUID?.() ?? `checkout-${Date.now()}-${Math.random().toString(36).slice(2)}`;
@@ -69,7 +70,7 @@ export default function Checkout() {
   const locate = useCallback(() => {
     setLocation((current) => ({ ...current, status: "locating" }));
     getPreciseLocation()
-      .then(({ latitude, longitude }) => setLocation({ status: "found", latitude, longitude }))
+      .then(({ latitude, longitude }) => setLocation(inServiceArea(latitude, longitude) ? { status: "found", latitude, longitude } : { status: "missing", latitude: null, longitude: null }))
       .catch((error) => setLocation({ status: error.reason === "imprecise" ? "imprecise" : "missing", latitude: null, longitude: null, accuracy: error.accuracy }));
   }, []);
   useEffect(() => { if (addressChoice === "current" && location.status === "idle") queueMicrotask(locate); }, [addressChoice, locate, location.status]);

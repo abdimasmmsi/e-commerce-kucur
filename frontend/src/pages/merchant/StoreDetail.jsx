@@ -8,6 +8,7 @@ import { usePreferences } from "../../context/PreferencesContext";
 import { useStore } from "../../context/StoreContext";
 import { toStoreApiLocation } from "../../services/locationIntegration";
 import { normalizeLocation, validateLocationCoordinates } from "../../utils/location";
+import { useLiveRefresh } from "../../utils/liveRefresh";
 import "./StoreDetail.css";
 
 function StoreDetail() {
@@ -52,6 +53,8 @@ function StoreDetail() {
   }, [errorMessage, getStore, storeId, t]);
 
   const isLoading = loading || loadedStoreId !== storeId;
+  // Muat ulang diam-diam: hanya data lapak (status, dsb.); titik lokasi yang sedang diubah di peta tidak ditimpa.
+  useLiveRefresh(() => getStore(storeId).then(setStore), { enabled: !isLoading && !saving });
   const saveLocation = async () => {
     const validationError = validateLocationCoordinates(location);
     if (validationError) { setFeedback({ type: "error", text: validationError }); return; }

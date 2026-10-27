@@ -4,6 +4,7 @@ import EmptyState from "../../components/ui/EmptyState";
 import LoadingPanel from "../../components/ui/LoadingPanel";
 import PageContainer from "../../components/ui/PageContainer";
 import { useStore } from "../../context/StoreContext";
+import { useLiveRefresh } from "../../utils/liveRefresh";
 import { usePreferences } from "../../context/PreferencesContext";
 import { financeService } from "../../services/financeService";
 import { orderService } from "../../services/orderService";
@@ -52,9 +53,9 @@ export default function MerchantDashboard() {
     [activeStore?.id, isOverview, stores],
   );
 
-  const load = async () => {
-    setLoading(true);
-    setError("");
+  const load = async (options) => {
+    const silent = options?.silent === true;
+    if (!silent) { setLoading(true); setError(""); }
     try {
       const [products, orders, reviews, finance] = await Promise.all([
         productService.list({ scope: "manage" }),
@@ -68,15 +69,16 @@ export default function MerchantDashboard() {
         .then((rows) => setViews(Object.assign({}, ...rows)))
         .catch(() => setViews({}));
     } catch (caught) {
-      setError(caught.message);
+      if (!silent) setError(caught.message);
     } finally {
-      setLoading(false);
+      if (!silent) setLoading(false);
     }
   };
 
   useEffect(() => {
     queueMicrotask(() => void load());
   }, [activeStoreId]); // eslint-disable-line react-hooks/exhaustive-deps
+  useLiveRefresh(() => load({ silent: true }), { enabled: !loading });
 
   const completed = useMemo(() => data.orders.filter((row) => row.status === "completed" && row.completedAt), [data.orders]);
   const periodOrders = useMemo(() => filterByPeriod(completed, (row) => row.completedAt, period), [completed, period]);

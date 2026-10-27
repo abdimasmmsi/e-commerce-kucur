@@ -6,6 +6,7 @@ import PageContainer from "../../components/ui/PageContainer";
 import StatusBadge from "../../components/ui/StatusBadge";
 import { usePreferences } from "../../context/PreferencesContext";
 import { leavePhase } from "../../utils/courierLeave";
+import { useLiveRefresh } from "../../utils/liveRefresh";
 import { deliveryApi } from "../../services/deliveryApiService";
 import { ACTIONABLE_STATUSES, batchTime, useCourierBatches } from "./courierDeliveryModel";
 
@@ -27,6 +28,8 @@ export default function Dashboard() {
   const batches = useCourierBatches();
   const [availability, setAvailability] = useState({ rows: [], loading: true, error: "" });
   useEffect(() => { let mounted = true; deliveryApi.availability().then((rows) => { if (mounted) setAvailability({ rows, loading: false, error: "" }); }).catch((error) => { if (mounted) setAvailability({ rows: [], loading: false, error: error.message }); }); return () => { mounted = false; }; }, []);
+
+  useLiveRefresh(() => deliveryApi.availability().then((rows) => setAvailability({ rows, loading: false, error: "" })), { enabled: !availability.loading });
 
   const data = useMemo(() => {
     const now = new Date();

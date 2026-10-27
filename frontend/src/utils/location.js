@@ -1,3 +1,4 @@
+import { inServiceArea } from "./serviceArea";
 export const EMPTY_LOCATION = { locationId: null, label: "", address: "", latitude: null, longitude: null };
 
 const finiteCoordinate = (value, min, max) => {
@@ -29,6 +30,7 @@ export function validateLocationCoordinates(location) {
   const latitude = Number(location.latitude); const longitude = Number(location.longitude);
   if (!Number.isFinite(latitude) || latitude < -90 || latitude > 90) return "Latitude harus berada antara -90 dan 90.";
   if (!Number.isFinite(longitude) || longitude < -180 || longitude > 180) return "Longitude harus berada antara -180 dan 180.";
+  if (!inServiceArea(latitude, longitude)) return "Lokasi di luar area layanan. Saat ini hanya melayani Jawa Timur.";
   return "";
 }
 

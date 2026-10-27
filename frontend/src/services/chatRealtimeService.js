@@ -1,5 +1,6 @@
 import { io } from "socket.io-client";
 import { getAuthToken } from "./authStorage";
+import { notifyDataChanged } from "../utils/liveRefresh";
 
 const SOCKET_URL = String(import.meta.env.VITE_API_BASE_URL ?? "http://localhost:3000").replace(/\/$/, "");
 let socket;
@@ -15,7 +16,8 @@ export const chatRealtimeService = {
     if (!token) return null;
     if (!socket) {
       socket = io(SOCKET_URL || undefined, { auth: { token }, autoConnect: false, reconnection: true });
-      socket.on("connect", () => joinedConversations.forEach((conversationId) => socket.emit("chat:join", { conversationId })));
+      socket.on("connect", () => { joinedConversations.forEach((conversationId) => socket.emit("chat:join", { conversationId })); notifyDataChanged(); });
+      socket.on("data:changed", notifyDataChanged);
     }
     socket.auth = { token };
     if (!socket.connected) socket.connect();

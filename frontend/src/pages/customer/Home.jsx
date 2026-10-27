@@ -11,6 +11,7 @@ import { usePreferences } from "../../context/PreferencesContext";
 import { useSystemSettings } from "../../context/SystemSettingsContext";
 import { getProductDisplayPrice, getProductTotalStock, productService } from "../../services/productService";
 import { HISTORY_EVENT, personalize } from "../../utils/browsingHistory";
+import { useLiveRefresh } from "../../utils/liveRefresh";
 
 const Icon = ({ path, className = "size-7" }) => <svg className={className} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true"><path d={path} /></svg>;
 // Warna inisial lapak (teks putih, kontras ≥ 4.5:1).
@@ -42,6 +43,8 @@ function Home() {
       .finally(() => { if (active) setLoading(false); });
     return () => { active = false; };
   }, []);
+  // Muat ulang diam-diam (stok/harga berubah di perangkat lain); galat diabaikan.
+  useLiveRefresh(() => productService.list().then((rows) => setProducts(rows)).catch(() => {}));
 
   const available = useMemo(() => products.filter((product) => product.status === "active" && getProductTotalStock(product) > 0), [products]);
   // Terlaris = penjualan 30 hari terakhir (data asli dari pesanan selesai); bila belum ada, pakai total penjualan.

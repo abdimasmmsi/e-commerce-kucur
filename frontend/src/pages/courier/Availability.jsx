@@ -6,6 +6,7 @@ import PageHeader from "../../components/ui/PageHeader";
 import StatusBadge from "../../components/ui/StatusBadge";
 import { usePreferences } from "../../context/PreferencesContext";
 import { deliveryApi } from "../../services/deliveryApiService";
+import { useLiveRefresh } from "../../utils/liveRefresh";
 import { leavePhase, leaveErrorText, toLocalInputValue } from "../../utils/courierLeave";
 
 const copyByLanguage = {
@@ -48,6 +49,8 @@ export default function Availability() {
     finally { setState((value) => ({ ...value, loading: false })); }
   }, []);
   useEffect(() => { void load(); }, [load]);
+  // Muat ulang diam-diam: hanya riwayat cuti; isian formulir pengajuan tidak disentuh.
+  useLiveRefresh(() => deliveryApi.availability().then(setRows), { enabled: !state.loading && !state.busy });
   const running = useMemo(() => rows.find((row) => leavePhase(row) === "running"), [rows]);
   const pending = useMemo(() => rows.some((row) => row.status === "pending"), [rows]);
   const startPast = Boolean(form.startAt) && form.startAt < minStart;

@@ -1,4 +1,5 @@
 import { createContext, useCallback, useContext, useEffect, useMemo, useState } from "react";
+import { useLiveRefresh } from "../utils/liveRefresh";
 import { useAuth } from "./AuthContext";
 import { acceptOperationalSettings, defaultOperationalSettings } from "../utils/operationalSettings";
 import { platformSettingsService } from "../services/platformSettingsService";
@@ -26,6 +27,20 @@ export function SystemSettingsProvider({ children }) {
     finally { setLoading(false); }
   }, [initialized, user]);
   useEffect(() => { queueMicrotask(() => void refreshSettings().catch(() => {})); }, [refreshSettings]);
+  // Muat ulang diam-diam; state diganti hanya bila isinya berubah (menghindari render ulang & efek turunan).
+  const silentRefresh = useCallback(async () => {
+    if (!initialized || !user) return;
+    try {
+      const current = normalize(await platformSettingsService.get());
+      const json = JSON.stringify(current);
+      setSettings((previous) => {
+        if (JSON.stringify(previous) === json) return previous;
+        acceptOperationalSettings(current);
+        return current;
+      });
+    } catch { /* data lama tetap tampil */ }
+  }, [initialized, user]);
+  useLiveRefresh(silentRefresh, { enabled: Boolean(initialized && user) });
   const updateSettings = useCallback(async (changes) => {
     setSaving(true); setError(null);
     try { const current = normalize(await platformSettingsService.update(changes)); acceptOperationalSettings(current); setSettings(current); return current; }

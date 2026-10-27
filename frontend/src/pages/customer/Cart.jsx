@@ -5,6 +5,7 @@ import { usePreferences } from "../../context/PreferencesContext";
 import { cartService } from "../../services/commerceService";
 import LoadingPanel from "../../components/ui/LoadingPanel";
 import PageContainer from "../../components/ui/PageContainer";
+import { useLiveRefresh } from "../../utils/liveRefresh";
 
 const primaryLink = "inline-flex min-h-12 items-center justify-center rounded-xl bg-[var(--kucur-green)] px-5 text-base font-bold text-[var(--kucur-on-green)] hover:bg-[var(--kucur-green-hover)]";
 const secondaryLink = "inline-flex min-h-12 items-center justify-center rounded-xl border border-[var(--kucur-border-strong)] bg-[var(--kucur-surface)] px-5 text-base font-bold text-[var(--kucur-text)] hover:bg-[var(--kucur-green-soft)]";
@@ -29,6 +30,8 @@ export default function Cart() {
   const [error, setError] = useState("");
   const [busy, setBusy] = useState("");
   useEffect(() => { let active = true; cartService.get().then((value) => { if (active) setCart(value); }).catch((cause) => { if (active) setError(cause.message); }).finally(() => { if (active) setLoading(false); }); return () => { active = false; }; }, []);
+  // Stok/harga berubah di perangkat lain: ganti isi keranjang diam-diam, ditahan saat ada aksi ubah/hapus berjalan.
+  useLiveRefresh(() => cartService.get().then((value) => { if (value) setCart(value); }).catch(() => {}), { enabled: !busy });
   const mutate = async (id, action) => { setBusy(id); setError(""); try { setCart(await action()); } catch (cause) { setError(cause.message); try { setCart(await cartService.get()); } catch { /* tetap tampilkan isi lama */ } } finally { setBusy(""); } };
   const groups = Object.values(cart.items.reduce((map, item) => { const key = String(item.product?.storeId ?? item.storeId); map[key] ??= { store: item.product?.store, items: [] }; map[key].items.push(item); return map; }, {}));
   const total = Number(cart.total ?? cart.items.reduce((sum, item) => sum + Number(item.subtotal || item.unitPrice * item.quantity), 0));

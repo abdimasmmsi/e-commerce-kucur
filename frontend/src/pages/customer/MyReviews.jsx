@@ -3,6 +3,7 @@ import PageHeader from "../../components/ui/PageHeader";
 import ReviewList from "../../components/ReviewList";
 import { usePreferences } from "../../context/PreferencesContext";
 import { reviewService } from "../../services/reviewService";
+import { useLiveRefresh } from "../../utils/liveRefresh";
 import "./CustomerMarketplace.css";
 
 function MyReviews() {
@@ -12,6 +13,7 @@ function MyReviews() {
   useEffect(() => {
     reviewService.mine().then((items) => setRows(items.filter((row) => row.targetType === "product"))).catch(() => setError(t("myReviews.loadFailed")));
   }, [t]);
+  useLiveRefresh(() => reviewService.mine().then((items) => setRows(items.filter((row) => row.targetType === "product"))).catch(() => {}));
   return <div className="page-container customer-page my-reviews-page">
     <PageHeader eyebrow={t("account.eyebrow")} title={t("myReviews.title")} description={t("myReviews.subtitle")} />
     {error && <p role="alert">{error}</p>}

@@ -3,6 +3,7 @@ const path = require("node:path");
 const cors = require("cors");
 const env = require("./config/env");
 const { createApiRateLimits } = require("./middleware/rateLimit");
+const dataEvents = require("./services/dataEventBus");
 const { createPrismaRepository } = require("./repositories/prismaRepository");
 const { createFinalPrismaRepository } = require("./repositories/finalPrismaRepository");
 const { createRepositoryReadRouter } = require("./repositories/repositoryReadRouter");
@@ -81,7 +82,13 @@ function createApp(options = {}) {
   app.use(express.json({ limit: "1mb" }));
   app.use("/uploads", express.static(path.resolve(__dirname, "uploads"), { immutable: true, maxAge: "7d", fallthrough: true }));
   app.use(readContextMiddleware);
-  app.get("/", (req, res) => { void req; res.json({ data: { message: "Kucur Platform API is running" } }); });
+  // Aksi yang berhasil memberi sinyal "data berubah": ke semua admin yang sedang membuka panel dan ke perangkat lain milik pelaku.
+  // Pihak lain yang terdampak dikabari lewat pembuatan notifikasi (finalPrismaRepository).
+  app.use("/api", (req, res, next) => {
+    if (!["GET", "HEAD", "OPTIONS"].includes(req.method)) res.on("finish", () => { if (res.statusCode < 400) dataEvents.publish({ roles: ["admin"], userIds: req.auth?.user?.id ? [req.auth.user.id] : [] }); });
+    next();
+  });
+  app.get("/",(req, res) => { void req; res.json({ data: { message: "Kucur Platform API is running" } }); });
   app.get("/health/live", (req, res) => { void req; res.json({ data: { status: "alive" } }); });
   app.get("/health/ready", async (req, res, next) => { try { await repository.health(); res.json({ data: { status: "ready", database: "reachable" } }); } catch (error) { next(error); } });
   if (env.nodeEnv !== "production") app.get("/health/repository-routing", (req, res) => { void req; res.json({ data: { read: { config: repository.config || { mode: "legacy" }, summary: repository.metrics?.summary?.() || null, unsafeDomains: [...(repository.unsafe || [])] }, write: { config: writeRepository.config || { mode: "legacy" }, summary: writeRepository.metrics?.summary?.() || null, unsafeDomains: [...(writeRepository.unsafeDomains || [])], unsafeEntities: [...(writeRepository.unsafeEntities || [])], events: (writeRepository.metrics?.events || []).slice(-200) } } }); });

@@ -8,6 +8,7 @@ import Pagination from "../../components/ui/Pagination";
 import StatusBadge from "../../components/ui/StatusBadge";
 import { usePreferences } from "../../context/PreferencesContext";
 import { getProductDisplayPrice, getProductTotalStock, productService } from "../../services/productService";
+import { useLiveRefresh } from "../../utils/liveRefresh";
 import { paginate } from "../../utils/pagination";
 
 const PAGE_SIZE = 12;
@@ -18,6 +19,7 @@ export default function ProductMonitoring() {
   const [search, setSearch] = useState(""); const [storeId, setStoreId] = useState("all"); const [status, setStatus] = useState("all"); const [stock, setStock] = useState("all");
   const load = async () => { setLoading(true); setError(false); try { setProducts(await productService.list({ scope: "manage" })); } catch { setError(true); } finally { setLoading(false); } };
   useEffect(() => { queueMicrotask(() => void load()); }, []);
+  useLiveRefresh(() => productService.list({ scope: "manage" }).then(setProducts).catch(() => {}), { enabled: !loading });
   const stores = useMemo(() => [...new Map(products.map((product) => [product.storeId, product.store]).filter(([, store]) => store)).entries()], [products]);
   const rows = useMemo(() => products.filter((product) => { const total = getProductTotalStock(product); return (!search.trim() || `${product.name} ${product.store?.name}`.toLowerCase().includes(search.trim().toLowerCase())) && (storeId === "all" || product.storeId === storeId) && (status === "all" || product.status === status) && (stock === "all" || (stock === "empty" ? total === 0 : stock === "low" ? total > 0 && total <= 5 : total > 5)); }), [products, search, status, stock, storeId]);
   const visibleRows = paginate(rows, page, PAGE_SIZE);

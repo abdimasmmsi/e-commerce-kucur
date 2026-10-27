@@ -1,6 +1,7 @@
 import { useEffect, useMemo, useRef, useState } from "react";
 import { Link, useParams, useSearchParams } from "react-router-dom";
 import { useStore } from "../../context/StoreContext";
+import { useLiveRefresh } from "../../utils/liveRefresh";
 import ProductImage from "../../components/ProductImage";
 import StatusBadge from "../../components/ui/StatusBadge";
 import Pagination from "../../components/ui/Pagination";
@@ -87,6 +88,12 @@ function ProductManagement() {
     productService.storeViews(storeId).then((rows) => { if (active) setViews(rows ?? {}); }).catch(() => {});
     return () => { active = false; };
   }, [storeId]);
+  // Muat ulang diam-diam: hanya daftar produk & statistik; filter, halaman, dan dialog impor tidak disentuh.
+  useLiveRefresh(async () => {
+    const rows = await productService.list({ storeId, scope: "manage" });
+    setProducts(rows.filter((product) => product.storeId === storeId));
+    productService.storeViews(storeId).then((v) => setViews(v ?? {})).catch(() => {});
+  }, { enabled: !loading && !updatingId && !excelBusy });
   const downloadExcel = async (template) => {
     setExcelBusy(template ? "template" : "export"); setExcelError("");
     try { await exportProductExcel({ products, storeName: store?.name, language, template }); }

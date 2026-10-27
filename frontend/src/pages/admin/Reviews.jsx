@@ -8,6 +8,7 @@ import Pagination from "../../components/ui/Pagination";
 import StatusBadge from "../../components/ui/StatusBadge";
 import { usePreferences } from "../../context/PreferencesContext";
 import { reviewService } from "../../services/reviewService";
+import { useLiveRefresh } from "../../utils/liveRefresh";
 import "./AdminOperations.css";
 import "./Reviews.css";
 
@@ -29,6 +30,8 @@ export default function Reviews() {
     finally { setLoading(false); }
   }, [t, visibility]);
   useEffect(() => { const timer = window.setTimeout(() => { void load(); }, 0); return () => window.clearTimeout(timer); }, [load]);
+  // Diam-diam; ditahan saat dialog moderasi terbuka supaya alasan yang diketik dan baris yang ditinjau tidak berubah.
+  useLiveRefresh(() => reviewService.admin({ type: "product", visibility }).then(setRows).catch(() => {}), { enabled: !loading && !active && !busy });
   const moderate = async (row, hidden) => {
     setBusy(true);
     try { await reviewService.moderate(row.id, hidden, reason); setActive(null); setReason(""); await load(); }

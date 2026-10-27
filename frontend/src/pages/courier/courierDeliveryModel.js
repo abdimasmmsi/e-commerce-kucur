@@ -1,4 +1,5 @@
 import { useEffect, useMemo, useState } from "react";
+import { useLiveRefresh } from "../../utils/liveRefresh";
 import { deliveryApi } from "../../services/deliveryApiService";
 
 export const ACTIONABLE_STATUSES = new Set(["WAITING_PICKUP", "PICKED_UP", "OUT_FOR_DELIVERY"]);
@@ -29,6 +30,8 @@ export function useCourierBatches() {
       .catch((error) => { if (mounted) setState({ rows: [], loading: false, error: error.message }); });
     return () => { mounted = false; };
   }, []);
+  // Muat ulang diam-diam: tanpa loading, galat sementara diabaikan (data lama tetap tampil).
+  useLiveRefresh(() => deliveryApi.courierBatches().then((rows) => setState({ rows, loading: false, error: "" })), { enabled: !state.loading });
   const classified = useMemo(() => classifyCourierDeliveries(state.rows), [state.rows]);
   return { ...state, ...classified };
 }

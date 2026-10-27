@@ -13,6 +13,7 @@ import PageContainer from "../../components/ui/PageContainer";
 import StatusBadge from "../../components/ui/StatusBadge";
 import StatusTimeline from "../../components/ui/StatusTimeline";
 import { usePreferences } from "../../context/PreferencesContext";
+import { useLiveRefresh } from "../../utils/liveRefresh";
 import { shortOrderCode } from "../../utils/orderCode";
 
 // Tahap timeline (5) dari sudut pandang lapak.
@@ -51,6 +52,7 @@ function OrderDetailWorkspace({ storeId, orderId }) {
   }, [orderId, storeId, t]);
 
   const reload = () => { orderService.get(orderId).then((row) => { if (row.storeId === String(storeId)) setOrder(row); }).catch(() => null); };
+  useLiveRefresh(reload, { enabled: !loading });
 
   const handleTransition = async () => {
     if (!order || !nextStatus) return;

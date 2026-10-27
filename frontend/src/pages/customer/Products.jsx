@@ -8,6 +8,7 @@ import { getProductDisplayPrice, productService } from "../../services/productSe
 import SearchHistoryPanel from "../../components/SearchHistoryPanel";
 import { addSearch } from "../../utils/browsingHistory";
 import { matchesSearch } from "../../utils/searchMatch";
+import { useLiveRefresh } from "../../utils/liveRefresh";
 
 const controlClass = "min-h-11 w-full rounded-xl border border-[var(--kucur-border-strong)] bg-[var(--kucur-surface)] px-3 text-sm text-[var(--kucur-text)] outline-none transition focus:border-kucur-forest focus:ring-2 focus:ring-kucur-forest/15";
 
@@ -32,6 +33,8 @@ function Products() {
     productService.list().then((rows) => { if (active) setProducts(rows); }).catch((cause) => { if (active) setError(cause.message); }).finally(() => { if (active) setLoading(false); });
     return () => { active = false; };
   }, []);
+  // Filter/pencarian adalah state lokal sehingga tidak tersentuh; hanya daftar produk yang diganti.
+  useLiveRefresh(() => productService.list().then((rows) => setProducts(rows)).catch(() => {}));
   useEffect(() => { queueMicrotask(() => { setSearch(searchParams.get("search") ?? ""); setSelectedCategories(searchParams.getAll("category").filter(Boolean)); }); }, [searchParams]);
 
   const activeProducts = useMemo(() => products.filter((product) => product.status === "active"), [products]);

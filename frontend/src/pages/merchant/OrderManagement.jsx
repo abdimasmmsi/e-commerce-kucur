@@ -10,6 +10,7 @@ import { usePreferences } from "../../context/PreferencesContext";
 import { useStore } from "../../context/StoreContext";
 import { merchantTransitions, orderService } from "../../services/orderService";
 import { canonicalStoreId } from "../../services/legacyStoreReferences";
+import { useLiveRefresh } from "../../utils/liveRefresh";
 import { filterByPeriod } from "../../utils/datePeriod";
 import { shortOrderCode } from "../../utils/orderCode";
 import { paginate } from "../../utils/pagination";
@@ -55,6 +56,8 @@ function OrderManagementWorkspace({ storeId, routeStore }) {
       .finally(() => { if (active) setLoading(false); });
     return () => { active = false; };
   }, [errorMessage, storeId, t]);
+  // Muat ulang diam-diam: filter/tab/pencarian/dialog tidak disentuh, galat sementara diabaikan.
+  useLiveRefresh(() => orderService.list({ scope: "merchant", storeId }).then(setOrders), { enabled: !loading });
 
   const counts = useMemo(() => Object.fromEntries(tabs.map((item) => [item.key, orders.filter((order) => item.statuses.includes(order.status)).length])), [orders]);
   // Tanpa pilihan, buka tahap pertama yang punya pesanan (yang paling perlu dikerjakan).

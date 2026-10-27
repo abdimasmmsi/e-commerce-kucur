@@ -1,6 +1,7 @@
 import { useEffect } from "react";
 import L from "leaflet";
 import { MapContainer, Marker, Popup, TileLayer, useMap, useMapEvents } from "react-leaflet";
+import { SERVICE_AREA_BOUNDS } from "../../utils/serviceArea";
 import { KUCUR_MAP_DEFAULT_CENTER, KUCUR_MAP_DEFAULT_ZOOM, OSM_ATTRIBUTION, OSM_TILE_URL } from "../../config/mapConfig";
 
 const markerIcon = L.divIcon({ className: "", html: '<span style="display:grid;width:28px;height:28px;place-items:center;border:3px solid white;border-radius:50% 50% 50% 0;background:#166534;box-shadow:0 2px 8px #0005;transform:rotate(-45deg)"><i style="width:7px;height:7px;border-radius:50%;background:white"></i></span>', iconSize: [28, 28], iconAnchor: [14, 28], popupAnchor: [0, -25] });
@@ -21,7 +22,7 @@ function MapLifecycle({ latitude, longitude }) {
 export default function LeafletMap({ latitude, longitude, label, editable = false, onSelect }) {
   const valid = Number.isFinite(latitude) && Number.isFinite(longitude);
   const position = valid ? [latitude, longitude] : null;
-  return <MapContainer className="h-64 w-full max-w-full sm:h-72" center={position ?? KUCUR_MAP_DEFAULT_CENTER} zoom={position ? 16 : KUCUR_MAP_DEFAULT_ZOOM} scrollWheelZoom>
+  return <MapContainer className="h-64 w-full max-w-full sm:h-72" center={position ?? KUCUR_MAP_DEFAULT_CENTER} zoom={position ? 16 : KUCUR_MAP_DEFAULT_ZOOM} scrollWheelZoom maxBounds={SERVICE_AREA_BOUNDS} maxBoundsViscosity={1} minZoom={8}>
     <TileLayer attribution={OSM_ATTRIBUTION} url={OSM_TILE_URL} />
     <MapEvents editable={editable} onSelect={onSelect} />
     <MapLifecycle latitude={latitude} longitude={longitude} />

@@ -10,6 +10,7 @@ import StatusBadge from "../../components/ui/StatusBadge";
 import StatusTimeline from "../../components/ui/StatusTimeline";
 import { usePreferences } from "../../context/PreferencesContext";
 import { orderService } from "../../services/orderService";
+import { useLiveRefresh } from "../../utils/liveRefresh";
 import "./AdminOperations.css";
 
 const lifecycleStatuses = ["pending", "confirmed", "processing", "ready-for-pickup", "courier-assigned", "picked-up", "on-delivery", "delivered", "completed"];
@@ -21,6 +22,7 @@ export default function AdminOrderDetail() {
   const [order, setOrder] = useState(null); const [loading, setLoading] = useState(true); const [error, setError] = useState("");
   const load = () => { setLoading(true); setError(""); orderService.get(orderId).then(setOrder).catch((caught) => setError(caught.message)).finally(() => setLoading(false)); };
   useEffect(() => { let active = true; orderService.get(orderId).then((row) => { if (active) setOrder(row); }).catch((caught) => { if (active) setError(caught.message); }).finally(() => { if (active) setLoading(false); }); return () => { active = false; }; }, [orderId]);
+  useLiveRefresh(() => orderService.get(orderId).then((row) => { if (row) setOrder(row); }).catch(() => {}), { enabled: !loading });
   if (loading) return <PageContainer><LoadingPanel label={c.loading} rows={5} /></PageContainer>;
   if (!order) return <PageContainer><EmptyState title={c.missing} description={error || c.missingHint} action={<Button variant="secondary" onClick={load}>{c.retry}</Button>} /></PageContainer>;
   const currentIndex = lifecycleStatuses.indexOf(order.status);

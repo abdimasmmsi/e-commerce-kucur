@@ -6,6 +6,7 @@ import PageHeader from "../../components/ui/PageHeader";
 import Pagination from "../../components/ui/Pagination";
 import { usePreferences } from "../../context/PreferencesContext";
 import { adminUserService } from "../../services/adminUserService";
+import { useLiveRefresh } from "../../utils/liveRefresh";
 import { paginate } from "../../utils/pagination";
 import "./Users.css";
 
@@ -25,6 +26,7 @@ export default function Users() {
   const [page, setPage] = useState(1);
   const [selected, setSelected] = useState(null); const [form, setForm] = useState({ adminPassword: "", temporaryPassword: "", confirmPassword: "" }); const [resetState, setResetState] = useState({ busy: false, error: "", message: "" });
   useEffect(() => { let active = true; adminUserService.list().then((rows) => { if (active) setUsers(rows); }).catch(() => { if (active) setError(true); }).finally(() => { if (active) setLoading(false); }); return () => { active = false; }; }, []);
+  useLiveRefresh(() => adminUserService.list().then(setUsers).catch(() => {}), { enabled: !loading });
   const filtered = useMemo(() => { const term = query.trim().toLowerCase(); return term ? users.filter((user) => `${user.fullName || user.name} ${user.email} ${(user.roles || []).join(" ")}`.toLowerCase().includes(term)) : users; }, [query, users]);
   const visibleUsers = paginate(filtered, page, PAGE_SIZE);
   const closeReset = () => { setSelected(null); setForm({ adminPassword: "", temporaryPassword: "", confirmPassword: "" }); setResetState({ busy: false, error: "", message: "" }); };

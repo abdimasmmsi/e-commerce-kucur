@@ -321,3 +321,7 @@ button[aria-busy="true"]::before { content: ""; display: inline-block; flex: 0 0
   ol.merchant-apply-progress li { flex-direction: column; justify-content: flex-start; gap: 4px; font-size: .75rem; line-height: 1.25; text-align: center; }
   ol.merchant-apply-progress li:not(:last-child)::after { display: none; }
 }
+/* Peta: tombol zoom cukup besar untuk jari di HP. */
+@media (max-width: 767px) {
+  .leaflet-touch .leaflet-bar a { width: 40px; height: 40px; line-height: 40px; }
+}

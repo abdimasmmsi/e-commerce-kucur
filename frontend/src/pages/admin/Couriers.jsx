@@ -10,6 +10,7 @@ import StatusBadge from "../../components/ui/StatusBadge";
 import { usePreferences } from "../../context/PreferencesContext";
 import { deliveryApi } from "../../services/deliveryApiService";
 import { leavePhase, leaveErrorText, toLocalInputValue } from "../../utils/courierLeave";
+import { useLiveRefresh } from "../../utils/liveRefresh";
 import { paginate } from "../../utils/pagination";
 import { whatsappLink } from "../../utils/whatsapp";
 
@@ -55,6 +56,8 @@ export default function Couriers() {
   const apply = useCallback(([couriers, leaveRows]) => { setRows(couriers); setLeaves(leaveRows); }, []);
   const fetchAll = () => Promise.all([deliveryApi.couriers(), deliveryApi.leaveRequests()]);
   const load = async () => { try { apply(await fetchAll()); } catch (caught) { setError(caught.message || copy.error); } };
+  const silentRefresh = useCallback(async () => { try { apply(await Promise.all([deliveryApi.couriers(), deliveryApi.leaveRequests()])); } catch { /* data lama tetap tampil */ } }, [apply]);
+  useLiveRefresh(silentRefresh);
   useEffect(() => {
     let active = true;
     fetchAll().then((data) => { if (active) apply(data); }).catch((caught) => { if (active) setError(caught.message); }).finally(() => { if (active) setLoading(false); });

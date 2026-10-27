@@ -8,6 +8,7 @@ import { useChat } from "../../context/ChatContext";
 import { cartService } from "../../services/commerceService";
 import { getProductDisplayPrice, productService } from "../../services/productService";
 import { addViewed } from "../../utils/browsingHistory";
+import { useLiveRefresh } from "../../utils/liveRefresh";
 import { discountInfo } from "../../utils/discount";
 import { getAverageRating, reviewService } from "../../services/reviewService";
 import ProductImage from "../../components/ProductImage";
@@ -52,6 +53,11 @@ function ProductDetail() {
     reviewService.publicForTarget("product", productId).then((result) => { if (active) setReviews((result.items || []).filter((review) => !review.isHidden)); }).catch(() => { if (active) setReviews([]); });
     return () => { active = false; };
   }, [productId]);
+  // Stok/harga/ulasan diperbarui diam-diam; jumlah, varian, dan gambar pilihan tetap.
+  useLiveRefresh(() => Promise.all([
+    productService.get(productId).then((row) => { if (row) setProduct(row); }).catch(() => {}),
+    reviewService.publicForTarget("product", productId).then((result) => setReviews((result.items || []).filter((review) => !review.isHidden))).catch(() => {}),
+  ]));
 
   // Status "Ingatkan saya" hanya relevan untuk customer yang login.
   const canWatchRestock = isAuthenticated && activeRole === "customer";

@@ -7,6 +7,7 @@ import { usePreferences } from "../../context/PreferencesContext";
 import { orderService } from "../../services/commerceService";
 import { shortOrderCode } from "../../utils/orderCode";
 import { buyAgain } from "../../utils/buyAgain";
+import { useLiveRefresh } from "../../utils/liveRefresh";
 
 const customerCancellableStatuses = ["pending", "confirmed"];
 const doneStatuses = ["delivered", "completed"];
@@ -46,6 +47,7 @@ function Orders() {
     orderService.list().then((value) => { if (active) setOrders(value); }).catch((cause) => { if (active) setError(cause.message); }).finally(() => { if (active) setLoading(false); });
     return () => { active = false; };
   }, []);
+  useLiveRefresh(() => orderService.list().then((value) => setOrders(value)).catch(() => {}));
 
   const counts = useMemo(() => Object.fromEntries(tabs.map((item) => [item.key, orders.filter((order) => item.matches(order.status)).length])), [orders]);
   const rows = useMemo(() => {

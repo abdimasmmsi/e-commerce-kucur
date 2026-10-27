@@ -9,6 +9,7 @@ import { FAQS } from "../../data/faq.js";
 import { faqEntriesService } from "../../services/faqEntriesService";
 import { buildFaqList, detectConcepts, matchFaq } from "../../utils/faqMatcher.js";
 import { exportFaqExcel, parseFaqExcel } from "../../utils/faqExcel.js";
+import { useLiveRefresh } from "../../utils/liveRefresh";
 
 const ROLES = ["visitor", "customer", "merchant", "courier", "admin"];
 const copyByLanguage = {
@@ -68,6 +69,9 @@ export default function FaqManager() {
     faqEntriesService.list().then((rows) => { if (active) setEntries(rows); }).catch((caught) => { if (active) setMessage({ type: "error", text: caught.message }); }).finally(() => { if (active) setLoading(false); });
     return () => { active = false; };
   }, []);
+
+  // Segar diam-diam hanya bila tidak ada form/dialog/impor terbuka, supaya isian yang sedang diedit tidak terganggu.
+  useLiveRefresh(() => faqEntriesService.list().then((rows) => { if (Array.isArray(rows)) setEntries(rows); }).catch(() => {}), { enabled: !loading && !busy && !form && !confirm && !importing });
 
   const entryById = useMemo(() => new Map(entries.map((entry) => [entry.id, entry])), [entries]);
   const merged = useMemo(() => buildFaqList(entries), [entries]);

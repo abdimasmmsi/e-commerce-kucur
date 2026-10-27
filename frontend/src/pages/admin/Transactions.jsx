@@ -8,6 +8,7 @@ import Pagination from "../../components/ui/Pagination";
 import StatusBadge from "../../components/ui/StatusBadge";
 import { usePreferences } from "../../context/PreferencesContext";
 import { orderService } from "../../services/orderService";
+import { useLiveRefresh } from "../../utils/liveRefresh";
 import { matchesStatusFilter } from "../../utils/statusFilter";
 import "./AdminOperations.css";
 import { shortOrderCode } from "../../utils/orderCode";
@@ -22,6 +23,7 @@ export default function Transactions() {
   const c = language === "id" ? { eyebrow: "Admin Desa", title: "Transaksi", description: "Pantau pembayaran, proses di penjual, dan pengiriman setiap pesanan.", load: "Memuat transaksi", failed: "Transaksi gagal dimuat.", retry: "Coba Lagi", search: "Cari pesanan", searchHint: "Nomor pesanan, pembeli, atau lapak", status: "Status pesanan", payment: "Pembayaran", store: "Lapak", from: "Dari", to: "Sampai", allStatuses: "Semua status", allPayments: "Semua pembayaran", allStores: "Semua lapak", reset: "Hapus filter", order: "Pesanan", customer: "Pembeli", date: "Tanggal", total: "Total", delivery: "Pengiriman", action: "Aksi", detail: "Lihat detail", courierPending: "Belum ditentukan", empty: "Tidak ada transaksi", emptyHint: "Belum ada transaksi yang cocok dengan pencarian dan filter ini." } : { eyebrow: "Village admin", title: "Transactions", description: "Monitor payment, merchant processing, and delivery for every order.", load: "Loading transactions", failed: "Transactions could not be loaded.", retry: "Try Again", search: "Search orders", searchHint: "Order number, customer, or store", status: "Order status", payment: "Payment", store: "Store", from: "From", to: "To", allStatuses: "All statuses", allPayments: "All payments", allStores: "All stores", reset: "Reset filters", order: "Order", customer: "Customer", date: "Date", total: "Order total", delivery: "Delivery", action: "Action", detail: "View detail", courierPending: "Unassigned", empty: "No transactions", emptyHint: "No transactions match the current search and filters." };
   const load = () => { setLoading(true); setError(""); orderService.list({ scope: "admin" }).then(setOrders).catch((caught) => setError(caught.message)).finally(() => setLoading(false)); };
   useEffect(() => { let active = true; orderService.list({ scope: "admin" }).then((rows) => { if (active) setOrders(rows); }).catch((caught) => { if (active) setError(caught.message); }).finally(() => { if (active) setLoading(false); }); return () => { active = false; }; }, []);
+  useLiveRefresh(() => orderService.list({ scope: "admin" }).then(setOrders).catch(() => {}), { enabled: !loading });
   const merchants = ["All", ...new Set(orders.map((order) => order.storeName).filter(Boolean))];
   const statuses = ["All", "uncompleted", ...new Set(orders.map((order) => order.status).filter(Boolean))];
   const payments = ["All", ...new Set(orders.map((order) => order.paymentStatus).filter(Boolean))];

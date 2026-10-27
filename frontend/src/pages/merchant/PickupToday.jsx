@@ -7,6 +7,7 @@ import Pagination from "../../components/ui/Pagination";
 import { usePreferences } from "../../context/PreferencesContext";
 import { useStore } from "../../context/StoreContext";
 import { deliveryApi } from "../../services/deliveryApiService";
+import { useLiveRefresh } from "../../utils/liveRefresh";
 import { paginate } from "../../utils/pagination";
 import "./PickupToday.css";
 import { shortOrderCode } from "../../utils/orderCode";
@@ -61,6 +62,10 @@ export default function PickupToday() {
       .finally(() => { if (active) setLoading(false); });
     return () => { active = false; };
   }, [activeStoreId, errorMessage, t]);
+
+  // Muat ulang diam-diam (tanpa loading, dialog "belum siap" dan alasan yang diketik tetap utuh).
+  useLiveRefresh(() => deliveryApi.merchantOrders()
+    .then((items) => setRows(items.filter((row) => String(row.commerceOrder.storeId) === String(activeStoreId)))), { enabled: !loading });
 
   useEffect(() => {
     if (!notReadyOrder) return undefined;

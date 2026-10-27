@@ -1,6 +1,7 @@
 const { Prisma } = require("@prisma/client");
 const { createHash, randomUUID } = require("node:crypto");
 const { getPrisma } = require("../config/prisma");
+const dataEvents = require("../services/dataEventBus");
 const { createFinalFinanceRepository } = require("./finalFinanceRepository");
 
 const iso = (value) => value instanceof Date ? value.toISOString() : value ?? null;
@@ -256,7 +257,7 @@ function createFinanceRepository(client) {
 }
 
 function createNotificationRepository(client) { return {
-  create: async (data) => mapNotification(await client.targetNotification.create({ data: { id: data.id || randomUUID(), ...data } })), findByDedupeKey: async (dedupeKey) => mapNotification(await client.targetNotification.findUnique({ where: { dedupeKey } })), findById: async (id) => mapNotification(await client.targetNotification.findUnique({ where: { id } })), list: async ({ where, skip, take }) => mapDeep(await client.targetNotification.findMany({ where, skip, take, orderBy: [{ createdAt: "desc" }, { id: "desc" }] })), count: async (where) => client.targetNotification.count({ where }), markRead: async (id, userId, readAt) => (await client.targetNotification.updateMany({ where: { id, userId }, data: { readAt } })).count, markAllRead: async (userId, readAt) => (await client.targetNotification.updateMany({ where: { userId, readAt: null }, data: { readAt } })).count, markReadByEntity: async (userId, entityType, entityId, readAt) => (await client.targetNotification.updateMany({ where: { userId, entityType, entityId, readAt: null }, data: { readAt } })).count,
+  create: async (data) => { const row = mapNotification(await client.targetNotification.create({ data: { id: data.id || randomUUID(), ...data } })); dataEvents.publish({ userIds: [data.userId] }); return row; }, findByDedupeKey: async (dedupeKey) => mapNotification(await client.targetNotification.findUnique({ where: { dedupeKey } })), findById: async (id) => mapNotification(await client.targetNotification.findUnique({ where: { id } })), list: async ({ where, skip, take }) => mapDeep(await client.targetNotification.findMany({ where, skip, take, orderBy: [{ createdAt: "desc" }, { id: "desc" }] })), count: async (where) => client.targetNotification.count({ where }), markRead: async (id, userId, readAt) => (await client.targetNotification.updateMany({ where: { id, userId }, data: { readAt } })).count, markAllRead: async (userId, readAt) => (await client.targetNotification.updateMany({ where: { userId, readAt: null }, data: { readAt } })).count, markReadByEntity: async (userId, entityType, entityId, readAt) => (await client.targetNotification.updateMany({ where: { userId, entityType, entityId, readAt: null }, data: { readAt } })).count,
 }; }
 
 function mapReviewRow(row) {

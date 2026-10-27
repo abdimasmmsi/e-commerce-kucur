@@ -9,6 +9,7 @@ import StatusBadge from "../../components/ui/StatusBadge";
 import { usePreferences } from "../../context/PreferencesContext";
 import { deliveryApi } from "../../services/deliveryApiService";
 import { prepareProofPhoto } from "../../services/proofImageService";
+import { useLiveRefresh } from "../../utils/liveRefresh";
 import { shortOrderCode } from "../../utils/orderCode";
 import { whatsappLink } from "../../utils/whatsapp";
 
@@ -45,6 +46,9 @@ export default function BatchDetail() {
     finally { setState((value) => ({ ...value, loading: false })); }
   }, [batchId]);
   useEffect(() => { queueMicrotask(() => void load()); }, [load]);
+  // Muat ulang diam-diam: hanya data batch. Foto bukti (photos), dialog gagal antar (failure), dan pesan galat tidak disentuh;
+  // ditahan saat ada aksi berjalan agar tidak menimpa hasil aksi.
+  useLiveRefresh(() => deliveryApi.courierBatch(batchId).then(setBatch), { enabled: Boolean(batch) && !state.busy });
   const mutate = async (key, action) => {
     setState((value) => ({ ...value, busy: key, error: "" }));
     try { await action(); setFailure({ orderId: "", reason: "" }); await load(); }

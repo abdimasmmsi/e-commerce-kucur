@@ -1,8 +1,9 @@
-import { useEffect, useState } from "react";
+import { useCallback, useEffect, useState } from "react";
 import { Link, useLocation } from "react-router-dom";
 import { usePreferences } from "../../context/PreferencesContext";
 import { deliveryApi } from "../../services/deliveryApiService";
 import { jakartaToday } from "../../utils/deliveryDraft";
+import { useLiveRefresh } from "../../utils/liveRefresh";
 
 // Pengingat keras untuk Admin: draf batch hari ini belum disetujui setelah cutoff.
 // Sebelum jam pengingat (Admin Settings) tampil pita kuning; setelahnya pita merah + jendela yang harus dibuka/ditunda.
@@ -23,13 +24,10 @@ export default function DeliveryApprovalReminder() {
   const [snoozedUntil, setSnoozedUntil] = useState(() => { try { return Number(sessionStorage.getItem(SNOOZE_KEY)) || 0; } catch { return 0; } });
   const [dismissed, setDismissed] = useState(() => { try { return sessionStorage.getItem(DISMISS_KEY) || ""; } catch { return ""; } });
 
-  useEffect(() => {
-    let active = true;
-    const check = () => { setNow(Date.now()); deliveryApi.drafts(jakartaToday()).then((data) => { if (active) setDraft(data); }).catch(() => {}); };
-    check();
-    const timer = window.setInterval(check, 120000);
-    return () => { active = false; window.clearInterval(timer); };
-  }, [pathname]);
+  const check = useCallback(() => deliveryApi.drafts(jakartaToday()).then((data) => { setNow(Date.now()); setDraft(data); }).catch(() => {}), []);
+  // Muat saat masuk/pindah halaman, lalu segar otomatis lewat event data, tab aktif, dan polling cadangan.
+  useEffect(() => { void check(); }, [pathname, check]);
+  useLiveRefresh(check);
 
   if (!draft || !draft.total || !draft.cutoffPassed || now >= new Date(draft.dispatchAt).getTime()) return null;
   const late = now >= new Date(draft.reminderAt).getTime();
