@@ -55,6 +55,8 @@ function AccountLayout() {
     ] },
     { label: t("accountNav.communication"), items: [
       { to: "/messages", label: t("header.messagesHelp"), icon: "messages" },
+    ] },
+    { label: t("accountNav.info"), items: [
       { action: openFaqBot, key: "faq", label: language === "id" ? "Bantuan (FAQ)" : "Help (FAQ)", icon: "help" },
       { to: "/about", label: language === "id" ? "Tentang" : "About", icon: "info" },
     ] },
