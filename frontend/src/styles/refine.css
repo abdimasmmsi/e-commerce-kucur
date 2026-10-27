@@ -325,3 +325,5 @@ button[aria-busy="true"]::before { content: ""; display: inline-block; flex: 0 0
 @media (max-width: 767px) {
   .leaflet-touch .leaflet-bar a { width: 40px; height: 40px; line-height: 40px; }
 }
+/* Peta tidak boleh menembus header, menu bawah, dialog, atau popup: tumpukan z-index Leaflet (400-1000) dikurung di dalam peta. */
+.leaflet-container { position: relative; z-index: 0; isolation: isolate; }
