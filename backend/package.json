@@ -12,7 +12,7 @@
     "security:passwords": "node scripts/defaultPasswordCheck.js",
     "check:concurrency": "node scripts/concurrencyCheck.js",
     "test:integration": "node tests/runIntegration.js",
-    "test:final-repository": "node --test --test-concurrency=1 tests/finalRepository.test.js tests/finalRepositoryAuthApi.test.js tests/finalFinanceRepository.test.js tests/finalCommerceService.test.js tests/finalDeliveryService.test.js tests/finalDomainServices.test.js",
+    "test:final-repository": "node --test --test-concurrency=1 tests/finalRepository.test.js tests/finalRepositoryAuthApi.test.js tests/finalFinanceRepository.test.js tests/finalCommerceService.test.js tests/finalDeliveryService.test.js tests/finalDomainServices.test.js tests/finalProductVariantUpdate.test.js",
     "test:canary-router": "node --test tests/repositoryReadRouter.test.js",
     "test:write-canary": "node --test tests/repositoryWriteRouter.test.js",
     "validate:final-shadow": "node prisma/validation/finalRepositoryShadowValidation.js",
