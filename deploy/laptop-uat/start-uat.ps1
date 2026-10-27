@@ -31,14 +31,14 @@ function Set-EnvValue([string]$key, [string]$value) {
 }
 
 # 1. Docker harus berjalan.
-docker info *> $null
-if ($LASTEXITCODE -ne 0) {
+function Test-Docker { $old = $ErrorActionPreference; $ErrorActionPreference = "Continue"; try { docker info *> $null; return ($LASTEXITCODE -eq 0) } catch { return $false } finally { $ErrorActionPreference = $old } }
+if (-not (Test-Docker)) {
   Write-Host "Menyalakan Docker Desktop..."
   $exe = Join-Path $env:LOCALAPPDATA "Programs\DockerDesktop\Docker Desktop.exe"
   if (-not (Test-Path $exe)) { $exe = Join-Path $env:ProgramFiles "Docker\Docker\Docker Desktop.exe" }
   Start-Process $exe
-  for ($i = 0; $i -lt 60; $i++) { Start-Sleep -Seconds 5; docker info *> $null; if ($LASTEXITCODE -eq 0) { break } }
-  if ($LASTEXITCODE -ne 0) { throw "Docker belum siap. Buka Docker Desktop lalu jalankan skrip ini lagi." }
+  for ($i = 0; $i -lt 60; $i++) { Start-Sleep -Seconds 5; if (Test-Docker) { break } }
+  if (-not (Test-Docker)) { throw "Docker belum siap. Buka Docker Desktop lalu jalankan skrip ini lagi." }
 }
 
 # 2. File konfigurasi (dibuat sekali, berisi kata sandi acak; tidak masuk git).
