@@ -26,11 +26,11 @@ export default function BatchDetail() {
   const copy = language === "id" ? {
     back: "Semua pengiriman", title: "Pengiriman {date}", depart: "Berangkat {time}", progress: "{done} dari {total} terkirim", collect: "Total COD ditagih", start: "Mulai pengiriman", stop: "Tujuan {number}",
     pickupHint: "Ambil barang di {store}. Bayar harga barang ke penjual.", pickup: "Konfirmasi Ambil Barang", deliverHint: "Barang sudah di tangan. Berangkat ke alamat pembeli.", startDelivery: "Mulai Antar", proofHint: "Serahkan barang, tagih uang, lalu foto barang yang diterima.",
-    photo: "Foto & selesaikan", photoAgain: "Ganti foto", finish: "Selesaikan dengan Bukti", call: "Telepon", whatsapp: "WhatsApp", waText: "Halo {name}, saya kurir Kucur yang mengantar pesanan {code}. ", maps: "Maps", codCollect: "Tagih dari pembeli", codPaid: "Sudah dibayar", tip: "termasuk tip {amount}", fail: "Gagal antar", photoError: "Foto tidak bisa dipakai. Coba ambil ulang.",
+    photo: "Foto & selesaikan", photoAgain: "Ganti foto", finish: "Selesaikan dengan Bukti", call: "Telepon", whatsapp: "WhatsApp", waText: "Halo {name}, saya kurir Kucur yang mengantar pesanan {code}. ", maps: "Maps", codCollect: "Tagih dari pembeli", codPaid: "Sudah dibayar", tip: "termasuk tip {amount}", fail: "Gagal antar", photoError: "Foto tidak bisa dipakai. Coba ambil ulang.", waitCurrent: "Selesaikan atau tandai gagal pengantaran yang sedang berjalan dulu.",
   } : {
     back: "All deliveries", title: "Delivery {date}", depart: "Leaves {time}", progress: "{done} of {total} delivered", collect: "COD to collect", start: "Start delivery", stop: "Tujuan {number}",
     pickupHint: "Pick up at {store}. Pay the item price to the seller.", pickup: "Confirm Pickup", deliverHint: "You have the items. Head to the buyer's address.", startDelivery: "Start Delivery", proofHint: "Hand over the items, collect payment, then photograph the delivered items.",
-    photo: "Take photo & finish", photoAgain: "Retake photo", finish: "Complete with Proof", call: "Call", whatsapp: "WhatsApp", waText: "Hi {name}, I am the Kucur courier delivering order {code}. ", maps: "Maps", codCollect: "Collect from buyer", codPaid: "Already paid", tip: "includes {amount} tip", fail: "Delivery failed", photoError: "This photo cannot be used. Please take it again.",
+    photo: "Take photo & finish", photoAgain: "Retake photo", finish: "Complete with Proof", call: "Call", whatsapp: "WhatsApp", waText: "Hi {name}, I am the Kucur courier delivering order {code}. ", maps: "Maps", codCollect: "Collect from buyer", codPaid: "Already paid", tip: "includes {amount} tip", fail: "Delivery failed", photoError: "This photo cannot be used. Please take it again.", waitCurrent: "Finish or mark the delivery in progress as failed first.",
   };
   const fill = (text, values) => Object.entries(values).reduce((value, [key, replacement]) => value.replace(`{${key}}`, replacement), text);
   const [batch, setBatch] = useState(null);
@@ -63,6 +63,8 @@ export default function BatchDetail() {
 
   const stops = [...batch.orders].sort((a, b) => (a.pickupSequence ?? 99) - (b.pickupSequence ?? 99));
   const delivered = stops.filter((item) => item.status === "DELIVERED").length;
+  // Satu pengantaran berjalan dalam satu waktu: tombol Mulai Antar lain menunggu sampai yang berjalan selesai atau gagal.
+  const onTheRoad = stops.some((item) => item.status === "OUT_FOR_DELIVERY");
   const codTotal = stops.filter((item) => item.commerceOrder.paymentMethod === "COD" && item.commerceOrder.paymentStatus !== "paid" && ACTIVE.includes(item.status)).reduce((sum, item) => sum + Number(item.commerceOrder.totalAmount || 0), 0);
   const actionClass = "inline-flex min-h-12 w-full items-center justify-center rounded-xl bg-[var(--kucur-green)] px-4 text-base font-bold text-[var(--kucur-on-green)] disabled:opacity-50";
   const smallClass = "inline-flex min-h-11 items-center justify-center gap-2 rounded-xl border border-[var(--kucur-border-strong)] px-3 text-sm font-bold";
@@ -103,7 +105,7 @@ export default function BatchDetail() {
           {order.paymentMethod === "COD" && <div className={`flex items-center justify-between gap-3 rounded-xl p-3 ${order.paymentStatus === "paid" ? "bg-[var(--kucur-green-soft)]" : "bg-amber-50 dark:bg-amber-950/40"}`}><div className="min-w-0"><span className="block text-[15px] font-bold">{order.paymentStatus === "paid" ? copy.codPaid : copy.codCollect}</span><span className="text-[13px] text-[var(--kucur-text-muted)]">{Number(order.courierTip) > 0 ? fill(copy.tip, { amount: formatCurrency(order.courierTip) }) : t("courierDelivery.codHint")}</span></div><strong className="text-xl font-extrabold">{formatCurrency(order.totalAmount)}</strong></div>}
 
           {assignment.status === "WAITING_PICKUP" && <><p className="text-sm text-[var(--kucur-text-muted)]">{fill(copy.pickupHint, { store: order.storeName })}</p><button className={actionClass} type="button" disabled={Boolean(state.busy)} onClick={() => void mutate(`pickup-${order.id}`, () => deliveryApi.pickup(order.id))}>{copy.pickup}</button></>}
-          {assignment.status === "PICKED_UP" && <><p className="text-sm text-[var(--kucur-text-muted)]">{copy.deliverHint}</p><button className={actionClass} type="button" disabled={Boolean(state.busy)} onClick={() => void mutate(`delivery-${order.id}`, () => deliveryApi.outForDelivery(order.id))}>{copy.startDelivery}</button></>}
+          {assignment.status === "PICKED_UP" && <><p className="text-sm text-[var(--kucur-text-muted)]">{onTheRoad ? copy.waitCurrent : copy.deliverHint}</p><button className={actionClass} type="button" disabled={Boolean(state.busy) || onTheRoad} onClick={() => void mutate(`delivery-${order.id}`, () => deliveryApi.outForDelivery(order.id))}>{copy.startDelivery}</button></>}
           {assignment.status === "OUT_FOR_DELIVERY" && <div className="grid gap-2">
             <p className="text-sm text-[var(--kucur-text-muted)]">{copy.proofHint}</p>
             <input ref={(node) => { fileInputs.current[order.id] = node; }} className="sr-only" type="file" accept="image/jpeg,image/png,image/webp" capture="environment" aria-label={copy.photo} onChange={(event) => void choosePhoto(order.id, event.target.files?.[0])} />
