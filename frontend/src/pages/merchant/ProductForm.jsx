@@ -259,7 +259,11 @@ function ProductFormWorkspace({ mode, storeId, productId, routeStore }) {
         .map(deleteProductImage));
       saved.current = true;
       navigate(`/merchant/stores/${storeId}/products`);
-    } catch (error) { setApiError(errorMessage(error.code, t("productForm.saveFailed"))); }
+    } catch (error) {
+      // Pesan rinci dari backend (berbahasa Indonesia) ditampilkan supaya penjual tahu isian mana yang salah.
+      const detail = language === "id" && error.code === "VALIDATION_ERROR" && error.details && typeof error.details === "object" ? Object.values(error.details).find((value) => typeof value === "string") : "";
+      setApiError(detail || errorMessage(error.code, t("productForm.saveFailed")));
+    }
     finally { setSaving(false); }
   };
 
