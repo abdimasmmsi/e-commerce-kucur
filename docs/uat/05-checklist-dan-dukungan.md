@@ -10,10 +10,11 @@
 - [ ] Atur Pengaturan Platform: ongkir per km, PPN, biaya admin, batas pesan dan jam berangkat (sesuaikan agar alur selesai dalam sehari), batas pengiriman.
 
 ### H-4 sampai H-2
+- [ ] Server UAT dari laptop: jalankan `seed-uat.ps1` (lapak, produk, akun kurir dan pembeli contoh, 3 pesanan siap diambil). Halaman Masuk hanya menampilkan 3 akun penjual contoh; akun admin, kurir, dan pembeli contoh dicatat di `deploy/.uat-credentials.txt` dan `deploy/.uat-sample-accounts.txt` dan dibagikan hanya ke penguji peran itu.
 - [ ] Buat akun uji (Admin, Kurir via Tambah kurir, Penjual, Pembeli cadangan). Kata sandi dikirim lewat pesan pribadi, jangan di dokumen bersama.
 - [ ] Ganti kata sandi bawaan; akun @kucur.test **tidak** dipakai di server UAT.
 - [ ] Uji mandiri **semua alur** (P1-P8, J1-J6, K1-K5, A1-A6) di HP asli dan laptop. Catat dan perbaiki bug Kritis/Tinggi.
-- [ ] Uji di Android dan iPhone bila ada; uji unggah foto bukti dari kamera HP.
+- [ ] Uji di Android dan iPhone bila ada; uji unggah foto bukti dari kamera HP dan unggah foto produk dari HP (tunggu sampai selesai).
 - [ ] Cetak: persetujuan (`04`), lembar pengamatan (`03`), kuesioner (`02`), atau siapkan formulir digital.
 - [ ] Buat grup WhatsApp dukungan; kirim undangan (templat di bawah).
 
@@ -23,13 +24,16 @@
 - [ ] Pastikan job otomatis berjalan (tagihan, draf jadwal) dan jam server benar (WIB).
 - [ ] Siapkan pemantauan: buka log backend dan halaman uptime; siapa yang mengawasi.
 - [ ] Kirim pengingat ke peserta.
+- [ ] Pulihkan baseline (`snapshot-uat.ps1 -Restore`) agar sesi mulai dari kondisi bersih.
 
 ### Hari sesi
-- [ ] Server jalan; buka [URL-UAT] dari HP sendiri.
+- [ ] Server jalan; buka [URL-UAT] dari HP sendiri (alamat tunnel berubah bila tunnel dimulai ulang).
+- [ ] Admin standby selama sesi: setujui lapak di Persetujuan Lapak dan konfirmasi cicilan pertama Iuran Pokok di Keuangan, tanpa itu produk penjual baru tidak tampil ke pembeli; setujui draf Jadwal Pengiriman untuk sesi kurir.
 - [ ] Data awal cukup (produk, stok, kurir tidak cuti).
 - [ ] Peserta menandatangani persetujuan sebelum mulai.
 - [ ] Pencatat siap dengan lembar pengamatan.
 - [ ] Setelah sesi: simpan lembar, kumpulkan kuesioner, catat bug.
+- [ ] Akhir hari sesi: backup database, lalu pulihkan baseline bila ingin mengulang dari awal.
 
 ### Sesudah UAT
 - [ ] Masukkan SUS ke CSV dan jalankan `node docs/uat/hitung-sus.mjs`.
@@ -76,6 +80,8 @@ Terima kasih banyak atas bantuannya.
 | Apakah data saya disimpan? | Hanya data akun uji dan jawaban tanpa nama; dihapus setelah UAT (lihat lembar persetujuan). |
 | Saya bingung harus ngapain. | Baca tugas satu per satu. Boleh bertanya ke pendamping; kami akan mencatatnya sebagai masukan. |
 | Alamat apa yang saya isi? | Pakai alamat/titik peta contoh dari fasilitator, atau data fiktif. |
+| Produk saya tidak terlihat pembeli (Penjual). | Lapak baru tampil setelah disetujui Admin dan cicilan pertama Iuran Pokok dikonfirmasi Admin. Kabari fasilitator; halaman Produk juga menampilkan petunjuknya. |
+| Foto produk lama terunggah (Penjual). | Foto dikecilkan dan diunggah saat menekan Simpan. Tunggu sampai selesai, jangan tutup halaman. |
 | Foto bukti tidak bisa diunggah (Kurir). | Izinkan akses kamera di peramban, coba lagi, dan kabari fasilitator. |
 | Halaman menampilkan tulisan error. | Foto layarnya (tanpa data pribadi) dan kirim ke grup. |
 

@@ -11,6 +11,8 @@ const { createAuthService, hashPassword } = require("../services/authService");
 const { createStoreService } = require("../services/storeService");
 const { createFinanceService } = require("../services/financeService");
 const { createProductService } = require("../services/productService");
+const { createCommerceService } = require("../services/commerceService");
+const { createUserService } = require("../services/userService");
 
 const DOMAIN = "kucur.example";
 const defs = [
@@ -89,6 +91,47 @@ async function main() {
     }
     console.log(`Lapak dibuat: ${def.store.name} (${def.products.length} produk)`);
     console.log(`SAMPLE ${def.owner.email} ${password} ${def.store.name}`);
+  }
+  await seedCourierAndOrders({ prisma, repo, auth, admin });
+}
+
+// Akun kurir contoh + pembeli contoh + 3 pesanan COD (satu per lapak) yang sudah dikemas dan siap diambil,
+// supaya Admin bisa menyusun jadwal pengiriman dan kurir bisa dicoba. Aman diulang (dilewati bila sudah ada).
+async function seedCourierAndOrders({ prisma, repo, auth, admin }) {
+  const password = process.env.SAMPLE_PASSWORD || crypto.randomBytes(9).toString("hex");
+  const courierEmail = `kurir.uat@${DOMAIN}`;
+  const customerEmail = `pembeli.contoh@${DOMAIN}`;
+  let courier = await prisma.targetUser.findFirst({ where: { email: courierEmail } });
+  if (!courier) {
+    const created = await createUserService(repo).createCourier({ id: admin.id, roles: ["admin"] }, { fullName: "Kurir Contoh UAT", email: courierEmail, phone: "081230004001", maxActiveDeliveries: 10 });
+    courier = { id: created.user.id };
+  }
+  // Kata sandi acak khusus UAT (bukan kata sandi awal standar) dan tidak wajib diganti, supaya langsung bisa dicoba.
+  await prisma.targetUser.update({ where: { id: courier.id }, data: { passwordHash: await hashPassword(password), passwordChangedAt: new Date(), passwordResetRequired: false } });
+  console.log(`CREDS ${courierEmail} ${password} Kurir contoh`);
+  // Kurir sisa uji coba (mis. "Kurir Smoke") dinonaktifkan supaya draf jadwal hanya jatuh ke kurir contoh.
+  const stale = await prisma.targetCourierProfile.updateMany({ where: { userId: { not: courier.id }, isActive: true }, data: { isActive: false } });
+  if (stale.count) console.log(`Kurir lain dinonaktifkan: ${stale.count}`);
+
+  let customer = await prisma.targetUser.findFirst({ where: { email: customerEmail } });
+  const home = { address: "Dusun Krajan RT 02/RW 01, Desa Kucur, Kec. Dau, Kab. Malang", latitude: -7.9551, longitude: 112.5489 };
+  if (!customer) customer = await auth.register({ email: customerEmail, fullName: "Pembeli Contoh UAT", phone: "081230004002", password, address: { label: "Rumah", recipientName: "Pembeli Contoh UAT", phone: "081230004002", address: home.address, latitude: home.latitude, longitude: home.longitude } });
+  else await prisma.targetUser.update({ where: { id: customer.id }, data: { passwordHash: await hashPassword(password), passwordChangedAt: new Date(), passwordResetRequired: false } });
+  console.log(`CREDS ${customerEmail} ${password} Pembeli contoh`);
+
+  if (await prisma.targetCommerceOrder.count({ where: { customerUserId: customer.id } })) { console.log("Lewati pesanan contoh (sudah ada)."); return; }
+  const commerce = createCommerceService(repo);
+  const customerActor = { id: customer.id, roles: ["customer"] };
+  for (const def of defs) {
+    const owner = await prisma.targetUser.findFirst({ where: { email: def.owner.email } });
+    const store = await prisma.targetStore.findFirst({ where: { name: def.store.name } });
+    const product = await prisma.targetProduct.findFirst({ where: { storeId: store.id, status: "ACTIVE" }, include: { variants: true }, orderBy: { createdAt: "asc" } });
+    if (!owner || !store || !product) continue;
+    const item = { productId: product.id, quantity: 1, ...(product.variants?.length ? { productVariantId: product.variants[0].id } : {}) };
+    const created = await commerce.create({ items: [item], paymentMethod: "COD", courierTip: 0, delivery: { address: home.address, recipientName: "Pembeli Contoh UAT", recipientPhone: "081230004002", location: { latitude: home.latitude, longitude: home.longitude } } }, customerActor, `uat-seed-${def.key}`);
+    const merchant = { id: owner.id, roles: ["customer", "merchant"] };
+    for (const order of created.orders || created) for (const step of ["confirmed", "processing", "ready-for-pickup"]) await commerce.transition(order.id, step, merchant);
+    console.log(`Pesanan contoh siap diambil: ${def.store.name}`);
   }
 }
 

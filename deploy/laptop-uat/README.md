@@ -21,7 +21,9 @@ Setelah `start-uat.ps1`, isi server dengan 3 lapak contoh dan 11 produk, lalu si
 powershell -ExecutionPolicy Bypass -File deploy\laptop-uat\seed-uat.ps1
 ```
 - Lapak dibuat lewat alur asli (pengajuan, persetujuan admin, Iuran Pokok lunas), tanpa akun `@kucur.test`. Tiga akun pemilik lapak contoh memakai satu kata sandi acak (`UAT_SAMPLE_PASSWORD` di `deploy\.env.production`), tercatat di `deploy\.uat-sample-accounts.txt` (tidak masuk git), dan **ditampilkan di halaman Masuk** lewat build web (`UAT_ACCOUNTS_JSON` -> `VITE_UAT_ACCOUNTS`). Akun admin tidak pernah ditampilkan karena alamat tunnel bersifat publik. Skrip aman dijalankan ulang (kata sandi pemilik yang sudah ada diselaraskan, lalu web dibangun ulang).
+- Seed juga membuat akun kurir contoh (`kurir.uat@kucur.example`), akun pembeli contoh (`pembeli.contoh@kucur.example`), dan 3 pesanan COD (satu per lapak contoh) berstatus siap diambil, supaya sesi kurir bisa dicoba tanpa menunggu sesi pembeli. Akun kurir dan pembeli ini **tidak tampil di halaman Masuk**; kata sandinya dicatat di `deploy\.uat-sample-accounts.txt` dan dibagikan hanya ke penguji peran itu. Alur kurir: Admin membuka **Jadwal Pengiriman** (draf jadwal) dan menyetujui draf, kurir masuk dan memulai jadwal, penjual mencentang barang siap di tempat ambil, kurir mengambil dan mengantar, lalu unggah foto bukti antar.
 - Snapshot `baseline` disimpan di `deploy\backups-uat\baseline.sql` dan tidak ditimpa bila seed dijalankan lagi (paksa dengan `-ForceSnapshot`, jangan dilakukan setelah ada data peserta).
+- Snapshot baseline sudah memuat kondisi di atas (akun kurir/pembeli contoh dan 3 pesanan siap diambil).
 - Kembalikan ke kondisi awal kapan saja (antar hari sesi atau setelah UAT): `powershell -ExecutionPolicy Bypass -File deploy\laptop-uat\snapshot-uat.ps1 -Restore`. Ini menghapus akun peserta, pesanan, dan ulasan sejak baseline; foto unggahan tidak ikut dipulihkan.
 - Simpan snapshot lain (mis. sebelum sesi): `snapshot-uat.ps1 -Name sebelum-sesi-kurir`, lalu pulihkan dengan `-Restore -Name sebelum-sesi-kurir`.
 
@@ -29,6 +31,9 @@ powershell -ExecutionPolicy Bypass -File deploy\laptop-uat\seed-uat.ps1
 - Laptop harus menyala, terhubung internet, dicolok listrik, dan tidak sleep. Jangan restart Windows saat sesi.
 - Pantau: `docker compose --env-file deploy\.env.production -f deploy\docker-compose.prod.yml logs -f backend`.
 - Backup sebelum dan sesudah tiap hari sesi (lihat `deploy/README.md`, bagian backup; di Windows jalankan lewat Git Bash dengan `MSYS_NO_PATHCONV=1`).
+- **Admin harus standby selama sesi.** Penjual baru tidak bisa tampil ke pembeli sebelum (a) lapaknya disetujui di **Persetujuan Lapak** dan (b) cicilan pertama Iuran Pokok dikonfirmasi di **Keuangan**. Draf Jadwal Pengiriman juga harus disetujui Admin sebelum kurir bisa mulai.
+- Caddy mempercayai header proxy privat (`trusted_proxies private_ranges`), jadi IP asli peserta terbaca di belakang Cloudflare Tunnel (batas percobaan login dihitung per IP) dan alamat unggahan memakai https.
+- Sebelum sesi: pulihkan baseline (`snapshot-uat.ps1 -Restore`). Setelah tiap hari sesi: backup dulu, lalu pulihkan baseline bila ingin mengulang dari awal.
 - Admin (kamu) memakai `http://localhost:8080` atau alamat tunnel dengan akun di `deploy/.uat-credentials.txt`.
 
 ## Mengecek sebelum peserta masuk

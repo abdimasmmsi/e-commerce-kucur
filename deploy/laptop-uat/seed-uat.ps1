@@ -22,10 +22,12 @@ if (-not $samplePassword) {
 
 $output = & docker @compose exec -T -e "SAMPLE_PASSWORD=$samplePassword" backend node scripts/seedUat.js 2>&1 | ForEach-Object { "$_" }
 if ($LASTEXITCODE -ne 0) { $output | ForEach-Object { Write-Host $_ }; throw "Seed gagal. Pastikan server menyala (start-uat.ps1) dan gambar backend sudah dibangun ulang (start-uat.ps1 membangunnya otomatis)." }
-$output | Where-Object { $_ -notmatch "^SAMPLE " -and $_ -notmatch "injected env" } | ForEach-Object { Write-Host $_ }
+$output | Where-Object { $_ -notmatch "^(SAMPLE|CREDS) " -and $_ -notmatch "injected env" } | ForEach-Object { Write-Host $_ }
+# Akun kurir dan pembeli contoh: tidak ditampilkan di halaman Masuk, hanya dicatat untuk kamu.
+$privateLines = @($output | Where-Object { $_ -match "^CREDS " } | ForEach-Object { $parts = ($_ -replace "^CREDS ", "") -split " ", 3; "Email: $($parts[0])  Kata sandi: $($parts[1])  Peran: $($parts[2])" })
 $lines = @($output | Where-Object { $_ -match "^SAMPLE " } | ForEach-Object { $parts = ($_ -replace "^SAMPLE ", "") -split " ", 3; "Email: $($parts[0])  Kata sandi: $($parts[1])  Lapak: $($parts[2])" })
 if ($lines.Count -gt 0) {
-  Set-Content -Path $sampleFile -Value (@("Akun pemilik lapak contoh UAT (tampil juga di halaman Masuk; jangan di-commit)") + $lines) -Encoding ascii
+  Set-Content -Path $sampleFile -Value (@("Akun pemilik lapak contoh UAT (tampil juga di halaman Masuk; jangan di-commit)") + $lines + @("", "Akun kurir dan pembeli contoh (TIDAK tampil di halaman Masuk; bagikan hanya ke penguji peran itu)") + $privateLines) -Encoding ascii
   Write-Host "Akun lapak contoh ditulis ke deploy\.uat-sample-accounts.txt"
 
   # Bangun ulang web supaya panel akun contoh muncul di halaman Masuk.

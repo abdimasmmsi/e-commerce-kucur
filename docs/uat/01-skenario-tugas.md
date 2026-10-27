@@ -17,12 +17,15 @@ Nama menu mengikuti aplikasi. Di HP, menu ada di bagian bawah layar.
 | 7 | Kurir: K1-K5 | Jadwal sudah disetujui Admin | Admin sesi 6 |
 | 8 | Pembeli: ulasan (P7); Penjual: balas ulasan (J6); Admin: A3, A5, A6 | Pesanan sudah Selesai | Kurir sesi 7 |
 
+Admin harus standby selama sesi: penjual baru perlu persetujuan lapak (A1) dan konfirmasi cicilan pertama Iuran Pokok (A4) sebelum produknya tampil ke pembeli, dan Admin menyetujui draf Jadwal Pengiriman (A2) sebelum kurir bisa mulai.
+
 Tugas P1, P2, P3, P4, P6, P8 tidak bergantung pada peran lain. Pesanan yang masuk sesudah batas pesan masuk jadwal besok; Steven menyesuaikan batas pesan di Pengaturan Platform agar alur bisa selesai dalam satu hari, atau sesi Kurir dilakukan hari berikutnya.
 
 **Data awal yang disiapkan Steven:**
 - Minimal 3 produk aktif dengan stok di satu lapak cadangan (untuk Pembeli bila Penjual belum selesai).
 - Akun Kurir (dibuat Admin), akun Admin, akun Penjual/Pembeli sesuai jumlah peserta.
 - Tarif ongkir, PPN, biaya admin terisi di Pengaturan Platform; koordinat lapak terisi.
+- Data contoh dari `seed-uat.ps1`: 3 lapak contoh dengan produk, akun kurir contoh, akun pembeli contoh, dan 3 pesanan COD berstatus siap diambil (satu per lapak) agar sesi kurir bisa dicoba. Halaman Masuk hanya menampilkan akun penjual contoh; akun admin, kurir, dan pembeli contoh dibagikan hanya ke penguji peran itu.
 - Satu pesanan cadangan yang sudah Selesai untuk menguji ulasan bila alur belum sampai.
 
 ---
@@ -77,16 +80,19 @@ Tugas P1, P2, P3, P4, P6, P8 tidak bergantung pada peran lain. Pesanan yang masu
 ### J1. Ajukan lapak (10 menit)
 - **Langkah:** masuk sebagai Pembeli, **Akun > Buka Lapak**, isi data lapak, tandai lokasi di peta, kirim pengajuan.
 - **Hasil diharapkan:** status **Menunggu peninjauan**. Admin menyetujui (lihat A1).
+- Catatan: lapak baru belum terlihat pembeli sebelum disetujui Admin dan cicilan pertama dikonfirmasi (J2/A4).
 - Hasil: S / B / G
 
 ### J2. Bayar cicilan pertama iuran pokok (5 menit), setelah disetujui
 - **Langkah:** **Menu > Keuangan Lapak**, pilih cara bayar (Lunas sekali / Cicil 3 kali / Cicil 6 kali), tekan **Bayar**. Uang diserahkan ke pengelola, lalu Admin mengonfirmasi.
 - **Hasil diharapkan:** status menunggu konfirmasi, kemudian lapak aktif.
+- Catatan: sebelum lapak aktif, halaman **Produk** menampilkan kotak petunjuk bahwa lapak menunggu iuran pokok pertama. Admin perlu standby untuk mengonfirmasi.
 - Hasil: S / B / G
 
 ### J3. Tambah produk (10 menit)
 - **Langkah:** **Produk > + Tambah Produk**, isi nama, kategori, harga, stok, deskripsi, foto, simpan sebagai **Aktif**.
-- **Hasil diharapkan:** produk tampil di katalog.
+- **Hasil diharapkan:** produk tampil di katalog (setelah lapak aktif).
+- Catatan: foto diunggah ke server saat menekan **Simpan** (dikecilkan otomatis, maks 3 foto per produk). Coba unggah dari HP dan tunggu sampai selesai sebelum menutup halaman.
 - Hasil: S / B / G
 
 ### J4. Proses pesanan sampai siap diambil (8 menit)
@@ -111,7 +117,7 @@ Opsional bila sempat: saat kurir datang, centang barang di **Ambil Barang Hari I
 ## PERAN KURIR
 
 ### K1. Masuk (4 menit)
-- **Langkah:** masuk dengan akun dari Admin (kata sandi awal diberikan fasilitator), ganti kata sandi bila diminta.
+- **Langkah:** masuk dengan akun kurir contoh dari fasilitator (tidak tampil di halaman Masuk) atau akun yang dibuat Admin (kata sandi awal diberikan fasilitator), ganti kata sandi bila diminta.
 - **Hasil diharapkan:** masuk ke Beranda Kurir.
 - Hasil: S / B / G
 
@@ -147,6 +153,7 @@ Opsional bila sempat: saat kurir datang, centang barang di **Ambil Barang Hari I
 ### A2. Periksa dan setujui draf Jadwal Pengiriman (10 menit)
 - **Langkah:** **Jadwal Pengiriman**, bagian **Draf jadwal otomatis**, periksa pesanan per kurir, pindahkan satu pesanan bila perlu (pilihan **Kurir**), tekan **Setujui**.
 - **Hasil diharapkan:** jadwal muncul di halaman kurir.
+- Catatan: pada data contoh sudah ada 3 pesanan siap diambil, jadi draf bisa langsung dicoba.
 - Hasil: S / B / G
 
 ### A3. Pantau transaksi (6 menit)

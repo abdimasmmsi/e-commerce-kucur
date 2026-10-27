@@ -27,7 +27,7 @@ Peserta: warga/pelaku usaha desa, pengelola desa, dan mahasiswa. Usahakan campur
 ## 4. Lingkungan uji
 - **URL:** [URL-UAT] (HTTPS, dibuka lewat HP atau laptop).
 - **Data:** data uji buatan, bukan data asli warga. Peserta diminta tidak memasukkan data pribadi sungguhan (nama, alamat, nomor HP) selain yang diperlukan; pakai nama/alamat fiktif atau yang disediakan.
-- **Akun:** akun uji dibuat fasilitator: [AKUN-PEMBELI-n], [AKUN-PENJUAL-n], [AKUN-KURIR-n], [AKUN-ADMIN-n]; kata sandi dikirim lewat pesan pribadi, tidak ditulis di dokumen ini. Pembeli boleh mendaftar sendiri (tugas 1).
+- **Akun:** halaman Masuk server UAT menampilkan 3 akun penjual contoh (satu kata sandi bersama). Akun admin, kurir, dan pembeli contoh tidak ditampilkan dan hanya dibagikan ke penguji peran itu. Akun uji lain dibuat fasilitator: [AKUN-PEMBELI-n], [AKUN-PENJUAL-n], [AKUN-KURIR-n], [AKUN-ADMIN-n]; kata sandi dikirim lewat pesan pribadi, tidak ditulis di dokumen ini. Pembeli boleh mendaftar sendiri (tugas 1).
 - **Perangkat:** HP Android/iPhone milik peserta (utama) dan laptop (Admin). Peramban terbaru. Perlu sinyal/Wi-Fi stabil.
 - Pembayaran hanya COD; tidak ada uang sungguhan yang berpindah.
 
@@ -70,6 +70,8 @@ Aturan pendamping: bila peserta macet, tunggu dulu ±2 menit, beri petunjuk umum
 | Peserta bingung dengan UAT | Petunjuk 1 halaman, undangan WhatsApp, pendamping, contoh tugas |
 | Sinyal lemah | Sesi di tempat dengan Wi-Fi, atau jadwalkan ulang |
 | Data pribadi masuk ke sistem | Anjurkan data fiktif, anonimisasi (kode P01, P02), hapus akun uji sesudahnya |
+| Penjual baru belum terlihat pembeli (belum disetujui / iuran belum dikonfirmasi) | Admin standby selama sesi untuk persetujuan lapak, konfirmasi cicilan pertama, dan draf Jadwal Pengiriman |
+| Data sesi sebelumnya tercampur | Pulihkan baseline sebelum sesi; backup setelah tiap hari sesi |
 | Tugas tertahan karena tugas peran lain belum jalan | Fasilitator menyiapkan data awal cadangan |
 | Peserta menilai takut salah/sungkan | Jelaskan: yang diuji sistemnya, bukan peserta |
 
