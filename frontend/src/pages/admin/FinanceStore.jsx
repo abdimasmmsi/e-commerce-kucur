@@ -1,3 +1,4 @@
+import { fixOne } from "../../utils/singularEn";
 import { Fragment, useCallback, useEffect, useMemo, useState } from "react";
 import { Link, useParams } from "react-router-dom";
 import ActionDialog from "../../components/ui/ActionDialog";
@@ -48,7 +49,7 @@ const COPY = {
   },
 };
 
-const fill = (text, values) => Object.entries(values).reduce((value, [key, replacement]) => value.replaceAll(`{${key}}`, replacement), text);
+const fill = (text, values) => fixOne(Object.entries(values).reduce((value, [key, replacement]) => value.replaceAll(`{${key}}`, replacement), text));
 const sectionClass = "grid min-w-0 gap-3 border-[var(--kucur-border)] bg-[var(--kucur-surface)] p-4 max-sm:-mx-3 max-sm:!max-w-none max-sm:border-y sm:rounded-2xl sm:border sm:p-5";
 const tableWrap = "min-w-0 overflow-x-auto rounded-xl border border-[var(--kucur-border)]";
 const th = "whitespace-nowrap bg-[var(--kucur-surface-muted)] px-3 py-2.5 text-left text-xs font-bold text-[var(--kucur-text-muted)]";
@@ -136,18 +137,27 @@ export default function AdminFinanceStore() {
 
     <section className={sectionClass} aria-labelledby="store-initial-fee">
       <div><h2 className="text-lg font-extrabold" id="store-initial-fee">{copy.initialFee}</h2>{contract && <p className="text-sm text-[var(--kucur-text-muted)]">{copy.plan}: {copy.plans[contract.planType] || contract.planType} · {copy.total}: {formatCurrency(contract.initialAmountSnapshot)}{latePercent != null ? ` · ${fill(copy.lateInterest, { percent: latePercent })}` : ""}</p>}</div>
-      {!contract ? <p className="text-[15px] text-[var(--kucur-text-muted)]">{copy.noPlan}</p> : <div className={tableWrap}><table className="w-full min-w-[560px] border-collapse text-sm"><thead><tr><th className={th} scope="col">{copy.installmentCol}</th><th className={th} scope="col">{copy.due}</th><th className={`${th} text-right`} scope="col">{copy.amount}</th><th className={`${th} text-right`} scope="col">{copy.penalty}</th><th className={th} scope="col">{copy.status}</th><th className={th} scope="col">{copy.paidOn}</th></tr></thead><tbody>
+      {!contract ? <p className="text-[15px] text-[var(--kucur-text-muted)]">{copy.noPlan}</p> : <><div className={`${tableWrap} hidden md:block`}><table className="w-full min-w-[560px] border-collapse text-sm"><thead><tr><th className={th} scope="col">{copy.installmentCol}</th><th className={th} scope="col">{copy.due}</th><th className={`${th} text-right`} scope="col">{copy.amount}</th><th className={`${th} text-right`} scope="col">{copy.penalty}</th><th className={th} scope="col">{copy.status}</th><th className={th} scope="col">{copy.paidOn}</th></tr></thead><tbody>
         {ledger.installments.map((item) => <tr className={item.state === "overdue" ? "bg-rose-50/60 dark:bg-rose-950/30" : ""} key={item.id}><th className={`${td} text-left font-bold`} scope="row">{fill(copy.installment, { number: item.number })}</th><td className={td}>{day(item.dueAt)}</td><td className={`${td} text-right font-semibold`}>{formatCurrency(item.paid ? item.principalAmount : item.amount)}</td><td className={`${td} text-right`}>{item.penalty ? formatCurrency(item.penalty) : "–"}</td><td className={td}><FinanceBadge tone={STATE_TONE[item.state]}>{stateText(item.state, item.dueAt)}</FinanceBadge></td><td className={td}>{item.paid ? day(item.paidAt) : "–"}</td></tr>)}
-      </tbody></table></div>}
+      </tbody></table></div>
+      <ul className="grid gap-3 md:hidden">{ledger.installments.map((item) => <li className={`grid gap-2 rounded-xl border p-3 ${item.state === "overdue" ? "border-rose-300 bg-rose-50/60 dark:border-rose-800 dark:bg-rose-950/30" : "border-[var(--kucur-border)]"}`} key={item.id}>
+        <div className="flex flex-wrap items-center justify-between gap-2"><strong className="text-[15px]">{fill(copy.installment, { number: item.number })}</strong><FinanceBadge tone={STATE_TONE[item.state]}>{stateText(item.state, item.dueAt)}</FinanceBadge></div>
+        <dl className="grid grid-cols-[auto_1fr] gap-x-4 gap-y-1 text-sm"><CardRow label={copy.due}>{day(item.dueAt)}</CardRow><CardRow label={copy.amount} strong>{formatCurrency(item.paid ? item.principalAmount : item.amount)}</CardRow><CardRow label={copy.penalty}>{item.penalty ? formatCurrency(item.penalty) : "–"}</CardRow><CardRow label={copy.paidOn}>{item.paid ? day(item.paidAt) : "–"}</CardRow></dl>
+      </li>)}</ul></>}
     </section>
 
     <section className={sectionClass} aria-labelledby="store-admin-fees">
       <div><h2 className="text-lg font-extrabold" id="store-admin-fees">{copy.adminFees}</h2><p className="text-sm text-[var(--kucur-text-muted)]">{copy.adminFeesHint}</p></div>
-      {months.length ? <div className={tableWrap}><table className="w-full min-w-[620px] border-collapse text-sm"><thead><tr><th className={th} scope="col">{copy.month}</th><th className={`${th} text-right`} scope="col">{copy.orders}</th><th className={`${th} text-right`} scope="col">{copy.amount}</th><th className={th} scope="col">{copy.cutoff}</th><th className={th} scope="col">{copy.status}</th><th className={th} scope="col">{copy.paidOn}</th></tr></thead><tbody>
+      {months.length ? <><div className={`${tableWrap} hidden md:block`}><table className="w-full min-w-[620px] border-collapse text-sm"><thead><tr><th className={th} scope="col">{copy.month}</th><th className={`${th} text-right`} scope="col">{copy.orders}</th><th className={`${th} text-right`} scope="col">{copy.amount}</th><th className={th} scope="col">{copy.cutoff}</th><th className={th} scope="col">{copy.status}</th><th className={th} scope="col">{copy.paidOn}</th></tr></thead><tbody>
         {months.map((month) => <Fragment key={month.key}><tr className={month.state === "overdue" ? "bg-rose-50/60 dark:bg-rose-950/30" : ""}><th className={`${td} text-left font-bold`} scope="row">{monthLabel(month)}</th><td className={`${td} text-right`}>{month.items.length}</td><td className={`${td} text-right font-semibold`}>{formatCurrency(month.total)}{month.unpaid > 0 && month.unpaid !== month.total ? <small className="block text-xs font-normal text-[var(--kucur-text-muted)]">{copy.outstanding}: {formatCurrency(month.unpaid)}</small> : null}</td><td className={td}>{day(month.dueAt)}</td><td className={td}><FinanceBadge tone={STATE_TONE[month.state]}>{stateText(month.state, month.dueAt)}</FinanceBadge></td><td className={td}>{month.state === "paid" ? day(month.paidAt) : "–"}</td></tr>
           {month.pending > 0 ? <tr><td className="border-t border-dashed border-[var(--kucur-border)] bg-[var(--kucur-surface-muted)] px-3 py-2 text-sm text-[var(--kucur-text-muted)]" colSpan={6}><span className="sticky left-3 inline-block max-w-[calc(100vw-4rem)] whitespace-normal">{copy.collectPending}</span></td></tr> : month.collectIds.length > 0 ? <tr><td className="border-t border-dashed border-[var(--kucur-border)] bg-[var(--kucur-surface-muted)] px-3 py-2" colSpan={6}><div className="sticky left-3 flex max-w-[calc(100vw-4rem)] flex-wrap items-center gap-x-3 gap-y-2"><span className="text-sm text-[var(--kucur-text-muted)]">{fill(copy.collectBills, { count: month.collectIds.length })} · {formatCurrency(month.unpaid)}</span><Button variant="secondary" disabled={Boolean(busy)} onClick={() => openCollect(month)}>{copy.collect}</Button></div></td></tr> : null}
         </Fragment>)}
-      </tbody></table></div> : <EmptyState title={copy.noAdminFees} description={copy.noAdminFeesHint} />}
+      </tbody></table></div>
+      <ul className="grid gap-3 md:hidden">{months.map((month) => <li className={`grid gap-2 rounded-xl border p-3 ${month.state === "overdue" ? "border-rose-300 bg-rose-50/60 dark:border-rose-800 dark:bg-rose-950/30" : "border-[var(--kucur-border)]"}`} key={month.key}>
+        <div className="flex flex-wrap items-center justify-between gap-2"><strong className="text-[15px]">{monthLabel(month)}</strong><FinanceBadge tone={STATE_TONE[month.state]}>{stateText(month.state, month.dueAt)}</FinanceBadge></div>
+        <dl className="grid grid-cols-[auto_1fr] gap-x-4 gap-y-1 text-sm"><CardRow label={copy.orders}>{month.items.length}</CardRow><CardRow label={copy.amount} strong>{formatCurrency(month.total)}</CardRow>{month.unpaid > 0 && month.unpaid !== month.total ? <CardRow label={copy.outstanding}>{formatCurrency(month.unpaid)}</CardRow> : null}<CardRow label={copy.cutoff}>{day(month.dueAt)}</CardRow><CardRow label={copy.paidOn}>{month.state === "paid" ? day(month.paidAt) : "–"}</CardRow></dl>
+        {month.pending > 0 ? <p className="rounded-lg bg-[var(--kucur-surface-muted)] px-3 py-2 text-sm text-[var(--kucur-text-muted)]">{copy.collectPending}</p> : month.collectIds.length > 0 ? <div className="grid gap-2 rounded-lg bg-[var(--kucur-surface-muted)] p-3"><span className="text-sm text-[var(--kucur-text-muted)]">{fill(copy.collectBills, { count: month.collectIds.length })} · {formatCurrency(month.unpaid)}</span><Button variant="secondary" disabled={Boolean(busy)} onClick={() => openCollect(month)}>{copy.collect}</Button></div> : null}
+      </li>)}</ul></> : <EmptyState title={copy.noAdminFees} description={copy.noAdminFeesHint} />}
     </section>
 
     <section className={sectionClass} aria-labelledby="store-contributions">
@@ -167,6 +177,10 @@ export default function AdminFinanceStore() {
       {rejecting && <p className="text-[15px]"><strong>{kindText(rejecting)}</strong> · {formatCurrency(rejecting.amount)}</p>}
     </ActionDialog>
   </div>;
+}
+
+function CardRow({ label, strong = false, children }) {
+  return <><dt className="text-[var(--kucur-text-muted)]">{label}</dt><dd className={`m-0 text-right ${strong ? "font-bold" : "font-medium"}`}>{children}</dd></>;
 }
 
 function Stat({ label, value, hint = "", tone = "" }) {

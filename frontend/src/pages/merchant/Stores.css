@@ -34,7 +34,7 @@
   font-weight: 700;
   text-align: center;
 }
-.stores-add-button { flex: 0 0 auto; min-height: 42px; padding: 9px 14px; }
+.stores-add-button { flex: 0 0 auto; min-height: 44px; padding: 9px 14px; }
 
 .stores-grid {
   display: grid;
@@ -106,7 +106,7 @@
   line-height: 1.45;
   overflow-wrap: anywhere;
 }
-.store-manage-button { justify-self:start; gap:7px; min-height:38px; margin-top:5px; padding:8px 12px; font-size:.78rem; }
+.store-manage-button { justify-self:start; gap:7px; min-height:44px; margin-top:5px; padding:8px 12px; font-size:.78rem; }
 .stores-empty-state {
   display: grid;
   place-items: center;

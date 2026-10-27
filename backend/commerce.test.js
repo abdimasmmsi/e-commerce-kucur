@@ -10,7 +10,7 @@ const merchantB = { id: "MERCHANT-B", roles: ["customer", "merchant"] };
 const admin = { id: "ADMIN", roles: ["admin"] };
 const product = { id: "PRODUCT-A", storeId: "STORE-A", name: "Kopi", description: "", category: "Minuman", status: "active", hasVariants: false, price: 10000, stock: 3, images: [], variantGroups: [], variants: [], createdAt: new Date().toISOString(), updatedAt: new Date().toISOString() };
 const variantProduct = { ...product, id: "PRODUCT-V", name: "Keripik", hasVariants: true, price: null, stock: null, variants: [{ id: "VARIANT-V", sku: "V-1", options: { Rasa: "Pedas" }, price: 12000, stock: 2, status: "active" }] };
-const fixture = () => { const repository = createMemoryRepository({ stores: [{ id: "STORE-A", merchantUserId: "MERCHANT-A", name: "Store A", status: "active", location: { latitude: -7.9, longitude: 112.6 } }], products: [product, variantProduct], settings: { deliveryRatePerKm: 3500 } }); return { repository, cart: createCartService(repository), commerce: createCommerceService(repository) }; };
+const fixture = () => { const repository = createMemoryRepository({ stores: [{ id: "STORE-A", merchantUserId: "MERCHANT-A", name: "Store A", status: "active", location: { latitude: -7.9, longitude: 112.6 } }], products: [product, variantProduct], settings: { deliveryBaseFee: 6000, deliveryRatePerKm: 1500 } }); return { repository, cart: createCartService(repository), commerce: createCommerceService(repository) }; };
 const checkout = { items: [{ productId: "PRODUCT-A", quantity: 2 }], paymentMethod: "COD", delivery: { address: "Kucur", recipientName: "Customer", recipientPhone: "0812", location: { latitude: -7.89, longitude: 112.6 } }, productTotal: 1, grandTotal: 1 };
 
 test("Cart validates simple and exact variant inventory and mutations", async () => {
@@ -25,7 +25,7 @@ test("Cart validates simple and exact variant inventory and mutations", async ()
 test("Checkout ignores forged totals, reserves stock, snapshots and is idempotent", async () => {
   const { repository, commerce } = fixture();
   const created = await commerce.create(checkout, customer, "same-key");
-  assert.equal(created.orders[0].productTotal, 20000); assert.equal(created.orders[0].deliveryFee, 7000); assert.equal(created.orders[0].paymentStatus, "pending");
+  assert.equal(created.orders[0].productTotal, 20000); assert.equal(created.orders[0].deliveryFee, 6000); assert.equal(created.orders[0].paymentStatus, "pending");
   assert.equal(created.orders[0].items[0].productName, "Kopi"); assert.equal(repository.products.findById("PRODUCT-A").stock, 1);
   const repeated = await commerce.create(checkout, customer, "same-key"); assert.equal(repeated.id, created.id); assert.equal(repository.products.findById("PRODUCT-A").stock, 1);
 });

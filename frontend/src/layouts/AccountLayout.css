@@ -13,9 +13,12 @@
 @media(max-width:600px){.account-nav-logout{margin-top:0}}
 
 .account-workspace-switch{display:grid;gap:8px;margin-bottom:16px}
-.account-workspace-switch button{display:flex;align-items:center;gap:10px;width:100%;min-height:52px;padding:10px 14px;border:1px solid var(--kucur-green);border-radius:12px;background:var(--kucur-green);color:var(--kucur-on-green);font:inherit;font-size:15px;font-weight:800;text-align:left;cursor:pointer}
-.account-workspace-switch button svg{width:22px;height:22px;flex:0 0 22px}
-.account-workspace-switch button span{flex:1}
+.account-workspace-switch button{display:flex;align-items:center;gap:8px;width:100%;min-height:44px;padding:0 10px 0 12px;border:1px solid var(--kucur-green);border-radius:10px;background:var(--kucur-green);color:var(--kucur-on-green);font:inherit;font-size:13px;font-weight:700;line-height:1.2;text-align:left;cursor:pointer;transition:filter .15s ease}
+.account-workspace-switch button:hover{filter:brightness(1.08)}
+.account-workspace-switch button svg{width:18px;height:18px;flex:0 0 18px}
+.account-workspace-switch button span{min-width:0;flex:1;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.account-workspace-switch button svg:last-child{width:16px;height:16px;flex-basis:16px;opacity:.85}
+.account-layout .account-layout-sidebar .account-workspace-switch{gap:6px}
 @media(max-width:600px){.account-workspace-switch{margin-bottom:8px}}
 
 

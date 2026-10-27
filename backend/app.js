@@ -29,6 +29,8 @@ const createAuthRoutes = require("./routes/authRoutes");
 const createStoreRoutes = require("./routes/storeRoutes");
 const { createStoreFinanceRoutes, createContributionRoutes, createAdminFinanceRoutes } = require("./routes/financeRoutes");
 const createSettingsRoutes = require("./routes/settingsRoutes");
+const createGeoRoutes = require("./routes/geoRoutes");
+const { createGeoService } = require("./services/geoService");
 const createUserRoutes = require("./routes/userRoutes");
 const createProductRoutes = require("./routes/productRoutes");
 const { createCartRoutes, createCheckoutRoutes, createOrderRoutes } = require("./routes/commerceRoutes");
@@ -51,7 +53,7 @@ function createApp(options = {}) {
   const authService = options.authService || createAuthService(repository);
   const authMiddleware = createAuthMiddleware(authService);
   require("./services/pushService").setRepository(repository);
-  const notificationService = createNotificationService(repository); const dependencies = { repository, authService, authMiddleware, authRateLimits: options.authRateLimits, notificationService, chatService: createChatService(repository), deliveryService: createDeliveryService(repository), storeService: createStoreService(repository), productService: createProductService(repository), cartService: createCartService(repository), commerceService: createCommerceService(repository), financeService: createFinanceService(repository), reviewService: createReviewService(repository, notificationService), settingsService: createSettingsService(repository), userService: createUserService(repository) };
+  const notificationService = createNotificationService(repository); const dependencies = { repository, authService, authMiddleware, authRateLimits: options.authRateLimits, notificationService, chatService: createChatService(repository), deliveryService: createDeliveryService(repository), storeService: createStoreService(repository), productService: createProductService(repository), cartService: createCartService(repository), commerceService: createCommerceService(repository), financeService: createFinanceService(repository), reviewService: createReviewService(repository, notificationService), settingsService: createSettingsService(repository), geoService: options.geoService || createGeoService(), userService: createUserService(repository) };
   const app = express();
   app.disable("x-powered-by");
   // Header keamanan dasar (tanpa dependensi). API hanya JSON + serve /uploads; CSP ketat & anti-clickjacking.
@@ -103,6 +105,7 @@ function createApp(options = {}) {
   app.use("/api/checkout", createCheckoutRoutes(dependencies));
   app.use("/api/orders", createOrderRoutes(dependencies));
   app.use("/api/settings", createSettingsRoutes(dependencies));
+  app.use("/api/geo", createGeoRoutes(dependencies));
   app.use("/api/payments", createCommercePaymentRoutes(dependencies));
   app.use("/api", createReviewRoutes(dependencies));
   app.use("/api/notifications", createNotificationRoutes(dependencies));

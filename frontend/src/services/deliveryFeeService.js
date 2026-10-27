@@ -11,11 +11,11 @@ export function calculateCoordinateDistanceKm(sellerCoordinates, customerCoordin
   return earthRadiusKm * 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1 - a));
 }
 
-export function calculateDeliveryFee({ sellerCoordinates, customerCoordinates, ratePerKm, mockDistanceKm }) {
+export function calculateDeliveryFee({ sellerCoordinates, customerCoordinates, ratePerKm, baseFee = 0, baseKm = 5, mockDistanceKm }) {
   const distanceKm = Number.isFinite(mockDistanceKm)
     ? mockDistanceKm
     : calculateCoordinateDistanceKm(sellerCoordinates, customerCoordinates);
   const roundedDistanceKm = Math.ceil(Math.max(distanceKm, 0));
   const safeRate = Math.max(Number(ratePerKm) || 0, 0);
-  return { distanceKm, roundedDistanceKm, ratePerKm: safeRate, deliveryFee: roundedDistanceKm * safeRate };
+  return { distanceKm, roundedDistanceKm, ratePerKm: safeRate, deliveryFee: Math.max(Number(baseFee) || 0, 0) + Math.max(roundedDistanceKm - baseKm, 0) * safeRate };
 }

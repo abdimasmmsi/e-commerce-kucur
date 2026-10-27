@@ -1,0 +1,10 @@
+.workspace-logout-wrap{margin-top:auto;padding-top:16px}
+.workspace-logout{display:flex;align-items:center;gap:10px;width:100%;min-height:44px;padding:0 12px;border:1px solid var(--kucur-border);border-radius:10px;background:transparent;color:#b42318;font:inherit;font-size:.9rem;font-weight:700;text-align:left;cursor:pointer}
+.workspace-logout:hover{background:color-mix(in srgb,#b42318 8%,transparent)}
+.workspace-logout svg{width:18px;height:18px;flex:0 0 18px}
+.workspace-logout span{min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.dark .workspace-logout{color:#fca5a5}
+@media(min-width:769px){
+  [data-collapsed="true"] .workspace-logout{justify-content:center;gap:0;padding:0}
+  [data-collapsed="true"] .workspace-logout span{position:absolute;width:1px;height:1px;overflow:hidden;clip:rect(0 0 0 0)}
+}

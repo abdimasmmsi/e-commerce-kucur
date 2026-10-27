@@ -13,6 +13,7 @@ import {
 import { canonicalStoreId } from "../services/legacyStoreReferences";
 import "../styles/workspace-shell.css";
 import "../components/ui/LoadingPanel.css";
+import WorkspaceLogout from "../components/WorkspaceLogout";
 import WorkspaceSidebarControls, { WorkspaceSidebarResizer } from "../components/WorkspaceSidebarControls";
 import { useWorkspaceSidebar } from "../utils/useWorkspaceSidebar";
 import "./MerchantLayout.css";
@@ -188,6 +189,7 @@ function MerchantLayout() {
             <MerchantNavLink to="/profile" onClick={closeSidebar} icon="account">{t("workspace.myAccount")}</MerchantNavLink>
           </section>
         </nav>
+        <WorkspaceLogout />
       </aside>
       <WorkspaceSidebarResizer sidebar={sidebar} />
 

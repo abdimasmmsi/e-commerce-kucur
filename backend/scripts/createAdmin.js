@@ -41,7 +41,7 @@ async function main() {
   const settings = await prisma.targetPlatformSettings.findUnique({ where: { id: "active" } });
   if (!settings) {
     await prisma.targetPlatformSettings.create({ data: {
-      id: "active", deliveryRatePerKm: 0, taxPercent: 0, maxDailyDeliveries: 20,
+      id: "active", deliveryBaseFee: 6000, deliveryRatePerKm: 1500, taxPercent: 0, maxDailyDeliveries: 20,
       orderCutoffTime: new Date("1970-01-01T16:00:00Z"), dispatchTime: new Date("1970-01-01T17:00:00Z"),
       adminFeeCutoffDay: 7, updatedByUserId: userId,
     } });

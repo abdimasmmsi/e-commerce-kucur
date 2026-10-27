@@ -7,7 +7,7 @@
 - [ ] Siapkan server dan alamat HTTPS [URL-UAT] (deploy). Catat tempat dan tanggal deploy.
 - [ ] Atur NODE_ENV produksi, CORS untuk [URL-UAT], dan periksa peringatan produksi di log backend.
 - [ ] Buat database UAT terpisah dari data demo/e2e. Isi data awal (lihat `01-skenario-tugas.md`).
-- [ ] Atur Pengaturan Platform: ongkir per km, PPN, biaya admin, batas pesan dan jam berangkat (sesuaikan agar alur selesai dalam sehari), batas pengiriman.
+- [ ] Atur Pengaturan Platform: ongkir (tarif 5 km pertama dan tarif per km berikutnya, bawaan Rp6.000 dan Rp1.500), PPN, biaya admin, batas pesan dan jam berangkat (sesuaikan agar alur selesai dalam sehari), batas pengiriman.
 
 ### H-4 sampai H-2
 - [ ] Server UAT dari laptop: jalankan `seed-uat.ps1` (lapak, produk, akun kurir dan pembeli contoh, 3 pesanan siap diambil). Halaman Masuk hanya menampilkan 3 akun penjual contoh; akun admin, kurir, dan pembeli contoh dicatat di `deploy/.uat-credentials.txt` dan `deploy/.uat-sample-accounts.txt` dan dibagikan hanya ke penguji peran itu.

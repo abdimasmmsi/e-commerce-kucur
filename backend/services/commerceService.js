@@ -3,6 +3,7 @@ const crypto = require("node:crypto");
 const { errors } = require("../errors/AppError");
 const { requiredString } = require("../validation/sharedValidation");
 const { DEFAULT_MAX_DELIVERY_KM, assertInServiceArea } = require("../validation/serviceArea");
+const { computeDeliveryFee } = require("./deliveryFee");
 const midtransConfig = require("../midtransConfig");
 const { sellable, quantity } = require("./cartService");
 const { generateCommerceFinance } = require("./financeService");
@@ -56,7 +57,7 @@ function createCommerceService(repository) {
       const distanceKm = coordinateDistanceKm(group.store.location, destination); if (!Number.isFinite(distanceKm) || distanceKm < 0) throw errors.validation({ distanceKm: `Koordinat pengiriman untuk ${group.store.name} belum tersedia.` });
       const maxDistance = settings.maxDeliveryDistanceKm != null && Number.isFinite(Number(settings.maxDeliveryDistanceKm)) ? Number(settings.maxDeliveryDistanceKm) : DEFAULT_MAX_DELIVERY_KM;
       if (distanceKm > maxDistance) throw errors.validation({ distanceKm: `Alamat di luar jangkauan pengiriman ${group.store.name} (maksimal ${maxDistance} km, jarak ${Math.ceil(distanceKm)} km).` });
-      const roundedDistanceKm = Math.ceil(distanceKm); const deliveryFee = roundedDistanceKm * Number(settings.deliveryRatePerKm);
+      const roundedDistanceKm = Math.ceil(distanceKm); const deliveryFee = computeDeliveryFee(roundedDistanceKm, settings);
       const courierTip = money(input.tipsByStore?.[group.store.id] ?? input.courierTip, "courierTip");
       const taxPercent = Number(settings.taxPercent) || 0; const taxAmount = Math.round(group.productTotal * taxPercent / 100);
       return { ...group, distanceKm, roundedDistanceKm, deliveryRateSnapshot: Number(settings.deliveryRatePerKm), deliveryFee, courierTip, taxPercent, taxAmount, totalAmount: group.productTotal + taxAmount + deliveryFee + courierTip };

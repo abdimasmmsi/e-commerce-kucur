@@ -32,7 +32,7 @@ export default function MerchantDashboard() {
     mostViewed: "Produk paling sering dilihat (7 hari)", viewed: "{count} kali dilihat",
   } : {
     title: "Store Home", allStores: "All stores", periods: { today: "Today", "7d": "7 days", "1m": "30 days", "1y": "1 year" },
-    revenue: { today: "Revenue today", "7d": "Revenue, 7 days", "1m": "Revenue, 30 days", "1y": "Revenue, 1 year" }, fromOrders: "from {count} completed orders", revenueHint: "Item prices from orders that reached the buyer.",
+    revenue: { today: "Revenue today", "7d": "Revenue, 7 days", "1m": "Revenue, 30 days", "1y": "Revenue, 1 year" }, fromOrders: "from {count} completed orders", fromOrder: "from 1 completed order", revenueHint: "Item prices from orders that reached the buyer.",
     last7: "Last 7 days", todo: "To do", nothingTodo: "No orders need attention", nothingTodoHint: "New orders will appear here.",
     newOrders: "New orders", newHint: "Accept them so buyers know their order is being prepared.", accept: "Accept",
     pack: "Needs packing", packHint: "Prepare them before the courier arrives this afternoon.", ready: "Ready for courier", readyHint: "The courier picks up at your store on schedule.", open: "View",
@@ -127,11 +127,11 @@ export default function MerchantDashboard() {
 
     {error && <section className="flex flex-wrap items-center justify-between gap-3 rounded-2xl border border-rose-300 bg-rose-50 p-4 text-rose-800 dark:border-rose-800 dark:bg-rose-950 dark:text-rose-200" role="alert"><strong>{copy.loadFailed}</strong><button className={`${actionClass} border border-current`} type="button" onClick={load}>{copy.retry}</button></section>}
 
-    <div className="flex flex-wrap gap-2" role="group" aria-label={copy.revenue[period]}>{periods.map((key) => <button className={`min-h-10 rounded-full border px-4 text-sm font-bold ${period === key ? "border-[var(--kucur-brand)] bg-[var(--kucur-brand)] text-[var(--kucur-on-brand)]" : "border-[var(--kucur-border-strong)] bg-[var(--kucur-surface)] text-[var(--kucur-text-muted)]"}`} type="button" aria-pressed={period === key} key={key} onClick={() => setPeriod(key)}>{copy.periods[key]}</button>)}</div>
+    <div className="flex flex-wrap gap-2" role="group" aria-label={copy.revenue[period]}>{periods.map((key) => <button className={`min-h-11 rounded-full border px-4 text-sm font-bold ${period === key ? "border-[var(--kucur-brand)] bg-[var(--kucur-brand)] text-[var(--kucur-on-brand)]" : "border-[var(--kucur-border-strong)] bg-[var(--kucur-surface)] text-[var(--kucur-text-muted)]"}`} type="button" aria-pressed={period === key} key={key} onClick={() => setPeriod(key)}>{copy.periods[key]}</button>)}</div>
 
     <div className="grid min-w-0 items-start gap-4 lg:grid-cols-[minmax(0,1.35fr)_minmax(0,1fr)]">
       <section className="grid gap-4 rounded-2xl border border-[var(--kucur-border)] bg-[var(--kucur-surface)] p-4 sm:p-5" aria-labelledby="merchant-revenue">
-        <div><span className="text-sm font-semibold text-[var(--kucur-text-muted)]" id="merchant-revenue">{copy.revenue[period]}</span><strong className="block text-[32px] font-extrabold leading-tight tracking-[-0.02em]">{formatCurrency(revenue)}</strong><span className="text-sm text-[var(--kucur-text-muted)]">{fill(copy.fromOrders, { count: periodOrders.length })}</span></div>
+        <div><span className="text-sm font-semibold text-[var(--kucur-text-muted)]" id="merchant-revenue">{copy.revenue[period]}</span><strong className="block text-[32px] font-extrabold leading-tight tracking-[-0.02em]">{formatCurrency(revenue)}</strong><span className="text-sm text-[var(--kucur-text-muted)]">{fill(periodOrders.length === 1 && copy.fromOrder ? copy.fromOrder : copy.fromOrders, { count: periodOrders.length })}</span></div>
         <div>
           <span className="text-[13px] font-semibold text-[var(--kucur-text-muted)]">{copy.last7}</span>
           <div className="mt-2 grid h-28 grid-cols-7 items-end gap-2 border-b border-[var(--kucur-border)]" role="img" aria-label={`${copy.last7}: ${week.map((day) => `${formatDate(day.date, { weekday: "short" })} ${formatCurrency(day.total)}`).join(", ")}`}>

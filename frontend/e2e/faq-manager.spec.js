@@ -25,7 +25,7 @@ test("admin adds a chatbot FAQ and a visitor gets it from the bot", async ({ qaP
   await visitor.goto("/");
   await visitor.getByRole("button", { name: "Buka bantuan" }).click();
   const bot = visitor.getByRole("dialog", { name: "Bantuan Kucur" });
-  await bot.getByPlaceholder(/Tulis pertanyaan/).fill("disini ada internet gak?");
+  await bot.getByPlaceholder(/Tanya, mis/).fill("disini ada internet gak?");
   await bot.getByRole("button", { name: "Kirim" }).click();
   await expect(bot.getByText(/Apakah ada wifi di desa/)).toBeVisible();
   await bot.getByRole("button", { name: "Ya", exact: true }).click();

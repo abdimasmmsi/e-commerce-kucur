@@ -54,7 +54,7 @@ Satu kalimat inti (hafalkan): **"Platform ini membuat produk warga Desa Kucur bi
 1. **Pengunjung** boleh melihat produk. Untuk memesan wajib masuk (login).
 2. **Pembeli** memilih produk, memasukkan ke keranjang (boleh dari banyak lapak) atau memakai Beli Sekarang.
 3. **Checkout**: pembeli memilih alamat (maks 5 alamat tersimpan, titik peta wajib), cara bayar COD, dan boleh memberi tip kurir.
-4. **Server menghitung**: subtotal, PPN (persentase global, disimpan sebagai snapshot di pesanan), ongkir (jarak dalam km dibulatkan ke atas dikali tarif per km), tip. Semua dihitung di backend.
+4. **Server menghitung**: subtotal, PPN (persentase global, disimpan sebagai snapshot di pesanan), ongkir (jarak dalam km dibulatkan ke atas; 5 km pertama tarif tetap, sesudahnya dikali tarif per km), tip. Semua dihitung di backend.
 5. **Stok dikunci** dengan pembaruan atomik (`stok >= jumlah`). Kalau dua pembeli berebut stok terakhir, satu berhasil, satu mendapat pesan stok berubah.
 6. Satu checkout **dipecah menjadi satu pesanan per lapak**, dikelompokkan dengan satu `checkoutGroupId`. Ada kunci idempotensi supaya klik dua kali tidak membuat pesanan ganda.
 7. **Penjual** mendapat notifikasi, menerima pesanan (Menunggu menjadi Diterima), menekan Mulai kemas (Dikemas), lalu Siap diambil.

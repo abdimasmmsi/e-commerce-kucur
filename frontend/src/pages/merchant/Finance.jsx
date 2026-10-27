@@ -13,7 +13,7 @@ const presets = [10000, 25000, 50000, 100000];
 export default function MerchantFinance() {
   const { errorMessage, formatCurrency, formatDate, language, t } = usePreferences();
   const copy = language === "id"
-    ? { eyebrow: "Akun Penjual", title: "Iuran Sukarela", hint: "Sumbangan untuk kas pengelola desa. Boleh kapan saja, nominal bebas, dan tidak memengaruhi status lapak.", amount: "Nominal", other: "Nominal lain", send: "Kirim iuran {amount}", sendEmpty: "Kirim iuran", total: "Total iuran Anda", history: "Riwayat iuran", pending: "Menunggu konfirmasi pengelola" }
+    ? { eyebrow: "Akun Penjual", title: "Iuran Sukarela", hint: "Sumbangan untuk kas pengelola desa. Boleh kapan saja, nominal bebas, dan tidak memengaruhi status lapak.", amount: "Nominal", other: "Nominal lain", send: "Kirim iuran {amount}", sendEmpty: "Kirim iuran", total: "Total iuranmu", history: "Riwayat iuran", pending: "Menunggu konfirmasi pengelola" }
     : { eyebrow: "Seller account", title: "Voluntary Contribution", hint: "A donation to the village management fund. Any time, any amount, and it never affects your store status.", amount: "Amount", other: "Other amount", send: "Send {amount}", sendEmpty: "Send contribution", total: "Your total contributions", history: "Contribution history", pending: "Waiting for manager confirmation" };
   const [items, setItems] = useState([]);
   const [amount, setAmount] = useState("");

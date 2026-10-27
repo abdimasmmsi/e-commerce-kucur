@@ -5,7 +5,7 @@ import { CONCEPTS, FAQS, STARTER_TOPICS } from "../src/data/faq.js";
 import { detectLanguage, matchFaq } from "../src/utils/faqMatcher.js";
 
 const ROLES = new Set(["visitor", "customer", "merchant", "courier", "admin"]);
-const PLACEHOLDERS = new Set(["cutoff", "dispatch", "rate", "tax", "maxDaily", "initialFee", "adminFee", "adminFeeDay", "graceTime", "lateInterest", "distance", "contact"]);
+const PLACEHOLDERS = new Set(["cutoff", "dispatch", "base", "rate", "tax", "maxDaily", "initialFee", "adminFee", "adminFeeDay", "graceTime", "lateInterest", "distance", "contact"]);
 const app = fs.readFileSync(new URL("../src/App.jsx", import.meta.url), "utf8");
 // Rute dari App.jsx (rute anak di dalam /merchant, /courier, /admin digabung dengan induknya).
 const routes = new Set(["/"]);

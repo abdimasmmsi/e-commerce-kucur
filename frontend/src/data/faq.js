@@ -1,6 +1,6 @@
 // FAQ chatbot Kucur — dijawab lokal tanpa API.
 // WAJIB diperbarui setiap alur sistem berubah (lihat CLAUDE.md). Angka operasional memakai placeholder
-// {cutoff} {dispatch} {rate} {tax} {maxDaily} {initialFee} {adminFee} {adminFeeDay} {graceTime} {lateInterest} {distance}
+// {cutoff} {dispatch} {base} {rate} {tax} {maxDaily} {initialFee} {adminFee} {adminFeeDay} {graceTime} {lateInterest} {distance}
 // yang diisi dari Pengaturan Platform (Admin) saat ditampilkan.
 //
 // roles: siapa yang melihat FAQ ini ("visitor" = belum login). pages: awalan rute yang membuat FAQ ini naik ke atas.
@@ -120,8 +120,8 @@ export const FAQS = [
       en: ["Village couriers leave every day from **{dispatch}**.", "Orders placed before **{cutoff}** are delivered the same day. After {cutoff}, they go out the next day.", "If the daily limit (max. {maxDaily} orders) is full, the order moves to the next day and you are told at checkout."] } },
   { id: "delivery-fee", roles: ALL, pages: ["/checkout", "/cart"], concepts: ["FEE"], extra: ["SHIP", "AREA"],
     q: { id: "Bagaimana ongkir dihitung?", en: "How is the delivery fee calculated?" },
-    a: { id: ["Ongkir = jarak dari lapak ke alamatmu (km, dibulatkan ke atas) × **{rate}** per km.", "Kalau belanja dari beberapa lapak, ongkir dihitung per lapak.", "{distance}", "Total ongkir terlihat di Checkout sebelum kamu menekan Buat Pesanan."],
-      en: ["Delivery fee = distance from the store to your address (km, rounded up) × **{rate}** per km.", "If you buy from several stores, each store has its own fee.", "{distance}", "You see the total fee at Checkout before placing the order."] } },
+    a: { id: ["Jarak dari lapak ke alamatmu dihitung dalam km dan dibulatkan ke atas. **5 km pertama = {base}** (tarif tetap), lalu **{rate}** untuk setiap km berikutnya.", "Kalau belanja dari beberapa lapak, ongkir dihitung per lapak.", "{distance}", "Total ongkir terlihat di Checkout sebelum kamu menekan Buat Pesanan."],
+      en: ["The distance from the store to your address is counted in km, rounded up. **The first 5 km cost {base}** (flat), then **{rate}** for each extra km.", "If you buy from several stores, each store has its own fee.", "{distance}", "You see the total fee at Checkout before placing the order."] } },
   { id: "payment-cod", roles: ALL, pages: ["/checkout"], concepts: ["COD"], extra: ["PAY"],
     q: { id: "Bayarnya bagaimana? Bisa transfer?", en: "How do I pay? Can I transfer?" },
     a: { id: ["Pembayaran **tunai saat barang sampai (COD)** ke kurir desa.", "Yang dibayar: harga barang + PPN + ongkir + tip kurir (kalau ada). Totalnya tertulis di Checkout dan di detail pesanan.", "Jangan transfer langsung ke penjual. Pembayaran online belum tersedia."],
@@ -566,8 +566,8 @@ export const FAQS = [
     link: { to: "/admin/delivery-batches", label: { id: "Buka Jadwal Pengiriman", en: "Open Delivery Schedule" } } },
   { id: "a-settings", roles: ["admin"], concepts: ["CHANGE", "FEE"], alt: [["CHANGE", "TAX"], ["CHANGE", "TIME"], ["CHANGE", "SHIP"]],
     q: { id: "Di mana mengubah ongkir, PPN, atau jadwal?", en: "Where do I change fees, VAT, or schedules?" },
-    a: { id: ["Semua angka operasional ada di **Pengaturan Platform**: tarif ongkir per km, PPN, batas pesan & jam berangkat, batas pengiriman, iuran pokok, biaya admin, dan kontak admin.", "Perubahan langsung berlaku untuk pesanan baru. Pesanan lama tetap memakai angka saat dibuat."],
-      en: ["All operational numbers are in **Platform Settings**: delivery rate per km, VAT, cutoff & dispatch time, delivery limit, membership fee, admin fee, and admin contact.", "Changes apply to new orders. Existing orders keep the values from when they were placed."] },
+    a: { id: ["Semua angka operasional ada di **Pengaturan Platform**: tarif ongkir (5 km pertama dan per km berikutnya), PPN, batas pesan & jam berangkat, batas pengiriman, iuran pokok, biaya admin, dan kontak admin.", "Perubahan langsung berlaku untuk pesanan baru. Pesanan lama tetap memakai angka saat dibuat."],
+      en: ["All operational numbers are in **Platform Settings**: delivery fee (first 5 km and per extra km), VAT, cutoff & dispatch time, delivery limit, membership fee, admin fee, and admin contact.", "Changes apply to new orders. Existing orders keep the values from when they were placed."] },
     link: { to: "/admin/settings", label: { id: "Buka Pengaturan Platform", en: "Open Platform Settings" } } },
   { id: "a-report", roles: ["admin"], concepts: ["REPORT"], extra: ["ORDER"],
     q: { id: "Bagaimana mengunduh laporan transaksi?", en: "How do I download transaction reports?" },
@@ -676,8 +676,8 @@ export const FAQS = [
     link: { to: "/admin/settings/merchant/initial-fee", label: { id: "Iuran Pokok Lapak", en: "Initial Store Fee" } } },
   { id: "a-settings-delivery", roles: ["admin"], concepts: ["AREA"], alt: [["LIMIT"]], extra: ["SHIP", "CHANGE"],
     q: { id: "Di mana mengatur jarak maksimum dan kuota pengiriman?", en: "Where do I set the maximum distance and delivery quota?" },
-    a: { id: ["Buka **Pengaturan Platform → Pengiriman → Operasional Pengiriman**.", "Di sana ada tarif per km, batas pesan, jam berangkat kurir, **Maksimum pengiriman harian**, dan **Jarak antar maksimum** (kosongkan kalau tidak dibatasi).", "Batas pengiriman aktif per kurir terlihat di **Menu → Kurir**."],
-      en: ["Open **Platform Settings → Delivery → Delivery Operations**.", "It has the rate per km, order cutoff, dispatch time, **Maximum daily deliveries**, and **Maximum delivery distance** (leave empty for no limit).", "Each courier's active delivery capacity is shown in **Menu → Couriers**."] },
+    a: { id: ["Buka **Pengaturan Platform → Pengiriman → Operasional Pengiriman**.", "Di sana ada tarif 5 km pertama, tarif per km berikutnya, batas pesan, jam berangkat kurir, **Maksimum pengiriman harian**, dan **Jarak antar maksimum** (kosongkan kalau tidak dibatasi).", "Batas pengiriman aktif per kurir terlihat di **Menu → Kurir**."],
+      en: ["Open **Platform Settings → Delivery → Delivery Operations**.", "It has the first-5-km fee, the per-km rate after that, order cutoff, dispatch time, **Maximum daily deliveries**, and **Maximum delivery distance** (leave empty for no limit).", "Each courier's active delivery capacity is shown in **Menu → Couriers**."] },
     link: { to: "/admin/settings/delivery", label: { id: "Pengaturan Pengiriman", en: "Delivery Settings" } } },
   { id: "a-settings-contact", roles: ["admin"], concepts: ["CHANGE", "CHAT"], alt: [["CHAT", "ADMIN", "IDENTITY"]], extra: ["ADMIN"],
     q: { id: "Bagaimana mengubah kontak pengelola yang tampil di Akun?", en: "How do I change the manager contact shown in Account?" },

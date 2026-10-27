@@ -124,7 +124,7 @@ export default function OrderDetail() {
 
   return <PageContainer className="space-y-4">
     <header className="grid gap-1">
-      <Link className="w-fit text-[15px] font-bold text-[var(--kucur-green-ink)] hover:underline" to="/orders">← {copy.back}</Link>
+      <Link className="inline-flex min-h-11 w-fit items-center text-[15px] font-bold text-[var(--kucur-green-ink)] hover:underline" to="/orders">← {copy.back}</Link>
       <h1 className="text-2xl font-extrabold text-[var(--kucur-text)] sm:text-3xl">{copy.title.replace("{code}", shortOrderCode(fullCode))}</h1>
       <p className="text-sm text-[var(--kucur-text-muted)]">{order.storeName} · {formatDate(order.createdAt, { dateStyle: "medium", timeStyle: "short" })}</p>
       <p className="break-all text-[13px] text-[var(--kucur-text-muted)]">{fullCode}</p>
@@ -132,7 +132,7 @@ export default function OrderDetail() {
     {error && <p className="rounded-xl border border-rose-300 bg-rose-50 p-4 text-[15px] text-rose-800 dark:border-rose-800 dark:bg-rose-950 dark:text-rose-200" role="alert">{error}</p>}
 
     <div className="grid min-w-0 items-start gap-4 lg:grid-cols-[minmax(0,1.55fr)_minmax(300px,.65fr)]">
-      <main className="grid min-w-0 gap-4">
+      <div className="grid min-w-0 gap-4">
         <section className="grid min-w-0 gap-4 rounded-2xl border border-[var(--kucur-border)] bg-[var(--kucur-surface)] p-4 sm:p-5" aria-label={copy.lifecycle}>
           <div className="flex flex-wrap items-center justify-between gap-2"><StatusBadge status={order.fulfillmentStatus} /></div>
           <p className="text-lg font-bold leading-snug text-[var(--kucur-text)]">{t(`customerOrders.${stageKey}`)}</p>
@@ -168,7 +168,7 @@ export default function OrderDetail() {
           <summary className="flex min-h-11 cursor-pointer list-none items-center justify-between gap-3 text-lg font-extrabold">{copy.activity}<svg className="size-6 text-[var(--kucur-text-muted)] transition group-open:rotate-180" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true"><path d="m6 9 6 6 6-6"/></svg></summary>
           <div className="mt-3">{order.deliveryActivities?.length ? <ol className="grid gap-0">{order.deliveryActivities.map((item, index) => <li className="relative grid grid-cols-[20px_minmax(0,1fr)] gap-3 pb-5 last:pb-0" key={item.id}><span className="relative z-10 mt-1 size-3 rounded-full bg-[var(--kucur-green)] ring-4 ring-[var(--kucur-green-soft)]" />{index < order.deliveryActivities.length - 1 && <i className="absolute bottom-0 left-[5px] top-4 w-px bg-[var(--kucur-border-strong)]" />}<div><strong className="text-[15px]">{statusLabel(item.status)}</strong><p className="text-sm text-[var(--kucur-text-muted)]">{formatDate(item.createdAt, { dateStyle: "medium", timeStyle: "short" })}</p></div></li>)}</ol> : <p className="text-[15px] text-[var(--kucur-text-muted)]">{copy.noActivity}</p>}</div>
         </details>
-      </main>
+      </div>
 
       <section className="grid gap-3 rounded-2xl border border-[var(--kucur-border)] bg-[var(--kucur-surface)] p-4 sm:p-5 lg:sticky lg:top-24" aria-labelledby="order-payment">
         <h2 className="text-lg font-extrabold" id="order-payment">{copy.summary}</h2>

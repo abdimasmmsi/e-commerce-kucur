@@ -1,3 +1,4 @@
+import { fixOne } from "../../utils/singularEn";
 import { useCallback, useEffect, useState } from "react";
 import { Link, useLocation } from "react-router-dom";
 import { usePreferences } from "../../context/PreferencesContext";
@@ -32,7 +33,7 @@ export default function DeliveryApprovalReminder() {
   if (!draft || !draft.total || !draft.cutoffPassed || now >= new Date(draft.dispatchAt).getTime()) return null;
   const late = now >= new Date(draft.reminderAt).getTime();
   const time = formatDate(draft.dispatchAt, { hour: "2-digit", minute: "2-digit" });
-  const fill = (text) => text.replace("{count}", draft.total).replace("{time}", time);
+  const fill = (text) => fixOne(text.replace("{count}", draft.total).replace("{time}", time));
   const onBatchPage = pathname.startsWith("/admin/delivery-batches");
   const signature = `${draft.deliveryDate}:${draft.total}:${late ? "late" : "ready"}`;
   const dismiss = () => { setDismissed(signature); try { sessionStorage.setItem(DISMISS_KEY, signature); } catch { /* sessionStorage tidak tersedia */ } };

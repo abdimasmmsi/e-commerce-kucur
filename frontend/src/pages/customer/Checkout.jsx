@@ -11,6 +11,7 @@ import { productService } from "../../services/productService";
 import { clearCheckoutDraft, readCheckoutDraft, saveCheckoutDraft } from "../../utils/address";
 import { getPreciseLocation } from "../../utils/geolocation";
 import { inServiceArea } from "../../utils/serviceArea";
+import LocationNote from "../../components/location/LocationNote";
 import { shortOrderCode } from "../../utils/orderCode";
 
 const makeKey = () => globalThis.crypto?.randomUUID?.() ?? `checkout-${Date.now()}-${Math.random().toString(36).slice(2)}`;
@@ -70,7 +71,7 @@ export default function Checkout() {
   const locate = useCallback(() => {
     setLocation((current) => ({ ...current, status: "locating" }));
     getPreciseLocation()
-      .then(({ latitude, longitude }) => setLocation(inServiceArea(latitude, longitude) ? { status: "found", latitude, longitude } : { status: "missing", latitude: null, longitude: null }))
+      .then(({ latitude, longitude, accuracy }) => setLocation(inServiceArea(latitude, longitude) ? { status: "found", latitude, longitude, accuracy } : { status: "missing", latitude: null, longitude: null }))
       .catch((error) => setLocation({ status: error.reason === "imprecise" ? "imprecise" : "missing", latitude: null, longitude: null, accuracy: error.accuracy }));
   }, []);
   useEffect(() => { if (addressChoice === "current" && location.status === "idle") queueMicrotask(locate); }, [addressChoice, locate, location.status]);
@@ -156,7 +157,7 @@ export default function Checkout() {
     <header><h1 className="text-2xl font-extrabold">{t(selection.direct ? "checkout.directTitle" : "checkout.title")}</h1></header>
     {[submitError, error].filter((message, index, list) => message && list.indexOf(message) === index).map((message) => <p className="rounded-xl border border-rose-300 bg-rose-50 p-4 text-[15px] text-rose-800 dark:border-rose-800 dark:bg-rose-950 dark:text-rose-200" role="alert" key={message}>{message}</p>)}
     {loading ? <div className="rounded-2xl border border-[var(--kucur-border)] bg-[var(--kucur-surface)] p-8 text-center">{t("checkout.loading")}</div> : <div className="grid min-w-0 items-start gap-5 lg:grid-cols-[minmax(0,1.5fr)_minmax(300px,.7fr)]">
-      <main className="grid min-w-0 gap-4">
+      <div className="grid min-w-0 gap-4">
         <section className={cardClass} aria-labelledby="checkout-recipient">
           <h2 className="text-lg font-extrabold" id="checkout-recipient">{t("checkout.recipient")}</h2>
           {savedAddresses.length > 0 && <fieldset className="m-0 grid min-w-0 gap-2 border-0 p-0"><legend className="sr-only">{t("checkout.savedAddress")}</legend>
@@ -166,6 +167,7 @@ export default function Checkout() {
             </label>)}
             <div className="flex flex-wrap gap-2">{savedAddresses.length < 5 && <Link className="inline-flex min-h-11 items-center rounded-xl border border-[var(--kucur-green)] px-4 text-sm font-bold text-[var(--kucur-green-ink)]" {...goToAddresses(true)}>{t("checkout.addAddress")}</Link>}<Link className="inline-flex min-h-11 items-center rounded-xl px-2 text-sm font-bold text-[var(--kucur-green-ink)] underline-offset-4 hover:underline" {...goToAddresses(false)}>{t("checkout.manageAddresses")}</Link></div>
           </fieldset>}
+          {saved && <div className="rounded-xl bg-[var(--kucur-green-soft)] p-3"><strong className="text-[15px]">{t("checkout.locationTitle")}</strong><LocationNote latitude={saved.latitude} longitude={saved.longitude} /></div>}
           {savedAddresses.length === 0 && <div className="flex flex-wrap items-center gap-2 rounded-xl bg-[var(--kucur-surface-muted)] p-3"><span className="min-w-0 flex-1 text-sm text-[var(--kucur-text-muted)]">{t("checkout.addAddressHint")}</span><Link className="inline-flex min-h-11 items-center rounded-xl border border-[var(--kucur-green)] bg-[var(--kucur-surface)] px-4 text-sm font-bold text-[var(--kucur-green-ink)]" {...goToAddresses(true)}>{t("checkout.addAddress")}</Link></div>}
           {!saved && <>
           <div className="grid min-w-0 gap-3 sm:grid-cols-2">
@@ -174,7 +176,7 @@ export default function Checkout() {
           </div>
           <label className="grid min-w-0 gap-1.5 text-[15px] font-semibold">{t("checkout.address")}<textarea className={fieldClass} rows="3" placeholder={t("checkout.addressPlaceholder")} value={address} onChange={(event) => { setAddress(event.target.value); resetPreview(); }}/></label>
           <div className={`flex flex-wrap items-center justify-between gap-3 rounded-xl p-3 ${location.status === "found" ? "bg-[var(--kucur-green-soft)]" : "bg-amber-50 dark:bg-amber-950/50"}`} role="status">
-            <div className="flex min-w-0 items-start gap-2"><svg className={`mt-0.5 size-5 shrink-0 ${location.status === "found" ? "text-[var(--kucur-green-ink)]" : "text-amber-700 dark:text-amber-300"}`} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true"><path d="M12 21s-7-6.2-7-11.5a7 7 0 0 1 14 0C19 14.8 12 21 12 21Z"/><circle cx="12" cy="9.5" r="2.5"/></svg><div className="min-w-0"><strong className="block text-[15px]">{t("checkout.locationTitle")}</strong><span className="text-sm text-[var(--kucur-text-muted)]">{location.status === "found" ? t("checkout.locationFound") : ["locating", "idle"].includes(location.status) ? t("checkout.locationLocating") : location.status === "imprecise" ? t("checkout.locationImprecise", { meters: Math.round(location.accuracy ?? 0) }) : t("checkout.locationMissing")}</span></div></div>
+            <div className="flex min-w-0 items-start gap-2"><svg className={`mt-0.5 size-5 shrink-0 ${location.status === "found" ? "text-[var(--kucur-green-ink)]" : "text-amber-700 dark:text-amber-300"}`} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true"><path d="M12 21s-7-6.2-7-11.5a7 7 0 0 1 14 0C19 14.8 12 21 12 21Z"/><circle cx="12" cy="9.5" r="2.5"/></svg><div className="min-w-0"><strong className="block text-[15px]">{t("checkout.locationTitle")}</strong><span className="text-sm text-[var(--kucur-text-muted)]">{location.status === "found" ? t("checkout.locationFound") : ["locating", "idle"].includes(location.status) ? t("checkout.locationLocating") : location.status === "imprecise" ? t("checkout.locationImprecise", { meters: Math.round(location.accuracy ?? 0) }) : t("checkout.locationMissing")}</span>{location.status === "found" && <LocationNote latitude={location.latitude} longitude={location.longitude} accuracy={location.accuracy} />}</div></div>
             {location.status !== "found" && <button className="min-h-11 rounded-xl border border-[var(--kucur-border-strong)] bg-[var(--kucur-surface)] px-4 text-sm font-bold disabled:opacity-50" type="button" disabled={["locating", "idle"].includes(location.status)} onClick={locate}>{t("checkout.useLocation")}</button>}
           </div>
           </>}
@@ -199,7 +201,7 @@ export default function Checkout() {
           {preview?.paymentAvailability?.MIDTRANS && <label className="flex cursor-pointer items-center gap-3 rounded-xl border border-[var(--kucur-border-strong)] p-3"><input className="size-5" type="radio" name="payment" value="MIDTRANS" checked={paymentMethod === "MIDTRANS"} onChange={() => { setPaymentMethod("MIDTRANS"); resetPreview(); }}/><strong className="text-[15px]">Midtrans</strong></label>}
           <fieldset className="grid gap-2"><legend className="mb-1 text-[15px] font-semibold">{t("checkout.tipTitle")}</legend><div className="grid grid-cols-2 gap-2 sm:grid-cols-4">{tipOptions.map((amount) => <button className={`min-h-11 rounded-xl border px-1 text-sm font-bold ${courierTip === amount ? "border-[var(--kucur-green)] bg-[var(--kucur-green-soft)] text-[var(--kucur-green-ink)]" : "border-[var(--kucur-border-strong)] bg-[var(--kucur-surface)]"}`} type="button" aria-pressed={courierTip === amount} key={amount} onClick={() => { setCourierTip(amount); resetPreview(); }}>{amount ? formatCurrency(amount) : t("checkout.noTip")}</button>)}</div>{groups.length > 1 && <span className="text-sm text-[var(--kucur-text-muted)]">{t("checkout.tipHint")}</span>}</fieldset>
         </section>
-      </main>
+      </div>
 
       <aside className="grid gap-3 rounded-2xl border border-[var(--kucur-border)] bg-[var(--kucur-surface)] p-4 sm:p-5 lg:sticky lg:top-24">
         <h2 className="text-lg font-extrabold">{t("checkout.summary")}</h2>

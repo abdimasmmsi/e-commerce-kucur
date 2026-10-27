@@ -37,7 +37,7 @@
 .merchant-edit-product__upload-zone p { margin: 0; color: var(--edit-muted); font-size: .82rem; }
 .merchant-edit-product__upload-icon { display: grid; width: 2rem; height: 2rem; place-items: center; border-radius: 50%; background: color-mix(in srgb, var(--edit-accent) 12%, var(--kucur-surface)); color: var(--edit-accent); font-size: 1.35rem; }
 .merchant-edit-product__upload-actions { display: flex; flex-wrap: wrap; justify-content: center; gap: .6rem; margin-top: .55rem; }
-.merchant-edit-product__button { display: inline-flex; min-height: 2.6rem; align-items: center; justify-content: center; gap: .45rem; padding: .6rem 1rem; border: 1px solid var(--kucur-border-strong); border-radius: .75rem; color: inherit; font-size: .875rem; font-weight: 750; line-height: 1; text-decoration: none; cursor: pointer; }
+.merchant-edit-product__button { display: inline-flex; min-height: 2.75rem; align-items: center; justify-content: center; gap: .45rem; padding: .6rem 1rem; border: 1px solid var(--kucur-border-strong); border-radius: .75rem; color: inherit; font-size: .875rem; font-weight: 750; line-height: 1; text-decoration: none; cursor: pointer; }
 .merchant-edit-product__button--primary, .merchant-edit-product__button--save { border-color: var(--edit-accent); background: var(--edit-accent); color: #fff; }
 .merchant-edit-product__button--secondary { background: var(--kucur-surface); }
 .merchant-edit-product__button:hover { filter: brightness(.97); }
@@ -48,7 +48,7 @@
 .merchant-edit-product__image-tile > b { position: absolute; top: .55rem; left: .55rem; padding: .3rem .5rem; border-radius: 999px; background: rgb(17 32 22 / 78%); color: white; font-size: .7rem; }
 .merchant-edit-product__image-actions { position: absolute; right: .5rem; bottom: .5rem; left: .5rem; display: flex; justify-content: flex-end; gap: .4rem; opacity: 0; transition: opacity .15s; }
 .merchant-edit-product__image-tile:hover .merchant-edit-product__image-actions, .merchant-edit-product__image-tile:focus-within .merchant-edit-product__image-actions { opacity: 1; }
-.merchant-edit-product__image-actions button, .merchant-edit-product__variant-editor button, .merchant-edit-product__variant-image label { min-height: 2.15rem; padding: .45rem .65rem; border: 1px solid var(--kucur-border-strong); border-radius: .65rem; background: color-mix(in srgb, var(--kucur-surface) 92%, transparent); color: inherit; font-size: .75rem; font-weight: 700; cursor: pointer; }
+.merchant-edit-product__image-actions button, .merchant-edit-product__variant-editor button, .merchant-edit-product__variant-image label { min-height: 2.75rem; padding: .45rem .65rem; border: 1px solid var(--kucur-border-strong); border-radius: .65rem; background: color-mix(in srgb, var(--kucur-surface) 92%, transparent); color: inherit; font-size: .75rem; font-weight: 700; cursor: pointer; }
 .merchant-edit-product__image-actions .merchant-edit-product__remove-image { width: 2.15rem; padding: 0; background: #fff; color: #a72233; font-size: 1.2rem; }
 .merchant-edit-product__setting-row, .merchant-edit-product__status-section { display: flex; align-items: center; justify-content: space-between; gap: 1.5rem; }
 .merchant-edit-product__switch { display: inline-flex; flex: 0 0 auto; align-items: center; gap: .55rem; cursor: pointer; }
@@ -66,7 +66,7 @@
 .merchant-edit-product__variant-group-head button { flex: 0 0 auto; color: #a72233; }
 .merchant-edit-product__option-list { display: flex; flex-wrap: wrap; gap: .4rem; margin: .65rem 0; }
 .merchant-edit-product__option-list > span { display: inline-flex; align-items: center; gap: .25rem; padding-left: .55rem; border-radius: 999px; background: color-mix(in srgb, var(--edit-accent) 10%, var(--kucur-surface)); color: var(--edit-accent); font-size: .78rem; font-weight: 700; }
-.merchant-edit-product__option-list button { min-height: auto; padding: .2rem .45rem; border: 0; background: transparent; color: inherit; }
+.merchant-edit-product__option-list button { min-height: 2.75rem; min-width: 2.75rem; padding: .2rem .6rem; border: 0; background: transparent; color: inherit; }
 .merchant-edit-product__add-group { justify-self: start; color: var(--edit-accent) !important; }
 .merchant-edit-product__variant-card header small { display: block; margin-top: .15rem; color: var(--edit-muted); }
 .merchant-edit-product__variant-card-fields { display: grid; grid-template-columns: minmax(7rem, .7fr) repeat(4, minmax(0, 1fr)); align-items: start; gap: .65rem; margin-top: .75rem; }

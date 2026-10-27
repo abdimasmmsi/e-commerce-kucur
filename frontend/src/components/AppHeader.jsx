@@ -9,6 +9,7 @@ import NotificationPopover from "./NotificationPopover";
 import PreferenceControls from "./PreferenceControls";
 import UserAvatar from "./UserAvatar";
 import PageContainer from "./ui/PageContainer";
+import SearchClearButton from "./SearchClearButton";
 import SearchHistoryPanel from "./SearchHistoryPanel";
 import { addSearch, setHistoryOwner } from "../utils/browsingHistory";
 import { roleHomePaths } from "../utils/authNavigation";
@@ -29,6 +30,7 @@ function SearchForm({ className = "", onSearch, query, setQuery, t }) {
     <form className={`customer-nav-search ${className}`} onSubmit={(event) => { setOpen(false); onSearch(event); }} role="search">
       <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" aria-hidden="true"><circle cx="11" cy="11" r="6.5"/><path strokeLinecap="round" d="m16 16 4 4"/></svg>
       <input type="search" value={query} onFocus={() => setOpen(true)} onKeyDown={(event) => { if (event.key === "Escape") setOpen(false); }} onChange={(event) => { setQuery(event.target.value); setOpen(true); }} placeholder={t("header.searchProducts")} aria-label={t("header.searchProducts")} autoComplete="off" />
+      <SearchClearButton value={query} onClear={() => { setQuery(""); setOpen(false); }} />
     </form>
     {open && <SearchHistoryPanel className="absolute inset-x-0 top-[calc(100%+6px)]" query={query} onNavigate={() => setOpen(false)} onPick={(item) => { setOpen(false); onSearch(null, item); }} />}
   </div>;

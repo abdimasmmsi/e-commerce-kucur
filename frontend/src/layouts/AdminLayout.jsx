@@ -5,6 +5,7 @@ import WorkspaceNavIcon from "../components/WorkspaceNavIcon";
 import ChatUnreadBadge from "../components/ChatUnreadBadge";
 import DeliveryApprovalReminder from "../components/admin/DeliveryApprovalReminder";
 import { usePreferences } from "../context/PreferencesContext";
+import WorkspaceLogout from "../components/WorkspaceLogout";
 import WorkspaceSidebarControls, { WorkspaceSidebarResizer } from "../components/WorkspaceSidebarControls";
 import { useWorkspaceSidebar } from "../utils/useWorkspaceSidebar";
 import "./AdminLayout.css";
@@ -54,6 +55,7 @@ function AdminLayout() {
             <NavLink to="/profile" onClick={closeSidebar}><WorkspaceNavIcon type="users"/><span>{t("workspace.myAccount")}</span></NavLink>
           </section>
         </nav>
+        <WorkspaceLogout />
       </aside>
       <WorkspaceSidebarResizer sidebar={sidebar} />
       <main className="admin-main">

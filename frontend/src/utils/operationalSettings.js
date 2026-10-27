@@ -1,5 +1,6 @@
 export const defaultOperationalSettings = {
-  deliveryRatePerKm: 3500,
+  deliveryBaseFee: 6000,
+  deliveryRatePerKm: 1500,
   maximumActiveDeliveries: 3,
   pickupTimeoutHours: 2,
   assignmentResponseMinutes: 15,

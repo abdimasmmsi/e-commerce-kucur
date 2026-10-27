@@ -2,7 +2,8 @@ export const OPERATIONAL_SETTINGS_STORAGE_KEY = "kucur_operational_settings";
 export const OPERATIONAL_SETTINGS_UPDATED_EVENT = "kucur-operational-settings-updated";
 
 export const defaultOperationalSettings = {
-  deliveryRatePerKm: 3500,
+  deliveryBaseFee: 6000,
+  deliveryRatePerKm: 1500,
   maximumActiveDeliveries: 3,
   pickupTimeoutHours: 2,
   assignmentResponseMinutes: 15,

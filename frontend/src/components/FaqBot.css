@@ -10,3 +10,6 @@
 .dark .faq-bot-layer{background:rgba(0,0,0,.55)}
 @media(min-width:768px){.dark .faq-bot-layer{background:transparent}}
 @media(prefers-reduced-motion:reduce){.faq-bot-launcher{transition:none}}
+.faq-bot-launcher{transition:transform .15s ease,opacity .2s ease}
+.faq-bot-launcher.is-scrolling{opacity:.28;transform:scale(.88)}
+@media(prefers-reduced-motion:reduce){.faq-bot-launcher.is-scrolling{transform:none}}

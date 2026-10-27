@@ -22,10 +22,11 @@ function MapLifecycle({ latitude, longitude }) {
 export default function LeafletMap({ latitude, longitude, label, editable = false, onSelect }) {
   const valid = Number.isFinite(latitude) && Number.isFinite(longitude);
   const position = valid ? [latitude, longitude] : null;
-  return <MapContainer className="h-64 w-full max-w-full sm:h-72" center={position ?? KUCUR_MAP_DEFAULT_CENTER} zoom={position ? 16 : KUCUR_MAP_DEFAULT_ZOOM} scrollWheelZoom maxBounds={SERVICE_AREA_BOUNDS} maxBoundsViscosity={1} minZoom={8}>
+  // Peta di dalam wadah sendiri: lapisan dan tombol Leaflet (z-index 400-1000) terkurung dan terpotong di tepi wadah, jadi tidak menimpa header, menu bawah, dialog, atau popup saat halaman di-scroll.
+  return <div className="relative isolate z-0 w-full max-w-full overflow-hidden" style={{ contain: "paint" }}><MapContainer className="h-64 w-full max-w-full sm:h-72" center={position ?? KUCUR_MAP_DEFAULT_CENTER} zoom={position ? 16 : KUCUR_MAP_DEFAULT_ZOOM} scrollWheelZoom maxBounds={SERVICE_AREA_BOUNDS} maxBoundsViscosity={1} minZoom={8}>
     <TileLayer attribution={OSM_ATTRIBUTION} url={OSM_TILE_URL} />
     <MapEvents editable={editable} onSelect={onSelect} />
     <MapLifecycle latitude={latitude} longitude={longitude} />
     {position && <Marker position={position} icon={markerIcon} draggable={editable} eventHandlers={editable ? { dragend: (event) => { const point = event.target.getLatLng(); onSelect?.({ latitude: point.lat, longitude: point.lng }); } } : undefined}>{label && <Popup><span className="break-words">{label}</span></Popup>}</Marker>}
-  </MapContainer>;
+  </MapContainer></div>;
 }

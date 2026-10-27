@@ -1,4 +1,5 @@
-import { useCallback, useEffect, useMemo, useRef, useState } from "react";
+import { fixOne } from "../../utils/singularEn";
+import { Fragment, useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { Link } from "react-router-dom";
 import ActionDialog from "../../components/ui/ActionDialog";
 import Button from "../../components/ui/Button";
@@ -56,7 +57,7 @@ const COPY = {
   },
 };
 
-const fill = (text, values) => Object.entries(values).reduce((value, [key, replacement]) => value.replaceAll(`{${key}}`, replacement), text);
+const fill = (text, values) => fixOne(Object.entries(values).reduce((value, [key, replacement]) => value.replaceAll(`{${key}}`, replacement), text));
 const sectionClass = "grid min-w-0 gap-3 border-[var(--kucur-border)] bg-[var(--kucur-surface)] p-4 max-sm:-mx-3 max-sm:!max-w-none max-sm:border-y sm:rounded-2xl sm:border sm:p-5";
 
 export default function AdminFinance() {
@@ -170,9 +171,13 @@ export default function AdminFinance() {
 
       <section className={sectionClass} aria-labelledby="finance-recap">
         <div className="flex flex-wrap items-start justify-between gap-2"><div className="min-w-0"><h2 className="text-lg font-extrabold" id="finance-recap">{copy.recap}</h2><p className="text-sm text-[var(--kucur-text-muted)]">{copy.recapHint}</p></div>{recap.months.length > 0 && <Button variant="secondary" onClick={downloadRecap}><DownloadIcon />{copy.recapDownload}</Button>}</div>
-        {recap.months.length ? <div className="min-w-0 overflow-x-auto rounded-xl border border-[var(--kucur-border)]"><table className="w-full min-w-[640px] border-collapse text-sm"><thead><tr>{[["month", ""], ["orders", " text-right"], ["total", " text-right"], ["collected", " text-right"], ["outstanding", " text-right"], ["owing", " text-right"]].map(([key, align]) => <th className={`whitespace-nowrap bg-[var(--kucur-surface-muted)] px-3 py-2.5 text-left text-xs font-bold text-[var(--kucur-text-muted)]${align}`} scope="col" key={key}>{copy.recapCols[key]}</th>)}</tr></thead><tbody>
+        {recap.months.length ? <><div className="hidden min-w-0 overflow-x-auto rounded-xl md:block border border-[var(--kucur-border)]"><table className="w-full min-w-[640px] border-collapse text-sm"><thead><tr>{[["month", ""], ["orders", " text-right"], ["total", " text-right"], ["collected", " text-right"], ["outstanding", " text-right"], ["owing", " text-right"]].map(([key, align]) => <th className={`whitespace-nowrap bg-[var(--kucur-surface-muted)] px-3 py-2.5 text-left text-xs font-bold text-[var(--kucur-text-muted)]${align}`} scope="col" key={key}>{copy.recapCols[key]}</th>)}</tr></thead><tbody>
           {recap.months.map((row) => <tr key={row.key}><th className="whitespace-nowrap border-t border-[var(--kucur-border)] px-3 py-3 text-left font-bold" scope="row">{monthName(row)}</th><td className="whitespace-nowrap border-t border-[var(--kucur-border)] px-3 py-3 text-right">{row.orders}</td><td className="whitespace-nowrap border-t border-[var(--kucur-border)] px-3 py-3 text-right font-semibold">{formatCurrency(row.total)}</td><td className="whitespace-nowrap border-t border-[var(--kucur-border)] px-3 py-3 text-right text-[var(--kucur-green-ink)]">{formatCurrency(row.paid)}</td><td className={`whitespace-nowrap border-t border-[var(--kucur-border)] px-3 py-3 text-right ${row.outstanding > 0 ? "font-semibold text-rose-700 dark:text-rose-300" : ""}`}>{formatCurrency(row.outstanding)}</td><td className="whitespace-nowrap border-t border-[var(--kucur-border)] px-3 py-3 text-right">{row.storesOwing}</td></tr>)}
-        </tbody></table></div> : <EmptyState title={copy.recapEmpty} description={copy.recapEmptyHint} />}
+        </tbody></table></div>
+        <ul className="grid gap-3 md:hidden">{recap.months.map((row) => <li className="grid gap-2 rounded-xl border border-[var(--kucur-border)] p-3" key={row.key}>
+          <strong className="text-[15px]">{monthName(row)}</strong>
+          <dl className="grid grid-cols-[auto_1fr] gap-x-4 gap-y-1 text-sm">{[["orders", row.orders, ""], ["total", formatCurrency(row.total), "font-bold"], ["collected", formatCurrency(row.paid), "text-[var(--kucur-green-ink)]"], ["outstanding", formatCurrency(row.outstanding), row.outstanding > 0 ? "font-bold text-rose-700 dark:text-rose-300" : ""], ["owing", row.storesOwing, ""]].map(([key, value, tone]) => <Fragment key={key}><dt className="text-[var(--kucur-text-muted)]">{copy.recapCols[key]}</dt><dd className={`m-0 text-right font-medium ${tone}`}>{value}</dd></Fragment>)}</dl>
+        </li>)}</ul></> : <EmptyState title={copy.recapEmpty} description={copy.recapEmptyHint} />}
       </section>
 
       <section className={sectionClass} aria-labelledby="finance-automation">

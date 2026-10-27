@@ -7,19 +7,19 @@ test("visitor asks the FAQ bot in their own words and gets a confirmed answer", 
   await page.getByRole("button", { name: "Buka bantuan" }).click();
   const bot = page.getByRole("dialog", { name: "Bantuan Kucur" });
   await expect(bot.getByText("Pertanyaan populer")).toBeVisible();
-  await bot.getByPlaceholder(/Tulis pertanyaan/).fill("gmn cara beli barang");
+  await bot.getByPlaceholder(/Tanya, mis/).fill("gmn cara beli barang");
   await bot.getByRole("button", { name: "Kirim" }).click();
   await expect(bot.getByText(/Maksud kamu:/)).toBeVisible();
   await bot.getByRole("button", { name: "Ya", exact: true }).click();
   await expect(bot.getByText("Bayar tunai ke kurir saat barang sampai.", { exact: false })).toBeVisible();
   await assertNoHorizontalOverflow(page);
   // Aplikasi berbahasa Indonesia, tapi pertanyaan berbahasa Inggris → balasan berbahasa Inggris.
-  await bot.getByPlaceholder(/Tulis pertanyaan/).fill("how much is the delivery fee");
+  await bot.getByPlaceholder(/Tanya, mis/).fill("how much is the delivery fee");
   await bot.getByRole("button", { name: "Kirim" }).click();
   await expect(bot.getByText(/Do you mean:/)).toBeVisible();
   await bot.getByRole("button", { name: "Yes", exact: true }).click();
-  await expect(bot.getByText(/per km/).last()).toContainText("Delivery fee");
-  await bot.getByPlaceholder(/Tulis pertanyaan/).fill("gimana cara beli");
+  await expect(bot.getByText(/rounded up/).last()).toContainText("first 5 km");
+  await bot.getByPlaceholder(/Tanya, mis/).fill("gimana cara beli");
   await bot.getByRole("button", { name: "Kirim" }).click();
   await expect(bot.getByText(/Maksud kamu:/).last()).toBeVisible();
   await bot.getByRole("button", { name: "Ya", exact: true }).last().click();
@@ -34,12 +34,12 @@ test("customer typo question, rejecting a guess, and opening the bot from the Ac
   await page.goto("/");
   await page.getByRole("button", { name: "Buka bantuan" }).click();
   const bot = page.getByRole("dialog", { name: "Bantuan Kucur" });
-  await bot.getByPlaceholder(/Tulis pertanyaan/).fill("min gmn caranya cancle pesnan");
+  await bot.getByPlaceholder(/Tanya, mis/).fill("min gmn caranya cancle pesnan");
   await bot.getByRole("button", { name: "Kirim" }).click();
   await expect(bot.getByText(/Bagaimana cara membatalkan pesanan/).last()).toBeVisible();
   await bot.getByRole("button", { name: "Bukan", exact: true }).click();
   await expect(bot.getByText(/Coba tulis ulang/)).toBeVisible();
-  await bot.getByPlaceholder(/Tulis pertanyaan/).fill("halo apa kabar");
+  await bot.getByPlaceholder(/Tanya, mis/).fill("halo apa kabar");
   await bot.getByRole("button", { name: "Kirim" }).click();
   await expect(bot.getByText(/belum paham/)).toBeVisible();
   await expect(bot.getByRole("button", { name: "Chat Admin" }).last()).toBeVisible();

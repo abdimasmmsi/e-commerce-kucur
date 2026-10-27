@@ -14,8 +14,8 @@ import "./FaqBot.css";
 const HIDDEN_ON = [/^\/checkout/, /^\/merchant\/stores\/new$/, /^\/merchant\/stores\/[^/]+\/products\/(add|[^/]+\/edit)$/, /^\/merchant\/stores\/[^/]+\/orders\/[^/]+$/, /^\/courier\/active-deliveries\/[^/]+$/,/^\/products\/[^/]+$/, /^\/messages\/[^/]+$/, /^\/admin\/support-chats\/[^/]+$/, /^\/courier\/batches\/[^/]+$/, /^\/admin\/faq$/];
 
 const COPY = {
-  id: { open: "Buka bantuan", title: "Bantuan Kucur", subtitle: "Jawaban cepat seputar aplikasi", close: "Tutup", restart: "Mulai ulang", hello: "Halo! Mau tanya apa? Pilih topik di bawah, atau tulis pertanyaanmu.", placeholder: "Tulis pertanyaan, mis. cara batal pesanan", send: "Kirim", confirm: "Maksud kamu: **{q}**?", yes: "Ya", no: "Bukan", choose: "Mungkin maksudmu salah satu ini:", unknown: "Maaf, aku belum paham pertanyaannya. Coba tulis dengan kata lain, atau pilih topik di bawah.", retry: "Oke. Coba tulis ulang pertanyaanmu dengan kata lain, atau pilih yang paling mirip:", more: "Ada lagi yang bisa dibantu?", topics: "Topik lain", stillConfused: "Masih bingung?", chatAdmin: "Chat Admin", loginForAdmin: "Masuk untuk chat Admin", popular: "Pertanyaan populer" },
-  en: { open: "Open help", title: "Kucur Help", subtitle: "Quick answers about the app", close: "Close", restart: "Start over", hello: "Hi! What do you need? Pick a topic below or type your question.", placeholder: "Type a question, e.g. how to cancel an order", send: "Send", confirm: "Do you mean: **{q}**?", yes: "Yes", no: "No", choose: "Maybe you mean one of these:", unknown: "Sorry, I didn't get that. Try other words, or pick a topic below.", retry: "Okay. Try rephrasing your question, or pick the closest one:", more: "Anything else?", topics: "Other topics", stillConfused: "Still stuck?", chatAdmin: "Chat with Admin", loginForAdmin: "Log in to chat with Admin", popular: "Popular questions" },
+  id: { open: "Buka bantuan", title: "Bantuan Kucur", subtitle: "Jawaban cepat seputar aplikasi", close: "Tutup", restart: "Mulai ulang", hello: "Halo! Mau tanya apa? Pilih topik di bawah, atau tulis pertanyaanmu.", placeholder: "Tanya, mis. cara batal", send: "Kirim", confirm: "Maksud kamu: **{q}**?", yes: "Ya", no: "Bukan", choose: "Mungkin maksudmu salah satu ini:", unknown: "Maaf, aku belum paham pertanyaannya. Coba tulis dengan kata lain, atau pilih topik di bawah.", retry: "Oke. Coba tulis ulang pertanyaanmu dengan kata lain, atau pilih yang paling mirip:", more: "Ada lagi yang bisa dibantu?", topics: "Topik lain", stillConfused: "Masih bingung?", chatAdmin: "Chat Admin", loginForAdmin: "Masuk untuk chat Admin", popular: "Pertanyaan populer" },
+  en: { open: "Open help", title: "Kucur Help", subtitle: "Quick answers about the app", close: "Close", restart: "Start over", hello: "Hi! What do you need? Pick a topic below or type your question.", placeholder: "Ask, e.g. cancel order", send: "Send", confirm: "Do you mean: **{q}**?", yes: "Yes", no: "No", choose: "Maybe you mean one of these:", unknown: "Sorry, I didn't get that. Try other words, or pick a topic below.", retry: "Okay. Try rephrasing your question, or pick the closest one:", more: "Anything else?", topics: "Other topics", stillConfused: "Still stuck?", chatAdmin: "Chat with Admin", loginForAdmin: "Log in to chat with Admin", popular: "Popular questions" },
 };
 
 // Logo chatbot (public/logo-chatbot.svg) sebagai komponen supaya warnanya ikut tema: kepala = currentColor, layar wajah = warna latar.
@@ -51,6 +51,14 @@ export default function FaqBot() {
   const [chatLang, setChatLang] = useState(appLang);
   const role = isAuthenticated ? (activeRole || "customer") : "visitor";
   const [open, setOpen] = useState(false);
+  // Saat halaman digulir tombol memudar sebentar supaya tidak menutupi lencana/tombol di pojok kanan kartu.
+  const [scrolling, setScrolling] = useState(false);
+  useEffect(() => {
+    let timer = 0;
+    const onScroll = () => { setScrolling(true); window.clearTimeout(timer); timer = window.setTimeout(() => setScrolling(false), 650); };
+    window.addEventListener("scroll", onScroll, { passive: true });
+    return () => { window.removeEventListener("scroll", onScroll); window.clearTimeout(timer); };
+  }, []);
   const [messages, setMessages] = useState([]);
   const [input, setInput] = useState("");
   const listRef = useRef(null);
@@ -71,6 +79,7 @@ export default function FaqBot() {
       cutoff: timeText(s.deliveryOrderCutoffTime) || "16.00",
       dispatch: timeText(s.deliveryDispatchTime) || "17.00",
       rate: money(s.deliveryRatePerKm) ?? fallback,
+      base: money(s.deliveryBaseFee) ?? fallback,
       tax: Number.isFinite(Number(s.taxPercent)) && s.taxPercent !== null ? `${Number(s.taxPercent)}%` : fallback,
       maxDaily: s.maxDailyDeliveries ?? (lang === "id" ? "sesuai kuota" : "the daily quota"),
       initialFee: money(s.initialStoreFeeAmount) ?? fallback,
@@ -167,7 +176,7 @@ export default function FaqBot() {
   const hidden = HIDDEN_ON.some((pattern) => pattern.test(pathname));
   const workspaceNav = isAuthenticated && ["merchant", "courier", "admin"].includes(activeRole);
   return <>
-    {!hidden && !open && <button className={`faq-bot-launcher ${workspaceNav ? "has-workspace-nav" : ""}`} type="button" aria-label={copy.open} onClick={() => setOpen(true)}>
+    {!hidden && !open && <button className={`faq-bot-launcher ${workspaceNav ? "has-workspace-nav" : ""}${scrolling ? " is-scrolling" : ""}`} type="button" aria-label={copy.open} onClick={() => setOpen(true)}>
       <BotIcon face="var(--kucur-green)" />
     </button>}
     {open && createPortal(<div className="faq-bot-layer" role="presentation" onMouseDown={(event) => { if (event.target === event.currentTarget) setOpen(false); }}>

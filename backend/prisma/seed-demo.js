@@ -196,7 +196,7 @@ async function main() {
     await prisma.targetPlatformSettings.upsert({
       where: { id: "active" },
       update: {},
-      create: { id: "active", taxPercent: 11, deliveryRatePerKm: 3500, orderCutoffTime: new RealDate("1970-01-01T16:00:00Z"), dispatchTime: new RealDate("1970-01-01T17:00:00Z"), maxDailyDeliveries: 30, initialStoreFeeAmount: 100000, installmentLateInterestPercent: 2, adminFeeType: "PERCENTAGE", adminFeeValue: 5, adminFeeCutoffDay: 7, adminFeeGraceTime: new RealDate("1970-01-01T12:00:00Z"), suspendStoreForOutstandingAdminFee: true, voluntaryContributionEnabled: true, updatedByUserId: users.admin.id },
+      create: { id: "active", taxPercent: 11, deliveryBaseFee: 6000, deliveryRatePerKm: 1500, orderCutoffTime: new RealDate("1970-01-01T16:00:00Z"), dispatchTime: new RealDate("1970-01-01T17:00:00Z"), maxDailyDeliveries: 30, initialStoreFeeAmount: 100000, installmentLateInterestPercent: 2, adminFeeType: "PERCENTAGE", adminFeeValue: 5, adminFeeCutoffDay: 7, adminFeeGraceTime: new RealDate("1970-01-01T12:00:00Z"), suspendStoreForOutstandingAdminFee: true, voluntaryContributionEnabled: true, updatedByUserId: users.admin.id },
     });
   });
   const admin = actor(users.admin, "admin");

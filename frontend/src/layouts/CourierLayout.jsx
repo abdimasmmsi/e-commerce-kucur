@@ -3,6 +3,7 @@ import { NavLink, Outlet } from "react-router-dom";
 import AppHeader from "../components/AppHeader";
 import WorkspaceNavIcon from "../components/WorkspaceNavIcon";
 import { usePreferences } from "../context/PreferencesContext";
+import WorkspaceLogout from "../components/WorkspaceLogout";
 import WorkspaceSidebarControls, { WorkspaceSidebarResizer } from "../components/WorkspaceSidebarControls";
 import { useWorkspaceSidebar } from "../utils/useWorkspaceSidebar";
 import "./CourierLayout.css";
@@ -84,6 +85,7 @@ function CourierLayout() {
             <NavLink to="/profile" onClick={closeSidebar}><WorkspaceNavIcon type="users"/><span>{t("workspace.myAccount")}</span></NavLink>
           </section>
         </nav>
+        <WorkspaceLogout />
       </aside>
       <WorkspaceSidebarResizer sidebar={sidebar} />
 

@@ -28,10 +28,12 @@ export default function BatchDetail() {
     back: "Semua pengiriman", title: "Pengiriman {date}", depart: "Berangkat {time}", progress: "{done} dari {total} terkirim", collect: "Total COD ditagih", start: "Mulai pengiriman", stop: "Tujuan {number}",
     pickupHint: "Ambil barang di {store}. Bayar harga barang ke penjual.", pickup: "Konfirmasi Ambil Barang", deliverHint: "Barang sudah di tangan. Berangkat ke alamat pembeli.", startDelivery: "Mulai Antar", proofHint: "Serahkan barang, tagih uang, lalu foto barang yang diterima.",
     photo: "Foto & selesaikan", photoAgain: "Ganti foto", finish: "Selesaikan dengan Bukti", call: "Telepon", whatsapp: "WhatsApp", waText: "Halo {name}, saya kurir Kucur yang mengantar pesanan {code}. ", maps: "Maps", codCollect: "Tagih dari pembeli", codPaid: "Sudah dibayar", tip: "termasuk tip {amount}", fail: "Gagal antar", photoError: "Foto tidak bisa dipakai. Coba ambil ulang.", waitCurrent: "Selesaikan atau tandai gagal pengantaran yang sedang berjalan dulu.",
+    allDone: "Semua tujuan sudah selesai", allDoneHint: "Tidak ada lagi yang perlu kamu antar. Jadwal ini akan ditutup oleh Admin, jadi statusnya tetap Berjalan sampai saat itu.",
   } : {
-    back: "All deliveries", title: "Delivery {date}", depart: "Leaves {time}", progress: "{done} of {total} delivered", collect: "COD to collect", start: "Start delivery", stop: "Tujuan {number}",
+    back: "All deliveries", title: "Delivery {date}", depart: "Leaves {time}", progress: "{done} of {total} delivered", collect: "COD to collect", start: "Start delivery", stop: "Stop {number}",
     pickupHint: "Pick up at {store}. Pay the item price to the seller.", pickup: "Confirm Pickup", deliverHint: "You have the items. Head to the buyer's address.", startDelivery: "Start Delivery", proofHint: "Hand over the items, collect payment, then photograph the delivered items.",
     photo: "Take photo & finish", photoAgain: "Retake photo", finish: "Complete with Proof", call: "Call", whatsapp: "WhatsApp", waText: "Hi {name}, I am the Kucur courier delivering order {code}. ", maps: "Maps", codCollect: "Collect from buyer", codPaid: "Already paid", tip: "includes {amount} tip", fail: "Delivery failed", photoError: "This photo cannot be used. Please take it again.", waitCurrent: "Finish or mark the delivery in progress as failed first.",
+    allDone: "All stops are finished", allDoneHint: "There is nothing left for you to deliver. The Admin will close this schedule, so it stays In progress until then.",
   };
   const fill = (text, values) => Object.entries(values).reduce((value, [key, replacement]) => value.replace(`{${key}}`, replacement), text);
   const [batch, setBatch] = useState(null);
@@ -87,6 +89,7 @@ export default function BatchDetail() {
       {codTotal > 0 && <div className="flex items-center justify-between gap-3"><span className="text-[15px] text-[var(--kucur-text-muted)]">{copy.collect}</span><strong className="text-xl font-extrabold">{formatCurrency(codTotal)}</strong></div>}
       {["PLANNED", "READY"].includes(batch.status) && <button className={actionClass} type="button" disabled={Boolean(state.busy)} onClick={() => void mutate(`batch-${batch.id}`, () => deliveryApi.startBatch(batch.id))}>{copy.start}</button>}
     </section>
+    {batch.status === "IN_PROGRESS" && stops.length > 0 && !stops.some((item) => ACTIVE.includes(item.status)) && <section className="grid gap-1 rounded-2xl border border-[var(--kucur-border)] bg-[var(--kucur-green-soft)] p-4" role="status"><strong className="text-[15px] text-[var(--kucur-green-ink)]">{copy.allDone}</strong><p className="text-[15px]">{copy.allDoneHint}</p></section>}
     {state.error && <p className="rounded-xl border border-rose-300 bg-rose-50 p-4 text-[15px] text-rose-800 dark:border-rose-800 dark:bg-rose-950 dark:text-rose-200" role="alert">{state.error}</p>}
 
     <section className="grid gap-3 lg:grid-cols-2">

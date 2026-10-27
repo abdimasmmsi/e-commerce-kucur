@@ -95,3 +95,8 @@
 @media (max-width: 1050px) { .admin-summary-grid { grid-template-columns: repeat(2, 1fr); } .admin-toolbar { grid-template-columns: 1fr 1fr; } .admin-toolbar label:first-child { grid-column: 1 / -1; } }
 @media (max-width: 850px) { .admin-detail-layout,.admin-order-detail-grid { grid-template-columns: 1fr; } .admin-side-actions,.admin-order-summary { position: static; } }
 @media (max-width: 600px) { .admin-summary-grid, .admin-toolbar, .admin-info-grid { grid-template-columns: 1fr; } .admin-toolbar label:first-child,.admin-transaction-toolbar .admin-search-field { grid-column: auto; } .admin-actions { display: grid; } .admin-actions > * { width: 100%; text-align: center; } .admin-timeline-heading time { width: 100%; margin-left: 0; } .admin-lifecycle { grid-template-columns: 1fr; gap: 8px; }.admin-lifecycle li { grid-template-columns: 30px 1fr; align-items: center; justify-items: start; text-align:left }.admin-lifecycle li:not(:last-child)::after { top: 28px; bottom: -10px; left: 14px; width: 2px; height: auto; } }
+
+/* Target sentuh >= 44px di HP (laptop tetap ringkas). */
+@media (max-width: 767px) {
+  .admin-row-action, .admin-actions a, .admin-actions button { min-height: 44px; display: inline-flex; align-items: center; padding-inline: 14px; }
+}

@@ -5,7 +5,7 @@ const time = (value) => /^([01]\d|2[0-3]):[0-5]\d(:[0-5]\d)?$/.test(String(value
 const numberBetween = (min, max) => (value) => Number.isFinite(Number(value)) && Number(value) >= min && Number(value) <= max;
 const integerBetween = (min, max) => (value) => Number.isInteger(Number(value)) && Number(value) >= min && Number(value) <= max;
 const validators = {
-  deliveryRatePerKm: numberBetween(0, 10000000), deliveryOrderCutoffTime: time, deliveryDispatchTime: time,
+  deliveryRatePerKm: numberBetween(0, 10000000), deliveryBaseFee: numberBetween(0, 10000000), deliveryOrderCutoffTime: time, deliveryDispatchTime: time,
   maxDailyDeliveries: integerBetween(1, 10000), batchReminderMinutes: integerBetween(5, 720), tourismApprovalTimeoutHours: integerBetween(1, 720),
   initialStoreFeeAmount: numberBetween(0, 1000000000000), installmentFullEnabled: (value) => typeof value === "boolean",
   installment3MonthsEnabled: (value) => typeof value === "boolean", installment6MonthsEnabled: (value) => typeof value === "boolean",

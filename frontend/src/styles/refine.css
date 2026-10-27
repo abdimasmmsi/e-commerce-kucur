@@ -327,3 +327,20 @@ button[aria-busy="true"]::before { content: ""; display: inline-block; flex: 0 0
 }
 /* Peta tidak boleh menembus header, menu bawah, dialog, atau popup: tumpukan z-index Leaflet (400-1000) dikurung di dalam peta. */
 .leaflet-container { position: relative; z-index: 0; isolation: isolate; }
+
+/* Kolom cari: sembunyikan tombol "x" bawaan peramban (biru, kecil); diganti SearchClearButton. */
+input[type="search"]::-webkit-search-cancel-button, input[type="search"]::-webkit-search-decoration { -webkit-appearance: none; appearance: none; display: none; }
+.search-clear-button { position: absolute; top: 50%; right: 2px; z-index: 2; display: grid; width: 44px; height: 44px; margin-top: -22px; place-items: center; padding: 0; border: 0; border-radius: 999px; background: transparent; color: var(--kucur-text-muted); cursor: pointer; }
+.search-clear-button svg { width: 18px; height: 18px; padding: 3px; box-sizing: content-box; border-radius: 999px; background: var(--kucur-surface-muted); }
+.search-clear-button:hover { color: var(--kucur-text); }
+.search-clear-button:focus-visible { outline: 2px solid var(--kucur-green-ink); outline-offset: -4px; }
+.customer-nav-search { position: relative; }
+.customer-nav-search input[type="search"] { padding-right: 44px; }
+
+/* Tautan merek/logo: area ketuk minimal 44px tanpa mengubah tampilan (logo tetap 34-36px, rata kiri). */
+.app-header .app-brand { min-height: 44px; min-width: 44px; }
+/* Target sentuh >=44px di HP: filter Pesan & Bantuan dan pemilih bahasa/tema di Pengaturan. */
+@media (max-width: 767px) {
+  .chat-inbox-toolbar select, .chat-inbox-toolbar input { min-height: 44px; }
+  .account-preference-row button { min-height: 44px; }
+}

@@ -9,7 +9,7 @@ function createMemoryRepository(seed = {}) {
     products: clone(seed.products || []),
     audits: clone(seed.audits || []),
     sessions: clone(seed.sessions || []),
-    settings: { deliveryRatePerKm: 3500, deliveryOrderCutoffTime: "16:00", deliveryDispatchTime: "17:00", maxDailyDeliveries: 30, tourismApprovalTimeoutHours: 6, initialStoreFeeAmount: 100000, installmentFullEnabled: true, installment3MonthsEnabled: true, installment6MonthsEnabled: true, installmentLateInterestPercent: 2, adminFeeType: "percentage", adminFeeValue: 5, adminFeeCutoffDay: 1, adminFeeGraceTime: "12:00", suspendStoreForOutstandingAdminFee: true, taxPercent: 11, voluntaryContributionEnabled: true, prideTransactionValueWeight: 35, prideTransactionCountWeight: 25, prideRatingWeight: 20, prideCompletionRateWeight: 20, prideLeaderboardSize: 7, ...(seed.settings || {}) },
+    settings: { deliveryBaseFee: 6000, deliveryRatePerKm: 1500, deliveryOrderCutoffTime: "16:00", deliveryDispatchTime: "17:00", maxDailyDeliveries: 30, tourismApprovalTimeoutHours: 6, initialStoreFeeAmount: 100000, installmentFullEnabled: true, installment3MonthsEnabled: true, installment6MonthsEnabled: true, installmentLateInterestPercent: 2, adminFeeType: "percentage", adminFeeValue: 5, adminFeeCutoffDay: 1, adminFeeGraceTime: "12:00", suspendStoreForOutstandingAdminFee: true, taxPercent: 11, voluntaryContributionEnabled: true, prideTransactionValueWeight: 35, prideTransactionCountWeight: 25, prideRatingWeight: 20, prideCompletionRateWeight: 20, prideLeaderboardSize: 7, ...(seed.settings || {}) },
     carts: clone(seed.carts || []),
     checkouts: clone(seed.checkouts || []),
     orders: clone(seed.orders || []),

@@ -1495,6 +1495,7 @@ model TargetPlatformSettings {
   id String @id @db.Char(36)
   taxPercent Decimal @default(0) @db.Decimal(5, 2)
   deliveryRatePerKm Decimal @default(0) @db.Decimal(18, 2)
+  deliveryBaseFee Decimal @default(6000) @db.Decimal(18, 2)
   orderCutoffTime DateTime @default(dbgenerated("'15:00:00'")) @db.Time(0)
   dispatchTime DateTime @default(dbgenerated("'08:00:00'")) @db.Time(0)
   maxDailyDeliveries Int @default(20)
