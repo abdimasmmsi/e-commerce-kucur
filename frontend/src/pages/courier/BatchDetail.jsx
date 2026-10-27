@@ -71,7 +71,7 @@ export default function BatchDetail() {
 
   return <><PageContainer as="main" className="space-y-4 text-[var(--kucur-text)]">
     <header className="grid gap-1">
-      <Link className="w-fit text-[15px] font-bold text-[var(--kucur-green-ink)]" to="/courier/batches">← {copy.back}</Link>
+      <Link className="inline-flex min-h-11 w-fit items-center text-[15px] font-bold text-[var(--kucur-green-ink)]" to="/courier/batches">← {copy.back}</Link>
       <div className="flex flex-wrap items-center justify-between gap-2"><h1 className="text-2xl font-extrabold">{fill(copy.title, { date: formatDate(batch.deliveryDate, { weekday: "long", day: "numeric", month: "long" }) })}</h1><StatusBadge status={batch.status}/></div>
       <p className="text-[15px] text-[var(--kucur-text-muted)]">{fill(copy.depart, { time: formatDate(batch.dispatchAt, { timeStyle: "short" }) })} · {fill(copy.progress, { done: delivered, total: stops.length })}</p>
     </header>
@@ -112,7 +112,7 @@ export default function BatchDetail() {
               ? <div className="grid grid-cols-[auto_minmax(0,1fr)] gap-2"><button className={smallClass} type="button" onClick={() => fileInputs.current[order.id]?.click()}>{copy.photoAgain}</button><button className={actionClass} type="button" disabled={Boolean(state.busy)} onClick={() => void mutate(`proof-${order.id}`, () => deliveryApi.proof(order.id, { photoDataUrl: photo }))}>{copy.finish}</button></div>
               : <button className={actionClass} type="button" onClick={() => fileInputs.current[order.id]?.click()}>{copy.photo}</button>}
           </div>}
-          {active && <button className="w-fit text-sm font-bold text-rose-700 underline dark:text-rose-300" type="button" disabled={Boolean(state.busy)} onClick={() => setFailure({ orderId: order.id, reason: "" })}>{copy.fail}</button>}
+          {active && <button className="inline-flex min-h-11 w-fit items-center text-sm font-bold text-rose-700 underline dark:text-rose-300" type="button" disabled={Boolean(state.busy)} onClick={() => setFailure({ orderId: order.id, reason: "" })}>{copy.fail}</button>}
           {!active && <p className="text-sm text-[var(--kucur-text-muted)]">{statusLabel(assignment.status)}</p>}
         </article>;
       })}

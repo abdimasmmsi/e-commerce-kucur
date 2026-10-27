@@ -1,0 +1,21 @@
+import { openBrowser, newCtx, go, settle, shot, audit } from "./lib.mjs";
+const S = "832ac337-9e6f-4640-847c-e4421fee2243", O2 = "de04c498-9892-4d62-a786-7ac0cbdb9256";
+const b = await openBrowser();
+const ctx = {}; for (const vk of ["m", "d"]) ctx[vk] = await newCtx(b, vk, "merchant.a@kucur.test");
+const m = ctx.m.page, d = ctx.d.page;
+for (const p of [m, d]) await go(p, `/merchant/stores/${S}/orders/${O2}`);
+for (const p of [m, d]) { await p.getByRole("button", { name: /^Batalkan pesanan$/ }).first().click(); await p.waitForTimeout(500); }
+console.log("dialogs", await m.getByRole("dialog").count(), await m.locator("[role=dialog] button, dialog button").allInnerTexts());
+await m.screenshot({ path: "D:/kucur-platform/docs/training/audit/pk-cancel-dbg.png" });
+const confirmBtn = (p) => p.locator("[role=dialog], dialog, [aria-modal=true]").getByRole("button", { name: /^Batalkan pesanan$/ });
+await confirmBtn(m).click({ timeout: 5000 }); await m.waitForTimeout(500);
+await shot(m, "penjual", "pesanan-batal-wajib-alasan", "m");
+await d.locator("[role=dialog], dialog, [aria-modal=true]").getByRole("button", { name: /^Batalkan pesanan$/ }).click({ timeout: 5000 }); await d.waitForTimeout(500);
+await shot(d, "penjual", "pesanan-batal-wajib-alasan", "d");
+for (const p of [m, d]) await p.locator("[role=dialog], dialog, [aria-modal=true]").locator("textarea").fill("Maaf, stok produk sedang habis.");
+for (const [p, vk] of [[m, "m"], [d, "d"]]) await shot(p, "penjual", "pesanan-batal-alasan", vk);
+await confirmBtn(m).click({ timeout: 5000 }); await settle(m, 1000);
+for (const p of [m, d]) await go(p, `/merchant/stores/${S}/orders/${O2}`);
+for (const [p, vk] of [[m, "m"], [d, "d"]]) await shot(p, "penjual", "pesanan-dibatalkan", vk);
+console.log(m.errors, d.errors);
+await b.close();

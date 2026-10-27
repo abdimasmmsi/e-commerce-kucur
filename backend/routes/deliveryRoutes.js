@@ -1,6 +1,9 @@
 const { saveProofImage } = require("../services/storeImageService");
 const express = require("express");
-const handler = (work, status = 200) => async (req, res, next) => { try { res.status(status).json({ data: await work(req) }); } catch (error) { next(error); } };
+// Hasil mentah repository bisa memuat baris User lengkap; buang kolom rahasia sebelum dikirim ke klien.
+const SECRET_KEYS = new Set(["passwordHash", "passwordChangedAt", "passwordResetRequired", "pushSubscriptions", "browsingHistory"]);
+const stripSecrets = (value) => Array.isArray(value) ? value.map(stripSecrets) : value && typeof value === "object" && !(value instanceof Date) ? Object.fromEntries(Object.entries(value).filter(([key]) => !SECRET_KEYS.has(key)).map(([key, item]) => [key, stripSecrets(item)])) : value;
+const handler = (work, status = 200) => async (req, res, next) => { try { res.status(status).json({ data: stripSecrets(await work(req)) }); } catch (error) { next(error); } };
 
 function courierRoutes({ deliveryService, authMiddleware }) {
   const router = express.Router(); router.use(authMiddleware.requireAuth, authMiddleware.requireRole("courier"));
@@ -26,7 +29,7 @@ function courierRoutes({ deliveryService, authMiddleware }) {
 function merchantRoutes({ deliveryService, authMiddleware }) {
   const router = express.Router(); router.use(authMiddleware.requireAuth, authMiddleware.requireRole("merchant"));
   router.get("/delivery-orders", handler((req) => deliveryService.merchantOrders(req.auth.user)));
-  router.post("/orders/:id/pickup-confirmation", handler((req) => deliveryService.confirmReady(req.params.id, req.body || {}, req.auth.user), 201));
+  router.post("/orders/:id/pickup-confirmation", handler(async (req) => { const row = await deliveryService.confirmReady(req.params.id, req.body || {}, req.auth.user); /* whitelist: hasil mentah memuat data kurir (termasuk passwordHash) */ return { id: row.id, commerceOrderId: row.commerceOrderId, isReady: row.isReady, note: row.note, confirmedAt: row.confirmedAt }; }, 201));
   return router;
 }
 

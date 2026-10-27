@@ -1,0 +1,23 @@
+@page { size: A4; margin: 16mm 14mm; }
+* { box-sizing: border-box; }
+body { font: 11pt/1.5 "Plus Jakarta Sans", "Segoe UI", Arial, sans-serif; color: #1c2a22; margin: 0; }
+h1 { font-size: 26pt; margin: 0 0 6pt; }
+h2 { font-size: 19pt; margin: 0 0 8pt; color: #14532d; border-bottom: 2px solid #14532d; padding-bottom: 4pt; }
+h3 { font-size: 12.5pt; margin: 0 0 4pt; }
+section.role { break-before: page; }
+.cover { height: 250mm; display: flex; flex-direction: column; justify-content: center; }
+.lead { color: #4b5a51; }
+.toc a { color: inherit; text-decoration: none; }
+.step { break-inside: avoid; margin: 0 0 14pt; padding-top: 6pt; border-top: 1px solid #d9e2dc; }
+.step p, .step ul, .step ol { margin: 0 0 6pt; }
+.shots { display: flex; gap: 10pt; align-items: flex-start; margin-top: 6pt; }
+.shots figure { margin: 0; }
+.shots .shot-d { flex: 1 1 0; min-width: 0; }
+.shots .shot-m { flex: 0 0 38mm; }
+.shots img { width: 100%; display: block; border: 1px solid #c8d3cc; border-radius: 4px; }
+.shots .shot-m img { border-radius: 8px; }
+figcaption { font-size: 8pt; color: #4b5a51; margin-top: 2pt; }
+.tip, .warn { padding: 6pt 8pt; border-radius: 4px; margin: 0 0 6pt; font-size: 10pt; }
+.tip { background: #e8f3ec; border-left: 3px solid #14532d; }
+.warn { background: #fff4e0; border-left: 3px solid #b45309; }
+code { background: #eef2ef; padding: 0 3px; border-radius: 3px; }

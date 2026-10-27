@@ -56,3 +56,6 @@
   .merchant-review-toolbar > div { display: flex !important; gap: 8px; margin-inline: 0; padding: 0 0 4px; overflow-x: auto; scrollbar-width: none; }
   .merchant-review-toolbar > div button { flex: 0 0 auto; min-height: 44px; padding: 0 16px; border-radius: 999px; white-space: nowrap; }
 }
+
+/* Tombol tutup dialog balasan: target sentuh minimal 44px. */
+.merchant-review-modal header > button { min-width: 44px; min-height: 44px; display: inline-grid; place-items: center; }

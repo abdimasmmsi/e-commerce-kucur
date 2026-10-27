@@ -68,7 +68,7 @@ export default function Dashboard() {
         <section className="grid gap-2 rounded-2xl border border-[var(--kucur-border)] bg-[var(--kucur-surface)] p-4" aria-labelledby="courier-next">
           <h2 className="text-lg font-extrabold" id="courier-next">{copy.next}</h2>
           {data.nextBatch ? <Link className="flex items-center justify-between gap-3 rounded-xl border border-[var(--kucur-border)] p-3" to={`/courier/batches/${data.nextBatch.id}`}><div><strong className="block text-[15px]">{formatDate(data.nextBatch.dispatchAt, { weekday: "long", day: "numeric", month: "short" })}</strong><span className="text-sm text-[var(--kucur-text-muted)]">{fill(copy.orders, { count: data.nextBatch.orders.length })}</span></div><span aria-hidden="true">→</span></Link> : <p className="text-[15px] text-[var(--kucur-text-muted)]">{copy.nextNone}</p>}
-          <Link className="w-fit text-sm font-bold text-[var(--kucur-green-ink)]" to="/courier/batches">{copy.all}</Link>
+          <Link className="inline-flex min-h-11 w-fit items-center text-sm font-bold text-[var(--kucur-green-ink)]" to="/courier/batches">{copy.all}</Link>
         </section>
         <section className={`flex items-center justify-between gap-3 rounded-2xl border p-4 ${data.unavailable || data.pendingLeave ? "border-amber-300 bg-amber-50 dark:border-amber-800 dark:bg-amber-950/40" : "border-[var(--kucur-border)] bg-[var(--kucur-surface)]"}`}>
           <strong className="text-[15px]">{data.unavailable ? copy.unavailable : data.pendingLeave ? copy.pendingLeave : copy.available}</strong>

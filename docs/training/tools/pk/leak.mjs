@@ -1,0 +1,3 @@
+import { apiLogin, api } from "./lib.mjs";
+const paths = { "merchant.a@kucur.test": ["/merchant/delivery-orders", "/orders?scope=merchant&limit=5", "/orders/909a1a93-614c-4d47-9ac7-8254ce0fb723", "/stores", "/reviews/merchant", "/conversations"], "courier@kucur.test": ["/courier/profile", "/courier/availability", "/courier/batches", "/courier/batches/ed0d7aa0-49ac-4cb6-bc09-99e92c4ad2e1"] };
+for (const [e, ps] of Object.entries(paths)) { const t = await apiLogin(e); for (const p of ps) { const r = await api(t, p); const s = JSON.stringify(r.data); console.log(e, p, r.status, /passwordHash|scrypt:/.test(s) ? "LEAK passwordHash" : "ok", s.includes("pushSubscriptions") ? "(pushSubscriptions)" : ""); } }

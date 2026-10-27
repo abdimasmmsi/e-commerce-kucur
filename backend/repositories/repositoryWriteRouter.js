@@ -12,7 +12,7 @@ const routeDomain = (path = "") => {
   if (/^\/api\/cart/.test(path)) return "CART";
   if (/^\/api\/(checkout|orders)/.test(path)) return "COMMERCE";
   if (/^\/api\/payments/.test(path)) return "PAYMENT";
-  if (/^\/api\/(courier|merchant\/delivery|admin\/delivery)/.test(path)) return "DELIVERY";
+  if (/^\/api\/(courier|merchant\/delivery|merchant\/orders\/[^/]+\/pickup-confirmation|admin\/delivery)/.test(path)) return "DELIVERY";
   if (/^\/api\/(reviews|my-reviews|merchant\/reviews|admin\/reviews)/.test(path)) return "REVIEW";
   if (/^\/api\/conversations/.test(path)) return "CHAT";
   if (/^\/api\/notifications/.test(path)) return "NOTIFICATION";

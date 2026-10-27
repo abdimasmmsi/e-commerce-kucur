@@ -601,7 +601,7 @@ export const FAQS = [
     link: { to: "/admin/delivery-batches", label: { id: "Buka Jadwal Pengiriman", en: "Open Delivery Schedule" } } },
   { id: "a-transactions", roles: ["admin"], pages: ["/admin/transactions"], concepts: ["ORDER"], extra: ["TRACK", "HISTORY"],
     q: { id: "Bagaimana melihat detail transaksi?", en: "How do I see transaction details?" },
-    a: { id: ["Buka **Transaksi** (menu bawah). Cari nomor pesanan, pelanggan, atau lapak; di HP tekan **Filter** untuk memilih status, pembayaran, lapak, dan tanggal.", "Tekan **Lihat detail** untuk melihat rincian pembayaran, kurir, bukti pengiriman, dan **Aktivitas** pesanan."],
+    a: { id: ["Buka **Transaksi** (menu bawah). Cari nomor pesanan, pembeli, atau lapak; di HP tekan **Filter** untuk memilih status, pembayaran, lapak, dan tanggal.", "Tekan **Lihat detail** untuk melihat rincian pembayaran, kurir, bukti pengiriman, dan **Aktivitas** pesanan."],
       en: ["Open **Orders** (bottom menu). Search by order number, customer, or store; on phones tap **Filter** to choose status, payment, store, and date.", "Tap **View details** to see the payment breakdown, courier, delivery proof, and order **Activity**."] },
     link: { to: "/admin/transactions", label: { id: "Buka Transaksi", en: "Open Transactions" } } },
   { id: "a-products", roles: ["admin"], concepts: ["PRODUCT"], alt: [["STOCK"]], extra: ["STORE", "STOCK"],

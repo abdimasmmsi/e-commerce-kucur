@@ -1,0 +1,31 @@
+// Alur belanja Pembeli dengan akun baru: login -> cari -> detail -> keranjang -> checkout -> pesanan -> batal.
+import fs from "node:fs/promises";
+import { launch, ctx, login, BASE, ROOT } from "./pb-lib.mjs";
+const vk = process.argv[2] ?? "m";
+const acc = JSON.parse(await fs.readFile(`${ROOT}/tools/.accounts.json`, "utf8"));
+const OUT = `${ROOT}/shots/pembeli`; await fs.mkdir(OUT, { recursive: true });
+const b = await launch(); const c = await ctx(b, vk); const p = await c.newPage();
+const errs = []; p.on("pageerror", (e) => errs.push(String(e.message).slice(0, 150)));
+p.on("response", (r) => { if (r.status() >= 400 && /\/api\//.test(r.url())) errs.push(`${r.status()} ${r.request().method()} ${new URL(r.url()).pathname}`); });
+const snap = async (n) => { await p.waitForTimeout(800); await p.screenshot({ path: `${OUT}/${n}-${vk}.png` }); console.log("shot", n, vk); };
+const idle = () => p.waitForLoadState("networkidle", { timeout: 8000 }).catch(() => {});
+// 01 masuk (diisi)
+await p.goto(`${BASE}/login`); await p.getByLabel(/Email/i).fill(acc[vk].email); await p.getByLabel(/Kata Sandi/i).fill("KucurDev123!");
+await snap("01-masuk");
+await p.getByRole("button", { name: /^Masuk$/ }).last().click();
+await p.waitForURL((u) => !/\/login/.test(u.pathname)); await idle(); await snap("02-beranda");
+await p.goto(`${BASE}/products`); await idle(); await snap("03-katalog");
+await p.goto(`${BASE}/products/eac7a642-9869-4573-ae28-d1b57acd5705`); await idle(); await snap("04-detail-produk");
+await p.getByRole("button", { name: "250 gr" }).click(); await p.waitForTimeout(500);
+await p.getByRole("button", { name: /\+ Keranjang/ }).click(); await p.waitForTimeout(700); await snap("05-masuk-keranjang");
+await p.goto(`${BASE}/cart`); await idle(); await snap("06-keranjang");
+await p.getByRole("link", { name: /Lanjut ke Checkout/ }).click(); await p.waitForURL(/checkout/); await idle(); await p.waitForFunction(() => !/Menghitung/.test(document.body.innerText), null, { timeout: 15000 }).catch(() => {}); await snap("07-checkout-alamat");
+const tip = p.getByRole("button", { name: "Rp 2.000" }); await tip.scrollIntoViewIfNeeded(); await tip.click(); await p.waitForTimeout(800);
+await p.waitForFunction(() => !/Menghitung/.test(document.body.innerText), null, { timeout: 15000 }).catch(() => {});
+await snap("08-checkout-tip-bayar");
+const pay = p.getByRole("button", { name: "Buat Pesanan" }); await pay.click();
+await p.waitForTimeout(3500); await idle(); console.log("url sesudah pesan:", p.url().replace(BASE, ""));
+await snap("09-pesanan-dibuat");
+console.log("errors", errs);
+fs.writeFile(`${ROOT}/tools/.lastorder-${vk}.txt`, p.url());
+await b.close();

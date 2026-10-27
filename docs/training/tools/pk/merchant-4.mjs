@@ -1,0 +1,23 @@
+import { openBrowser, newCtx, go, settle, shot, audit, ROOT } from "./lib.mjs";
+const S = "832ac337-9e6f-4640-847c-e4421fee2243";
+const b = await openBrowser();
+const ctx = {}; for (const vk of ["m", "d"]) ctx[vk] = await newCtx(b, vk, "merchant.a@kucur.test");
+const m = ctx.m.page, d = ctx.d.page;
+const snap = async (name) => { for (const vk of ["m", "d"]) { const p = ctx[vk].page; await settle(p, 500); await shot(p, "penjual", name, vk); await audit(p, `${name}-${vk}`); const e = p.errors.splice(0); if (e.length) console.log("  errors", name, vk, e); } };
+const each = async (fn) => { for (const vk of ["m", "d"]) await fn(ctx[vk].page, vk); };
+await each((p) => go(p, `/merchant/stores/${S}/products`));
+await snap("produk-daftar");
+await each((p) => go(p, `/merchant/stores/${S}/products/add`));
+await each(async (p) => { await p.getByLabel(/Nama Produk/).fill("Contoh Produk Pelatihan"); await p.getByLabel(/Kategori/).selectOption({ index: 1 }); await p.getByLabel(/Deskripsi/).fill("Produk contoh untuk panduan pelatihan."); await p.locator("input[type=number]").first().fill("15000"); await p.locator("input[type=number]").last().fill("20"); await p.setInputFiles("input[type=file]", "D:/kucur-platform/docs/training/tools/pk/foto-contoh.png"); await p.waitForTimeout(1500); await p.getByLabel(/Status Produk|Status/).last().selectOption({ label: "Tidak Aktif" }).catch((e) => console.log("status", e.message.slice(0, 80))); await p.getByLabel(/Nama Produk/).scrollIntoViewIfNeeded(); });
+await snap("produk-form-terisi");
+await each(async (p) => { await p.getByText("Foto Produk").first().scrollIntoViewIfNeeded(); });
+await snap("produk-form-foto");
+await each(async (p) => { await p.getByText(/Gunakan varian untuk/).scrollIntoViewIfNeeded(); await p.getByRole("switch").first().click().catch(async () => { await p.locator("input[type=checkbox]").first().check({ force: true }); }); await p.waitForTimeout(500); });
+await snap("produk-form-varian");
+// matikan varian lagi, simpan
+await each(async (p) => { await p.getByRole("switch").first().click().catch(() => {}); await p.waitForTimeout(300); });
+await m.getByRole("button", { name: /^Simpan Produk$/ }).click(); await settle(m, 1500);
+console.log("after save", m.url(), m.errors.splice(0));
+await each((p) => go(p, `/merchant/stores/${S}/products`));
+await snap("produk-tersimpan");
+await b.close();

@@ -37,3 +37,9 @@ Thumbs.db
 .idea/
 .vscode/*
 !.vscode/extensions.json
+
+# Panduan pelatihan: screenshot dan PDF dibuat ulang dengan docs/training/tools/build-guide.mjs
+docs/training/shots/
+docs/training/audit/
+docs/training/*.pdf
+docs/training/tools/.*

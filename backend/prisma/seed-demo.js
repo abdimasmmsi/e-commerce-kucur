@@ -66,7 +66,7 @@ async function at(time, work) {
   return result;
 }
 
-const actor = (user, ...roles) => ({ id: user.id, roles });
+const actor = (user, ...roles) => ({ id: user.id, fullName: user.fullName, roles });
 
 // ---------------------------------------------------------------- data
 const people = {

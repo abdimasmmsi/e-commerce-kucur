@@ -1,0 +1,16 @@
+import fs from "node:fs";
+import { launch, ctx, login, BASE, ROOT } from "./pb-lib.mjs";
+const acc = JSON.parse(fs.readFileSync(`${ROOT}/tools/.accounts.json`, "utf8"));
+const b = await launch(); const c = await ctx(b, "m"); const p = await c.newPage();
+await login(p, acc.m.email);
+const dump = async (t) => console.log("---", t, p.url().replace(BASE,""), "\n" + (await p.evaluate(()=>[...document.querySelectorAll("main button, main a, main input, main select, main textarea")].filter(e=>e.offsetParent).map(e=>`${e.tagName} ${e.type||""} ${e.name||""} "${(e.innerText||e.getAttribute("aria-label")||e.placeholder||"").trim().slice(0,45).replace(/\n/g," ")}"`).slice(0,60).join("\n"))));
+await p.goto(`${BASE}/products/eac7a642-9869-4573-ae28-d1b57acd5705`); await p.waitForTimeout(2500);
+await p.getByRole("button", { name: "250 gr" }).click();
+await p.getByRole("button", { name: /\+ Keranjang/ }).click(); await p.waitForTimeout(1500);
+await p.screenshot({ path: `${ROOT}/audit/after-add-m.png` });
+await p.goto(`${BASE}/cart`); await p.waitForTimeout(2000); await dump("cart");
+await p.screenshot({ path: `${ROOT}/audit/cart-m.png` });
+await p.getByRole("link", { name: /Checkout|Lanjut/i }).first().click().catch(()=>{}); 
+await p.waitForTimeout(3000); await dump("checkout");
+await p.screenshot({ path: `${ROOT}/audit/checkout-m.png` });
+await b.close();

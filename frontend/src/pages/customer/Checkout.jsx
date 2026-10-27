@@ -30,6 +30,7 @@ export default function Checkout() {
   const [preview, setPreview] = useState(null);
   const [calculating, setCalculating] = useState(false);
   const [created, setCreated] = useState([]);
+  useEffect(() => { if (created.length) window.scrollTo({ top: 0, behavior: "auto" }); }, [created]);
   const [error, setError] = useState("");
   const [submitting, setSubmitting] = useState(false);
   const [recipientName, setRecipientName] = useState(user.fullName ?? "");

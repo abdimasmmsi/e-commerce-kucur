@@ -223,7 +223,7 @@ button:not(:disabled):active, a[class*="min-h-"]:active, a.primary-button:active
 @keyframes kucur-spin { to { transform: rotate(360deg); } }
 
 /* Isi halaman, pergantian skeleton → isi, daftar yang berubah karena tab/filter. */
-.page-container > *, [aria-live="polite"] > *, [role="tabpanel"] > * { animation: kucur-enter .24s ease-out both; }
+.page-container > *, [aria-live="polite"] > *, [role="tabpanel"] > * { animation: kucur-enter .24s ease-out backwards; }
 .page-container > :nth-child(2) { animation-delay: .03s; }
 .page-container > :nth-child(3) { animation-delay: .06s; }
 .page-container > :nth-child(n+4) { animation-delay: .09s; }
@@ -308,3 +308,16 @@ button[aria-busy="true"]::before { content: ""; display: inline-block; flex: 0 0
 }
 /* Deretan tab/chip yang bisa digeser: tanpa batang gulir (isi tetap bisa digeser). */
 .kucur-no-scrollbar { scrollbar-width: none; } .kucur-no-scrollbar::-webkit-scrollbar { display: none; }
+/* Target sentuh HP: tombol ID/EN dan tema minimal 40-44px (audit 2026-10-27). */
+@media (max-width: 767px) {
+  .language-slider { height: 44px; grid-template-columns: repeat(2, 40px); }
+  .language-slider i { width: 40px; height: 38px; }
+  .language-slider i.is-en { transform: translateX(40px); }
+  .theme-toggle { width: 44px; height: 44px; }
+  .theme-segments button { min-height: 44px; }
+}
+/* Langkah pengajuan lapak di HP: nama langkah tetap terbaca (sebelumnya disembunyikan). */
+@media (max-width: 600px) {
+  ol.merchant-apply-progress li { flex-direction: column; justify-content: flex-start; gap: 4px; font-size: .75rem; line-height: 1.25; text-align: center; }
+  ol.merchant-apply-progress li:not(:last-child)::after { display: none; }
+}

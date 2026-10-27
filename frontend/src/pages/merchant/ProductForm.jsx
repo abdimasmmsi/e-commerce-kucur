@@ -338,12 +338,12 @@ function ProductFormWorkspace({ mode, storeId, productId, routeStore }) {
             <div className="merchant-edit-product__fields merchant-edit-product__fields--two">
               <label className="merchant-edit-product__field">
                 <span>{t("productForm.price")}</span>
-                <span className="merchant-edit-product__currency-input"><span>IDR</span><input name="price" type="number" min="1" value={form.price} onChange={handleChange} placeholder="0" aria-invalid={Boolean(errors.price)} aria-describedby={errors.price ? "product-price-error" : undefined} /></span>
+                <span className="merchant-edit-product__currency-input"><span>Rp</span><input name="price" type="number" min="1" value={form.price} onChange={handleChange} placeholder="0" aria-invalid={Boolean(errors.price)} aria-describedby={errors.price ? "product-price-error" : undefined} /></span>
                 {errors.price && <small id="product-price-error">{errors.price}</small>}
               </label>
               <label className="merchant-edit-product__field">
                 <span>{compareCopy.label} <em className="font-medium not-italic text-[var(--kucur-text-muted)]">({compareCopy.optional})</em></span>
-                <span className="merchant-edit-product__currency-input"><span>IDR</span><input name="compareAtPrice" type="number" min="1" value={form.compareAtPrice} onChange={handleChange} placeholder="0" aria-invalid={Boolean(errors.compareAtPrice)} aria-describedby={errors.compareAtPrice ? "product-compare-error" : "product-compare-help"} /></span>
+                <span className="merchant-edit-product__currency-input"><span>Rp</span><input name="compareAtPrice" type="number" min="1" value={form.compareAtPrice} onChange={handleChange} placeholder="0" aria-invalid={Boolean(errors.compareAtPrice)} aria-describedby={errors.compareAtPrice ? "product-compare-error" : "product-compare-help"} /></span>
                 {errors.compareAtPrice ? <small id="product-compare-error">{errors.compareAtPrice}</small> : compareAtInvalid(form.compareAtPrice, form.price) && form.price !== "" ? <small id="product-compare-help" role="status">{compareCopy.mustBeHigher}</small> : discountPercent(form.compareAtPrice, form.price) ? <small id="product-compare-help" className="merchant-edit-product__hint" role="status">{compareCopy.discount.replace("{percent}", discountPercent(form.compareAtPrice, form.price))}</small> : <small id="product-compare-help" className="merchant-edit-product__help">{compareCopy.help}</small>}
               </label>
               <label className="merchant-edit-product__field">
