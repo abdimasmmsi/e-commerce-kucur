@@ -112,10 +112,9 @@ export default function AdminFinanceStore() {
   const latePercent = ledger.installments.find((item) => item.latePercent != null)?.latePercent;
 
   return <div className="page-container admin-finance-page min-w-0">
-    {backLink}
-    <header className="flex min-w-0 flex-col gap-3 sm:flex-row sm:items-end sm:justify-between">
-      <div className="grid min-w-0 gap-1"><span className="text-sm font-semibold text-[var(--kucur-green-ink)]">{copy.eyebrow}</span><h1 className="break-words text-2xl font-extrabold sm:text-3xl">{ledger.storeName || copy.unknownStore}</h1><div className="flex flex-wrap items-center gap-2"><StoreFinanceStatus status={status} label={copy.storeStatus[status] || copy.storeStatus.inactive} /></div><p className="max-w-3xl text-sm text-[var(--kucur-text-muted)]">{copy.statusReason[status] || ""}</p></div>
-      <Button className="shrink-0" disabled={Boolean(busy)} onClick={() => setRemindOpen(true)}>{copy.remind}</Button>
+    <header className="page-head mb-5 flex min-w-0 flex-col gap-4 sm:mb-6 sm:flex-row sm:items-end sm:justify-between">
+      <div className="page-head grid min-w-0"><span className="page-head__eyebrow text-sm font-semibold text-[var(--kucur-green-ink)]">{copy.eyebrow}</span><h1 className="page-head__title break-words text-2xl font-extrabold sm:text-3xl">{ledger.storeName || copy.unknownStore}</h1><div className="mt-1 flex flex-wrap items-center gap-2"><StoreFinanceStatus status={status} label={copy.storeStatus[status] || copy.storeStatus.inactive} /></div><p className="page-head__desc max-w-3xl text-sm text-[var(--kucur-text-muted)]">{copy.statusReason[status] || ""}</p></div>
+      <div className="flex flex-wrap gap-2"><Button as={Link} variant="secondary" to="/admin/finance">{copy.back}</Button><Button className="shrink-0" disabled={Boolean(busy)} onClick={() => setRemindOpen(true)}>{copy.remind}</Button></div>
     </header>
     {feedback.text && <p role={feedback.type === "error" ? "alert" : "status"} className={`admin-feedback ${feedback.type === "error" ? "error" : "success"}`}>{feedback.text}</p>}
 

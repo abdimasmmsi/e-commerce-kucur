@@ -19,7 +19,7 @@ test("Kebijakan Privasi bisa dibuka dan persetujuannya wajib dicentang saat daft
   await page.goto("/register");
   const consent = page.getByLabel(/Saya sudah membaca dan menyetujui/);
   await expect(consent).not.toBeChecked();
-  await expect(page.getByRole("link", { name: "Kebijakan Privasi" })).toHaveAttribute("href", "/privacy");
+  await expect(page.getByRole("link", { name: "Kebijakan Privasi" }).first()).toHaveAttribute("href", "/privacy");
   await page.goto("/privacy");
   await expect(page.getByRole("heading", { name: "Kebijakan Privasi", level: 1 })).toBeVisible();
   await expect(page.getByRole("heading", { name: "Hak kamu" })).toBeVisible();

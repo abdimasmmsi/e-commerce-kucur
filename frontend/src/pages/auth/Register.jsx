@@ -65,6 +65,7 @@ function Register() {
       <button className="primary-button register-full" type="submit" disabled={submitting}>{submitting ? t("auth.creating") : t("auth.createAccount")}</button>
     </form>
     <p className="auth-switch-copy">{t("auth.hasAccount")} <Link to="/login">{t("auth.loginButton")}</Link></p>
+    <p className="auth-switch-copy pb-14 flex flex-wrap items-center justify-center gap-x-2 sm:pb-0"><Link className="inline-flex min-h-11 items-center" to="/privacy">{language === "id" ? "Kebijakan Privasi" : "Privacy Policy"}</Link><span aria-hidden="true">·</span><Link className="inline-flex min-h-11 items-center" to="/about">{language === "id" ? "Tentang" : "About"}</Link><span aria-hidden="true">·</span><span>v1.0</span></p>
   </section></div>;
 }
 export default Register;

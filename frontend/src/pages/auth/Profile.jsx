@@ -106,7 +106,7 @@ function Profile() {
 
   const isBusy = state.busy || photoBusy;
   return <div className="page-container account-profile-page account-profile-only">
-    <header className="account-profile-heading"><div><span>{t("account.eyebrow")}</span><h1>{t("header.profile")}</h1><p>{t("account.personalHint")}</p></div></header>
+    <header className="account-profile-heading page-head"><div><span className="page-head__eyebrow">{t("account.eyebrow")}</span><h1 className="page-head__title">{t("header.profile")}</h1><p className="page-head__desc">{t("account.personalHint")}</p></div></header>
     <section className="account-section account-identity-section">
       <div className="account-avatar-control">
         <UserAvatar className="account-profile-avatar" size={92} user={user} decorative={false}/>

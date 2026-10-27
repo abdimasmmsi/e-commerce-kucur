@@ -3,6 +3,7 @@ import { Link } from "react-router-dom";
 import EmptyState from "../../components/ui/EmptyState";
 import LoadingPanel from "../../components/ui/LoadingPanel";
 import PageContainer from "../../components/ui/PageContainer";
+import PageHeader from "../../components/ui/PageHeader";
 import { useStore } from "../../context/StoreContext";
 import { useLiveRefresh } from "../../utils/liveRefresh";
 import { usePreferences } from "../../context/PreferencesContext";
@@ -18,9 +19,9 @@ const dayKey = (value) => { const date = new Date(value); return `${date.getFull
 
 export default function MerchantDashboard() {
   const { activeStore, activeStoreId, stores } = useStore();
-  const { formatCurrency, formatDate, language } = usePreferences();
+  const { formatCurrency, formatDate, language, t } = usePreferences();
   const copy = language === "id" ? {
-    title: "Beranda Lapak", allStores: "Semua lapak", periods: { today: "Hari ini", "7d": "7 hari", "1m": "30 hari", "1y": "1 tahun" },
+    title: "Beranda Lapak", subtitle: "Ringkasan penjualan, pesanan, dan stok lapak Anda.", allStores: "Semua lapak", periods: { today: "Hari ini", "7d": "7 hari", "1m": "30 hari", "1y": "1 tahun" },
     revenue: { today: "Pendapatan hari ini", "7d": "Pendapatan 7 hari", "1m": "Pendapatan 30 hari", "1y": "Pendapatan 1 tahun" }, fromOrders: "dari {count} pesanan selesai", revenueHint: "Harga barang dari pesanan yang sudah sampai ke pembeli.",
     last7: "7 hari terakhir", todo: "Perlu dikerjakan", nothingTodo: "Tidak ada pesanan yang perlu dikerjakan", nothingTodoHint: "Pesanan baru akan muncul di sini.",
     newOrders: "Pesanan baru", newHint: "Terima supaya pembeli tahu pesanannya diproses.", accept: "Terima",
@@ -31,7 +32,7 @@ export default function MerchantDashboard() {
     selectStore: "Pilih lapak produk", productOnly: "Beranda ini hanya untuk lapak produk.",
     mostViewed: "Produk paling sering dilihat (7 hari)", viewed: "{count} kali dilihat",
   } : {
-    title: "Store Home", allStores: "All stores", periods: { today: "Today", "7d": "7 days", "1m": "30 days", "1y": "1 year" },
+    title: "Store Home", subtitle: "A summary of your store sales, orders, and stock.", allStores: "All stores", periods: { today: "Today", "7d": "7 days", "1m": "30 days", "1y": "1 year" },
     revenue: { today: "Revenue today", "7d": "Revenue, 7 days", "1m": "Revenue, 30 days", "1y": "Revenue, 1 year" }, fromOrders: "from {count} completed orders", fromOrder: "from 1 completed order", revenueHint: "Item prices from orders that reached the buyer.",
     last7: "Last 7 days", todo: "To do", nothingTodo: "No orders need attention", nothingTodoHint: "New orders will appear here.",
     newOrders: "New orders", newHint: "Accept them so buyers know their order is being prepared.", accept: "Accept",
@@ -120,10 +121,7 @@ export default function MerchantDashboard() {
   const actionClass = "inline-flex min-h-11 shrink-0 items-center justify-center rounded-xl px-4 text-sm font-bold";
 
   return <PageContainer className="space-y-4">
-    <header className="flex flex-wrap items-end justify-between gap-3">
-      <div><span className="text-sm font-bold text-[var(--kucur-green-ink)]">{isOverview ? copy.allStores : activeStore.name}</span><h1 className="text-2xl font-extrabold text-[var(--kucur-text)] sm:text-3xl">{copy.title}</h1></div>
-      {!isOverview && <Link className="hidden min-h-11 shrink-0 items-center justify-center rounded-xl border border-[var(--kucur-green)] px-4 text-sm font-bold text-[var(--kucur-green-ink)] sm:inline-flex" to={`/merchant/stores/${activeStore.id}/products/add`}>{copy.addProduct}</Link>}
-    </header>
+    <PageHeader eyebrow={t("workspace.merchantEyebrow")} title={copy.title} description={copy.subtitle} actionsClassName="hidden sm:flex" actions={!isOverview ? <Link className="inline-flex min-h-11 shrink-0 items-center justify-center rounded-xl border border-[var(--kucur-green)] px-4 text-sm font-bold text-[var(--kucur-green-ink)]" to={`/merchant/stores/${activeStore.id}/products/add`}>{copy.addProduct}</Link> : null} />
 
     {error && <section className="flex flex-wrap items-center justify-between gap-3 rounded-2xl border border-rose-300 bg-rose-50 p-4 text-rose-800 dark:border-rose-800 dark:bg-rose-950 dark:text-rose-200" role="alert"><strong>{copy.loadFailed}</strong><button className={`${actionClass} border border-current`} type="button" onClick={load}>{copy.retry}</button></section>}
 

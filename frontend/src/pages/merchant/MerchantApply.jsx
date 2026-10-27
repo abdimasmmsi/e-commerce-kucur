@@ -84,7 +84,7 @@ function MerchantApply() {
   };
 
   return <div className="page-container customer-page merchant-apply-page">
-    <header className="account-profile-heading"><div><span>{t("account.eyebrow")}</span><h1>{t("merchantApply.title")}</h1><p>{t("merchantApply.subtitle")}</p></div></header>
+    <header className="account-profile-heading page-head"><div><span className="page-head__eyebrow">{t("account.eyebrow")}</span><h1 className="page-head__title">{t("merchantApply.title")}</h1><p className="page-head__desc">{t("merchantApply.subtitle")}</p></div></header>
     <ol className="merchant-apply-progress" aria-label={t("merchantApply.process")}><li className="active"><span>1</span>{t("merchantApply.stepData")}</li><li><span>2</span>{t("merchantApply.stepReview")}</li><li><span>3</span>{t("merchantApply.stepDecision")}</li></ol>
 
     {pendingApplication && <section className="card merchant-application-status pending"><div><span>{t("merchantApply.applicationStatus")}</span><strong>{statusLabel("PENDING")}</strong></div><p>{t("merchantApply.pendingHint", { name: pendingApplication.name, count: 1 })}</p><small>{t("merchantApply.sentOn")} {displayDate(pendingApplication.createdAt)} · {pendingApplication.id}</small></section>}

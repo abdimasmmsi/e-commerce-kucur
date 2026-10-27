@@ -10,6 +10,7 @@ import EmptyState from "../../components/ui/EmptyState";
 import ActionDialog from "../../components/ui/ActionDialog";
 import { exportProductExcel, parseProductExcel } from "../../utils/productExcel";
 import PageContainer from "../../components/ui/PageContainer";
+import PageHeader from "../../components/ui/PageHeader";
 import { usePreferences } from "../../context/PreferencesContext";
 import { canonicalStoreId } from "../../services/legacyStoreReferences";
 import { paginate } from "../../utils/pagination";
@@ -148,7 +149,7 @@ function ProductManagement() {
   const chipClass = (active) => `inline-flex min-h-11 shrink-0 items-center whitespace-nowrap rounded-full border px-4 text-sm font-bold ${active ? "border-[var(--kucur-brand)] bg-[var(--kucur-brand)] text-[var(--kucur-on-brand)]" : "border-[var(--kucur-border)] bg-[var(--kucur-surface)] text-[var(--kucur-text)]"}`;
   const fieldClass = "min-h-11 w-full min-w-0 rounded-xl border border-[var(--kucur-border-strong)] bg-[var(--kucur-surface)] px-3 text-[15px] text-[var(--kucur-text)]";
   return <PageContainer className="merchant-standard-page merchant-product-management space-y-3 sm:space-y-4">
-    <header className="relative flex items-center justify-between gap-3"><div className="min-w-0"><h1 className="text-xl font-extrabold tracking-[-0.02em] sm:text-3xl">{t("productManagement.title")}</h1><p className="truncate text-sm text-[var(--kucur-text-muted)] sm:text-[15px]">{store?.name ?? t("productManagement.activeStore")} · {products.length}</p></div><Link className="shrink-0 !min-h-11 !px-4 !text-sm" to={`/merchant/stores/${storeId}/products/add`}>{t("productManagement.add")}</Link></header>
+    <PageHeader eyebrow={t("workspace.merchantEyebrow")} title={t("productManagement.title")} description={t("productManagement.subtitle", { store: store?.name ?? t("productManagement.activeStore") })} inlineActions actions={<Link className="primary-button !min-h-11 shrink-0 !px-4 !text-sm" to={`/merchant/stores/${storeId}/products/add`}>{t("productManagement.add")}</Link>} />
     <section className="grid min-w-0 gap-3 border-[var(--kucur-border)] max-sm:-mx-4 max-sm:!max-w-none max-sm:border-y max-sm:bg-[var(--kucur-surface)] max-sm:px-4 max-sm:py-3" aria-label={t("productManagement.filters")}>
       <div className="grid min-w-0 grid-cols-1 gap-2 sm:grid-cols-[minmax(0,1fr)_220px] sm:gap-3">
         <label className="relative block"><span className="sr-only">{t("productManagement.search")}</span><svg className="pointer-events-none absolute left-3.5 top-1/2 size-5 -translate-y-1/2 text-[var(--kucur-text-muted)]" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" aria-hidden="true"><circle cx="11" cy="11" r="7"/><path d="m20 20-3.5-3.5"/></svg><input className={`${fieldClass} !pl-11`} type="search" value={search} onChange={(event) => { setSearch(event.target.value); setPage(1); }} placeholder={t("productManagement.searchPlaceholder")} /></label>

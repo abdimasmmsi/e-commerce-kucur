@@ -5,6 +5,7 @@ import Button from "../../components/ui/Button";
 import EmptyState from "../../components/ui/EmptyState";
 import LoadingPanel from "../../components/ui/LoadingPanel";
 import PageContainer from "../../components/ui/PageContainer";
+import PageHeader from "../../components/ui/PageHeader";
 import StatusBadge from "../../components/ui/StatusBadge";
 import { usePreferences } from "../../context/PreferencesContext";
 import { deliveryApi } from "../../services/deliveryApiService";
@@ -64,8 +65,8 @@ export default function BatchDetail() {
     catch { setState((value) => ({ ...value, error: copy.photoError })); }
   };
 
-  if (state.loading && !batch) return <PageContainer><LoadingPanel label={t("courierDelivery.loading")} rows={4}/></PageContainer>;
-  if (!batch) return <PageContainer><EmptyState title={t("courierDelivery.empty")} description={state.error || t("courierDelivery.emptyHint")} action={<Button as={Link} to="/courier/batches" variant="secondary">{copy.back}</Button>}/></PageContainer>;
+  if (state.loading && !batch) return <PageContainer className="!p-0"><LoadingPanel label={t("courierDelivery.loading")} rows={4}/></PageContainer>;
+  if (!batch) return <PageContainer className="!p-0"><EmptyState title={t("courierDelivery.empty")} description={state.error || t("courierDelivery.emptyHint")} action={<Button as={Link} to="/courier/batches" variant="secondary">{copy.back}</Button>}/></PageContainer>;
 
   const stops = [...batch.orders].sort((a, b) => (a.pickupSequence ?? 99) - (b.pickupSequence ?? 99));
   const delivered = stops.filter((item) => item.status === "DELIVERED").length;
@@ -77,12 +78,8 @@ export default function BatchDetail() {
   // Tombol kontak pembeli (Telepon / WhatsApp / Maps): ikon di atas teks supaya tiga tombol muat di HP 360px.
   const contactClass = "inline-flex min-h-14 flex-col items-center justify-center gap-1 rounded-xl border border-[var(--kucur-border-strong)] px-1 text-[13px] font-bold";
 
-  return <><PageContainer as="main" className="space-y-4 text-[var(--kucur-text)]">
-    <header className="grid gap-1">
-      <Link className="inline-flex min-h-11 w-fit items-center text-[15px] font-bold text-[var(--kucur-green-ink)]" to="/courier/batches">← {copy.back}</Link>
-      <div className="flex flex-wrap items-center justify-between gap-2"><h1 className="text-2xl font-extrabold">{fill(copy.title, { date: formatDate(batch.deliveryDate, { weekday: "long", day: "numeric", month: "long" }) })}</h1><StatusBadge status={batch.status}/></div>
-      <p className="text-[15px] text-[var(--kucur-text-muted)]">{fill(copy.depart, { time: formatDate(batch.dispatchAt, { timeStyle: "short" }) })} · {fill(copy.progress, { done: delivered, total: stops.length })}</p>
-    </header>
+  return <><PageContainer as="main" className="!p-0 space-y-4 text-[var(--kucur-text)]">
+    <PageHeader eyebrow={<Link className="hover:underline" to="/courier/batches">← {copy.back}</Link>} title={fill(copy.title, { date: formatDate(batch.deliveryDate, { weekday: "long", day: "numeric", month: "long" }) })} description={`${fill(copy.depart, { time: formatDate(batch.dispatchAt, { timeStyle: "short" }) })} · ${fill(copy.progress, { done: delivered, total: stops.length })}`} inlineActions actions={<StatusBadge status={batch.status}/>} />
 
     <section className="grid gap-3 rounded-2xl border border-[var(--kucur-border)] bg-[var(--kucur-surface)] p-4">
       <div className="h-2.5 overflow-hidden rounded-full bg-[var(--kucur-surface-muted)]" role="progressbar" aria-valuemin={0} aria-valuemax={stops.length} aria-valuenow={delivered}><i className="block h-full rounded-full bg-[var(--kucur-green)]" style={{ width: `${stops.length ? delivered / stops.length * 100 : 0}%` }} /></div>

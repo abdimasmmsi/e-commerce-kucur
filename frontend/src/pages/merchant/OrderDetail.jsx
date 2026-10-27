@@ -10,6 +10,7 @@ import DetailSection from "../../components/ui/DetailSection";
 import EmptyState from "../../components/ui/EmptyState";
 import LoadingPanel from "../../components/ui/LoadingPanel";
 import PageContainer from "../../components/ui/PageContainer";
+import PageHeader from "../../components/ui/PageHeader";
 import StatusBadge from "../../components/ui/StatusBadge";
 import StatusTimeline from "../../components/ui/StatusTimeline";
 import { usePreferences } from "../../context/PreferencesContext";
@@ -85,12 +86,8 @@ function OrderDetailWorkspace({ storeId, orderId }) {
 
   return <>
     <PageContainer className="space-y-4">
-      <header className="grid gap-1">
-        <Link className="w-fit text-[15px] font-bold text-[var(--kucur-green-ink)] hover:underline" to={`/merchant/stores/${storeId}/orders`}>← {copy.back}</Link>
-        <h1 className="text-2xl font-extrabold text-[var(--kucur-text)] sm:text-3xl">{copy.title.replace("{code}", shortOrderCode(code))}</h1>
-        <p className="text-sm text-[var(--kucur-text-muted)]">{t("merchantOrderDetail.created", { date: formatDate(order.createdAt, { dateStyle: "medium", timeStyle: "short" }) })}</p>
-        <p className="break-all text-[13px] text-[var(--kucur-text-muted)]">{code}</p>
-      </header>
+      <PageHeader eyebrow={<Link className="hover:underline" to={`/merchant/stores/${storeId}/orders`}>← {copy.back}</Link>} title={copy.title.replace("{code}", shortOrderCode(code))} description={t("merchantOrderDetail.created", { date: formatDate(order.createdAt, { dateStyle: "medium", timeStyle: "short" }) })} className="!mb-2" />
+      <p className="break-all text-[13px] text-[var(--kucur-text-muted)]">{code}</p>
       {error && <p className="rounded-xl border border-rose-300 bg-rose-50 p-4 text-[15px] text-rose-800 dark:border-rose-800 dark:bg-rose-950 dark:text-rose-200" role="alert"><strong className="block">{t("merchantOrderDetail.processFailed")}</strong>{error}</p>}
 
       <div className="grid min-w-0 items-start gap-4 lg:grid-cols-[minmax(0,1.5fr)_minmax(300px,.7fr)]">

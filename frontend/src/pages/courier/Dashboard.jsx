@@ -3,6 +3,7 @@ import { Link } from "react-router-dom";
 import EmptyState from "../../components/ui/EmptyState";
 import LoadingPanel from "../../components/ui/LoadingPanel";
 import PageContainer from "../../components/ui/PageContainer";
+import PageHeader from "../../components/ui/PageHeader";
 import StatusBadge from "../../components/ui/StatusBadge";
 import { usePreferences } from "../../context/PreferencesContext";
 import { leavePhase } from "../../utils/courierLeave";
@@ -16,11 +17,11 @@ const sameDay = (a, b) => a.getFullYear() === b.getFullYear() && a.getMonth() ==
 export default function Dashboard() {
   const { formatCurrency, formatDate, language, t } = usePreferences();
   const copy = language === "id" ? {
-    hello: "Halo, {name}", today: "Pengiriman hari ini", none: "Belum ada pengiriman hari ini", noneHint: "Jadwal dari pengelola akan muncul di sini.", depart: "Berangkat {time}",
+    hello: "Halo, {name}", subtitle: "Jadwal antar dan tagihan COD hari ini.", today: "Pengiriman hari ini", none: "Belum ada pengiriman hari ini", noneHint: "Jadwal dari pengelola akan muncul di sini.", depart: "Berangkat {time}",
     stops: "Tujuan", left: "Belum selesai", cod: "COD ditagih", open: "Buka pengiriman", next: "Jadwal berikutnya", nextNone: "Belum ada jadwal berikutnya", orders: "{count} pesanan",
     available: "Kamu siap menerima pengiriman", unavailable: "Kamu sedang cuti", pendingLeave: "Pengajuan cuti menunggu persetujuan Admin", change: "Cuti", all: "Semua pengiriman",
   } : {
-    hello: "Hi, {name}", today: "Today's delivery", none: "No deliveries today", noneHint: "Batches from the manager will appear here.", depart: "Leaves {time}",
+    hello: "Hi, {name}", subtitle: "Today's deliveries and COD to collect.", today: "Today's delivery", none: "No deliveries today", noneHint: "Batches from the manager will appear here.", depart: "Leaves {time}",
     stops: "Stops", left: "Remaining", cod: "COD to collect", open: "Open delivery", next: "Next schedule", nextNone: "No upcoming schedule", orders: "{count} orders",
     available: "You are available for deliveries", unavailable: "You are on leave", pendingLeave: "Leave request waiting for Admin approval", change: "Leave", all: "All deliveries",
   };
@@ -47,11 +48,8 @@ export default function Dashboard() {
   const error = batches.error || availability.error;
   const name = data.todayBatch?.courier?.fullName?.split(" ")[0];
 
-  return <PageContainer className="space-y-4 text-[var(--kucur-text)]">
-    <header>
-      <h1 className="text-2xl font-extrabold sm:text-3xl">{t("workspace.dashboard")}</h1>
-      {name && <p className="mt-1 text-[15px] text-[var(--kucur-text-muted)]">{fill(copy.hello, { name })}</p>}
-    </header>
+  return <PageContainer className="!p-0 space-y-4 text-[var(--kucur-text)]">
+    <PageHeader eyebrow={t("workspace.courierEyebrow")} title={t("workspace.dashboard")} description={name ? `${fill(copy.hello, { name })}. ${copy.subtitle}` : copy.subtitle} />
     {error && <p className="rounded-xl border border-rose-300 bg-rose-50 p-4 text-[15px] text-rose-800 dark:border-rose-800 dark:bg-rose-950 dark:text-rose-200" role="alert">{error}</p>}
     {loading ? <LoadingPanel label={t("courierDelivery.loading")} rows={4} /> : <>
       <section className="grid gap-4 rounded-2xl border border-[var(--kucur-border)] bg-[var(--kucur-surface)] p-4 sm:p-5" aria-labelledby="courier-today">

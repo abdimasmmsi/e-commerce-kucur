@@ -262,6 +262,14 @@ button[aria-busy="true"]::before { content: ""; display: inline-block; flex: 0 0
   .customer-mobile-search-wrap { display: block; width: 100%; }
   .customer-mobile-search-wrap > .customer-mobile-search { width: 100%; }
 }
+/* Tablet (768-1100px): menu tidak boleh terpotong kolom cari; kolom cari yang menyempit. */
+@media (min-width: 768px) and (max-width: 1100px) {
+  .app-header-customer .app-nav-links { flex: none; gap: 14px; }
+  .app-header-customer .app-nav-links a { overflow: visible; padding: 8px 1px; border-radius: 0; }
+  .app-header-customer .app-nav-links a.active { background: transparent; }
+  .app-header-customer .app-nav-links a.active::after { inset: auto 0 -1px; width: auto; height: 3px; }
+  .app-header-customer .customer-desktop-search-wrap { flex: 1 1 120px; min-width: 120px; }
+}
 .search-history-panel { max-height: min(70dvh, 520px); overflow-y: auto; animation: kucur-pop .16s ease-out both; }
 
 /* Popup header (menu profil, notifikasi, riwayat cari) selalu di atas kolom cari, isi halaman, menu bawah, dan tombol chatbot. */
@@ -344,3 +352,19 @@ input[type="search"]::-webkit-search-cancel-button, input[type="search"]::-webki
   .chat-inbox-toolbar select, .chat-inbox-toolbar input { min-height: 44px; }
   .account-preference-row button { min-height: 44px; }
 }
+/* Tombol bantuan di sidebar Akun satu baris; tautan menu laci panel (penjual/kurir/admin) cukup tinggi untuk jari di HP. */
+.account-help-actions > a { white-space: nowrap; }
+@media (max-width: 767px) {
+  .merchant-nav a { min-height: 44px; }
+}
+
+/* Kepala halaman standar (komponen ui/PageHeader): eyebrow, judul, deskripsi sama di semua panel.
+   Dikunci di sini supaya CSS lama tiap panel (mis. header h1 merchant) tidak mengubah ukurannya. */
+.page-head .page-head__eyebrow { display: block; line-height: 1.5rem; font-size: .875rem; font-weight: 600; letter-spacing: 0; text-transform: none; color: var(--kucur-green-ink); }
+.page-head .page-head__title { margin: 4px 0 0; font-size: 1.5rem; line-height: 2rem; font-weight: 800; letter-spacing: -.02em; color: var(--kucur-text); }
+.page-head .page-head__desc { margin: 4px 0 0; font-size: .875rem; line-height: 1.25rem; font-weight: 400; letter-spacing: 0; color: var(--kucur-muted); }
+@media (min-width: 640px) {
+  .page-head .page-head__title { font-size: 1.875rem; line-height: 2.25rem; }
+}
+/* Tautan kembali di slot eyebrow: area ketuk 44px tanpa menambah tinggi kepala halaman. */
+.page-head__eyebrow > a { display: inline-flex; align-items: center; min-height: 44px; margin-block: -12px; gap: 5px; }

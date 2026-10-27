@@ -67,7 +67,7 @@ function Login() {
     </form>
     {(import.meta.env.DEV || import.meta.env.VITE_SHOW_DEMO_ACCOUNTS === "true" || uatAccounts.length > 0) &&<DevelopmentQaAccounts onSelect={fillQaAccount} />}
     <p className="auth-switch-copy">{t("auth.noAccount")} <Link to="/register">{t("auth.registerCustomer")}</Link></p>
-    <p className="auth-switch-copy"><Link to="/privacy">{language === "id" ? "Kebijakan Privasi" : "Privacy Policy"}</Link></p>
+    <p className="auth-switch-copy pb-14 flex flex-wrap items-center justify-center gap-x-2 sm:pb-0"><Link className="inline-flex min-h-11 items-center" to="/privacy">{language === "id" ? "Kebijakan Privasi" : "Privacy Policy"}</Link><span aria-hidden="true">·</span><Link className="inline-flex min-h-11 items-center" to="/about">{language === "id" ? "Tentang" : "About"}</Link><span aria-hidden="true">·</span><span>v1.0</span></p>
   </section></div>;
 }
 

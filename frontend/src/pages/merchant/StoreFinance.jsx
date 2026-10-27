@@ -3,6 +3,7 @@ import { useParams } from "react-router-dom";
 import EmptyState from "../../components/ui/EmptyState";
 import LoadingPanel from "../../components/ui/LoadingPanel";
 import PageContainer from "../../components/ui/PageContainer";
+import PageHeader from "../../components/ui/PageHeader";
 import StatusBadge from "../../components/ui/StatusBadge";
 import { usePreferences } from "../../context/PreferencesContext";
 import { financeService } from "../../services/financeService";
@@ -11,7 +12,7 @@ import { useLiveRefresh } from "../../utils/liveRefresh";
 // Keuangan per lapak: yang perlu dibayar di atas, lalu iuran pokok (progres + cicilan) dan biaya admin per bulan.
 export default function StoreFinance() {
   const { storeId } = useParams();
-  const { errorMessage, formatCurrency, formatDate, language } = usePreferences();
+  const { errorMessage, formatCurrency, formatDate, language, t } = usePreferences();
   const copy = language === "id" ? {
     title: "Keuangan Lapak", toPay: "Perlu dibayar", nothingToPay: "Tidak ada tagihan. Terima kasih!", payAll: "Bayar {amount}", pending: "Menunggu konfirmasi pengelola",
     adminFeeDue: "Biaya admin, bayar sebelum {date}", overdueFee: "Biaya admin lewat batas. Lapak bisa dinonaktifkan sampai lunas.", installmentDue: "Cicilan iuran pokok ke-{number}, jatuh tempo {date}", installmentOverdue: "Cicilan iuran pokok ke-{number} terlambat sejak {date}",
@@ -83,7 +84,7 @@ export default function StoreFinance() {
   if (loading && !data) return <PageContainer><LoadingPanel label={copy.loading} rows={4} /></PageContainer>;
 
   return <PageContainer className="merchant-standard-page finance-page space-y-4">
-    <header><span className="text-sm font-bold text-[var(--kucur-green-ink)]">{data?.store?.name}</span><h1 className="text-2xl font-extrabold sm:text-3xl">{copy.title}</h1></header>
+    <PageHeader eyebrow={t("workspace.merchantEyebrow")} title={copy.title} description={t("merchantFinancePage.storeFinanceHint")} />
     {feedback.text && <p className={`rounded-xl p-3 text-[15px] font-semibold ${feedback.type === "error" ? "border border-rose-300 bg-rose-50 text-rose-800 dark:border-rose-800 dark:bg-rose-950 dark:text-rose-200" : "bg-[var(--kucur-green-soft)]"}`} role={feedback.type === "error" ? "alert" : "status"}>{feedback.text}</p>}
     {error && <section className="flex flex-wrap items-center justify-between gap-3 rounded-2xl border border-rose-300 bg-rose-50 p-4 text-rose-800 dark:border-rose-800 dark:bg-rose-950 dark:text-rose-200" role="alert"><strong>{error}</strong><button className={`${buttonClass} border border-current`} type="button" onClick={load}>{copy.retry}</button></section>}
 

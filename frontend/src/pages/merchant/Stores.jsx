@@ -2,6 +2,7 @@ import { Link } from "react-router-dom";
 import { useStore } from "../../context/StoreContext";
 import StatusBadge from "../../components/ui/StatusBadge";
 import LoadingPanel from "../../components/ui/LoadingPanel";
+import PageHeader from "../../components/ui/PageHeader";
 import { usePreferences } from "../../context/PreferencesContext";
 import { getStoreManagementPath } from "../../utils/storeScope";
 import "./Stores.css";
@@ -12,17 +13,7 @@ function Stores() {
 
   return (
     <div className="page-container stores-page merchant-standard-page">
-      <div className="stores-header">
-        <div className="stores-header-text">
-          <span className="stores-eyebrow">{t("merchantStores.eyebrow")}</span>
-          <h1>{t("merchantStores.title")}</h1>
-          <p>{t("merchantStores.subtitle")}</p>
-        </div>
-
-        <Link className="stores-add-button" to="/merchant/stores/new">
-          {t("merchantStores.add")}
-        </Link>
-      </div>
+      <PageHeader eyebrow={t("workspace.merchantEyebrow")} title={t("merchantStores.title")} description={t("merchantStores.subtitle")} inlineActions actions={<Link className="stores-add-button" to="/merchant/stores/new">{t("merchantStores.add")}</Link>} />
 
       {loading ? <LoadingPanel label={t("merchantStores.loading")} rows={3} /> : error ? <section className="card stores-empty-state"><h2>{t("merchantStores.loadFailed")}</h2><p>{errorMessage(error.code, t("merchantStores.loadFailed"))}</p></section> : stores.length > 0 ? (
         <div className="stores-grid">

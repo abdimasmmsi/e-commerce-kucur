@@ -4,6 +4,7 @@ import ActionDialog from "../../components/ui/ActionDialog";
 import EmptyState from "../../components/ui/EmptyState";
 import LoadingPanel from "../../components/ui/LoadingPanel";
 import PageContainer from "../../components/ui/PageContainer";
+import PageHeader from "../../components/ui/PageHeader";
 import Pagination from "../../components/ui/Pagination";
 import StatusBadge from "../../components/ui/StatusBadge";
 import { usePreferences } from "../../context/PreferencesContext";
@@ -95,7 +96,7 @@ function OrderManagementWorkspace({ storeId, routeStore }) {
     } finally { setBusy(false); }
   };
 
-  const header = <header className="grid gap-1"><h1 className="text-2xl font-extrabold text-[var(--kucur-text)] sm:text-3xl">{t("orderManagement.title")}</h1><p className="text-[15px] text-[var(--kucur-text-muted)]">{routeStore?.name ?? t("orderManagement.activeStore")}</p></header>;
+  const header = <PageHeader eyebrow={t("workspace.merchantEyebrow")} title={t("orderManagement.title")} description={t("orderManagement.subtitle", { store: routeStore?.name ?? t("orderManagement.activeStore") })} />;
   if (loading) return <PageContainer className="space-y-4">{header}<LoadingPanel label={t("orderManagement.loading")} rows={5} /></PageContainer>;
 
   const exportRows = () => downloadCsv(reportFileName(`${language === "id" ? "pesanan" : "orders"}-${String(routeStore?.name ?? "lapak").toLowerCase().replace(/[^a-z0-9]+/g, "-")}-${activeTab}`), orderReportColumns(language, statusLabel, { withStore: false }), rows);
@@ -121,7 +122,7 @@ function OrderManagementWorkspace({ storeId, routeStore }) {
       const code = order.orderNumber ?? order.orderCode;
       return <article className="flex min-w-0 flex-col gap-3 rounded-2xl border border-[var(--kucur-border)] bg-[var(--kucur-surface)] p-4" key={order.id}>
         <div className="flex min-w-0 items-start justify-between gap-3">
-          <Link className="min-w-0 min-h-11 hover:underline" to={`/merchant/stores/${storeId}/orders/${order.id}`}><strong className="block text-base text-[var(--kucur-text)]">{t("customerOrders.orderReference", { number: shortOrderCode(code).slice(1) })}</strong><span className="block break-all text-[12px] text-[var(--kucur-text-muted)]">{code}</span></Link>
+          <Link className="min-w-0 min-h-11 hover:underline" to={`/merchant/stores/${storeId}/orders/${order.id}`}><strong className="block text-base text-[var(--kucur-text)]">{t("customerOrders.orderReference", { number: shortOrderCode(code).slice(1) })}</strong><span className="block truncate text-[12px] text-[var(--kucur-text-muted)]" title={code}>{code}</span></Link>
           <StatusBadge className="shrink-0" status={order.status} />
         </div>
         <div className="grid gap-0.5 text-[15px]"><strong>{order.customerName}</strong>{first && <span className="text-[var(--kucur-text-muted)]">{copy.items.replace("{name}", first.productName).replace("{qty}", first.quantity)}{others.length > 0 && ` ${copy.more.replace("{count}", others.length)}`}</span>}<time className="text-[13px] text-[var(--kucur-text-muted)]" dateTime={order.createdAt}>{formatDate(order.createdAt, { dateStyle: "medium", timeStyle: "short" })}</time></div>

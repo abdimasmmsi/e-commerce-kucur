@@ -12,6 +12,7 @@ import LoadingPanel from "../../components/ui/LoadingPanel";
 import EmptyState from "../../components/ui/EmptyState";
 import Button from "../../components/ui/Button";
 import PageContainer from "../../components/ui/PageContainer";
+import PageHeader from "../../components/ui/PageHeader";
 import { deleteProductImage, getProductImage, saveProductImage } from "../../services/productImageStorage";
 import { uploadStoreImage } from "../../services/storeImageService";
 import "./ProductFormEdit.css";
@@ -297,14 +298,7 @@ function ProductFormWorkspace({ mode, storeId, productId, routeStore }) {
 
     return (
       <PageContainer as="main" className="merchant-edit-product">
-        <header className="merchant-edit-product__page-header">
-          <div>
-            <Link className="merchant-edit-product__back" to={productsPath}><span aria-hidden="true">←</span>{t("productForm.backProducts")}</Link>
-            <h1>{t(isEdit ? "productForm.editTitle" : "productForm.createTitle")}</h1>
-            <p>{isEdit ? t("productForm.editDescription") : t("productForm.createSubtitle", { store: routeStore?.name ?? t("productForm.activeStore") })}</p>
-            {isEdit && <div className="merchant-edit-product__context"><strong>{existingProduct?.name}</strong><span aria-hidden="true">•</span><span>{routeStore?.name ?? t("productForm.activeStore")}</span></div>}
-          </div>
-        </header>
+        <PageHeader eyebrow={<Link className="hover:underline" to={productsPath}><span aria-hidden="true">←</span> {t("productForm.backProducts")}</Link>} title={t(isEdit ? "productForm.editTitle" : "productForm.createTitle")} description={isEdit ? `${existingProduct?.name ?? ""} • ${routeStore?.name ?? t("productForm.activeStore")}` : t("productForm.createSubtitle", { store: routeStore?.name ?? t("productForm.activeStore") })} />
 
         <form className="merchant-edit-product__form" onSubmit={handleSubmit} noValidate>
           {apiError && <div className="merchant-edit-product__api-error" role="alert"><strong>{t("productForm.saveFailed")}</strong><p>{apiError}</p></div>}

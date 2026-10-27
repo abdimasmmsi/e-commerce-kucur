@@ -2,9 +2,19 @@ import { storeTypeLabels } from "../utils/storeScope";
 import { usePreferences } from "../context/PreferencesContext";
 import "./StoreWorkspaceHeader.css";
 
-function StoreWorkspaceHeader({ store }) {
+function StoreWorkspaceHeader({ store, storeCount = 0, loading = false }) {
   const { statusLabel, t } = usePreferences();
-  if (!store) return null;
+  // Tanpa lapak terpilih (mode Semua Lapak / belum punya lapak) bar tetap tampil supaya judul halaman selalu di posisi yang sama.
+  if (!store) {
+    return (
+      <section className="store-workspace-header" aria-label={t("workspace.activeStore")}>
+        <div className="store-workspace-header__identity">
+          <span className="store-workspace-header__eyebrow">{t("workspace.storeWorkspace")}</span>
+          <strong>{loading ? " " : t(storeCount > 0 ? "workspace.allStores" : "workspace.noStore")}</strong>
+        </div>
+      </section>
+    );
+  }
 
   return (
     <section className="store-workspace-header" aria-label={t("workspace.activeStore")}>

@@ -145,7 +145,7 @@ export default function PickupToday() {
   const courierName = (batch) => batch.courier?.fullName || t("merchantPickup.courierUnavailable");
 
   return <div className="page-container merchant-standard-page min-w-0">
-    <PageHeader title={t("merchantPickup.title")} description={language === "id" ? "Pesanan yang diambil kurir hari ini dan riwayatnya." : "Orders picked up by the courier today and past pickups."}/>
+    <PageHeader eyebrow={t("workspace.merchantEyebrow")} title={t("merchantPickup.title")} description={language === "id" ? "Pesanan yang diambil kurir hari ini dan riwayatnya." : "Orders picked up by the courier today and past pickups."}/>
     {message && <p className="merchant-status-feedback mb-5 rounded-kucur-control border border-emerald-200 bg-emerald-50 p-3 text-emerald-800 dark:border-emerald-800 dark:bg-emerald-950 dark:text-emerald-200" role="status">{message}</p>}
     {error && <section className="mb-5 grid gap-2 rounded-kucur-card border border-rose-300 bg-kucur-paper p-4" role="alert"><strong>{t("merchantPickup.loadFailed")}</strong><p>{error}</p><button className="secondary-button w-fit" type="button" onClick={load}>{t("orderManagement.retry")}</button></section>}
 

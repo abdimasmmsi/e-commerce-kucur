@@ -2,6 +2,7 @@ import { useEffect, useMemo, useState } from "react";
 import { useParams } from "react-router-dom";
 import EmptyState from "../../components/ui/EmptyState";
 import LoadingPanel from "../../components/ui/LoadingPanel";
+import PageHeader from "../../components/ui/PageHeader";
 import { usePreferences } from "../../context/PreferencesContext";
 import { canonicalStoreId } from "../../services/legacyStoreReferences";
 import { useLiveRefresh } from "../../utils/liveRefresh";
@@ -55,7 +56,7 @@ export default function StockManagement() {
     finally { setSaving(false); }
   };
   return <div className="merchant-standard-page space-y-5">
-    <header><h1 className="text-2xl font-extrabold">{t("stockManagement.title")}</h1><p className="text-[var(--kucur-text-muted)]">{t("stockManagement.subtitle")}</p></header>
+    <PageHeader eyebrow={t("workspace.merchantEyebrow")} title={t("stockManagement.title")} description={t("stockManagement.subtitle")} />
     {loading && <LoadingPanel label={t("stockManagement.loading")} rows={4} />}
     {error && <section className="grid gap-2 rounded-2xl border border-rose-300 bg-rose-50 p-4 text-rose-900 dark:bg-rose-950/40 dark:text-rose-100" role="alert"><strong>{t("stockManagement.updateFailed")}</strong><span className="break-words">{error}</span>{!products.length && <button className="min-h-11 w-fit rounded-xl border border-current px-4 font-bold" type="button" onClick={load}>{t("stockManagement.retry")}</button>}</section>}
     {notice && <p className="merchant-status-feedback rounded-xl border border-emerald-300 bg-emerald-50 p-4 text-emerald-900 dark:bg-emerald-950/40 dark:text-emerald-100" role="status">{notice}</p>}

@@ -1,6 +1,7 @@
 import { useState } from "react";
 import { useLocation, useNavigate } from "react-router-dom";
 import AddressForm from "../../components/location/AddressForm";
+import PageHeader from "../../components/ui/PageHeader";
 import { useAuth } from "../../context/AuthContext";
 import { usePreferences } from "../../context/PreferencesContext";
 import { addressProblem, emptyAddress, saveCheckoutDraft } from "../../utils/address";
@@ -68,7 +69,7 @@ export default function Addresses() {
 
   return <div className="grid min-w-0 max-w-3xl gap-4">
     {fromCheckout && <button className={`${buttonClass} w-fit border border-[var(--kucur-green)] text-[var(--kucur-green-ink)]`} type="button" onClick={backToCheckout}>{copy.backToCheckout}</button>}
-    <header className="grid gap-1"><span className="text-sm font-bold text-[var(--kucur-green-ink)]">{copy.eyebrow}</span><h1 className="text-2xl font-extrabold sm:text-3xl">{copy.title}</h1><p className="text-[15px] text-[var(--kucur-text-muted)]">{copy.subtitle.replace("{max}", MAX_ADDRESSES)}</p></header>
+    <PageHeader eyebrow={copy.eyebrow} title={copy.title} description={copy.subtitle.replace("{max}", MAX_ADDRESSES)} className="!mb-1 sm:!mb-2" />
     {message.text && <p className={`rounded-xl p-3 text-[15px] font-semibold ${message.type === "error" ? "border border-rose-300 bg-rose-50 text-rose-800 dark:border-rose-800 dark:bg-rose-950 dark:text-rose-200" : "bg-[var(--kucur-green-soft)]"}`} role={message.type === "error" ? "alert" : "status"}>{message.text}</p>}
     {addresses.length === 0 && editing !== "new" && <section className="grid gap-1 rounded-2xl border border-dashed border-[var(--kucur-border-strong)] bg-[var(--kucur-surface)] p-5 text-center"><strong className="text-base">{copy.empty}</strong><span className="text-sm text-[var(--kucur-text-muted)]">{copy.emptyHint}</span></section>}
     {addresses.map((address) => editing === address.id ? <div key={address.id}>{form}</div> : <article className={`grid gap-2 rounded-2xl border bg-[var(--kucur-surface)] p-4 ${address.isPrimary ? "border-[var(--kucur-green)]" : "border-[var(--kucur-border)]"}`} key={address.id}>

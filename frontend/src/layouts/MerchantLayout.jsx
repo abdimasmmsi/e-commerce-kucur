@@ -122,10 +122,8 @@ function MerchantLayout() {
     ? `/merchant/stores/${activeStore.id}/finance`
     : null;
 
-  const showStoreHeader = activeStoreId !== "all"
-    && Boolean(activeStore)
-    && (Boolean(routeStore) || ["/merchant/pickup", "/merchant/reviews"].includes(location.pathname));
-  const headerStore = routeStore ?? activeStore;
+  // Bar lapak tampil di semua halaman panel Penjual (di mode Semua Lapak berisi "Semua Lapak"), jadi posisi judul halaman sama di semua menu.
+  const headerStore = routeStore ?? (activeStoreId !== "all" ? activeStore : null);
 
   return (
     <div className="merchant-workspace">
@@ -207,7 +205,7 @@ function MerchantLayout() {
           <strong>{t("workspace.merchant")}</strong>
         </div>
 
-        {showStoreHeader && !hasStoreTypeMismatch && <StoreWorkspaceHeader store={headerStore} />}
+        {!hasStoreTypeMismatch && <StoreWorkspaceHeader store={headerStore} storeCount={merchantStores.length} loading={storesLoading} />}
 
         {hasStoreTypeMismatch ? (
           <section className="merchant-feature-unavailable" role="status">

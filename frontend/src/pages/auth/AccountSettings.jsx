@@ -43,7 +43,7 @@ export default function AccountSettings() {
   };
 
   return <div className="page-container account-profile-page account-profile-only">
-    <header className="account-profile-heading"><div><span>{t("account.eyebrow")}</span><h1>{t("header.settings")}</h1><p>{t("account.description")}</p></div></header>
+    <header className="account-profile-heading page-head"><div><span className="page-head__eyebrow">{t("account.eyebrow")}</span><h1 className="page-head__title">{t("header.settings")}</h1><p className="page-head__desc">{t("account.description")}</p></div></header>
     <div className="account-settings-stack">
       <section className="account-settings-panel"><header className="account-panel-heading"><div><h2>{t("account.preferences")}</h2><p>{t("account.preferencesHint")}</p></div></header>
         <div className="account-preference-list"><div className="account-preference-row"><div><strong>{t("common.language")}</strong><small>{t("accountSettings.languageDescription")}</small></div><PreferenceControls detailed showTheme={false} onLanguageChange={chooseLanguage}/></div><div className="account-preference-row"><div><strong>{t("account.theme")}</strong><small>{t("accountSettings.themeDescription")}</small></div><PreferenceControls detailed showLanguage={false} onThemeChange={chooseTheme}/></div><PushToggle/>{preferenceStatus && <p className="account-feedback" role="status">{preferenceStatus === "saving" ? t("account.saving") : preferenceStatus === "saved" ? t("account.preferencesSaved") : preferenceStatus}</p>}</div>

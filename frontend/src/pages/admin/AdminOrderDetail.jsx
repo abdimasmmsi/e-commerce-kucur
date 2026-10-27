@@ -23,12 +23,12 @@ export default function AdminOrderDetail() {
   const load = () => { setLoading(true); setError(""); orderService.get(orderId).then(setOrder).catch((caught) => setError(caught.message)).finally(() => setLoading(false)); };
   useEffect(() => { let active = true; orderService.get(orderId).then((row) => { if (active) setOrder(row); }).catch((caught) => { if (active) setError(caught.message); }).finally(() => { if (active) setLoading(false); }); return () => { active = false; }; }, [orderId]);
   useLiveRefresh(() => orderService.get(orderId).then((row) => { if (row) setOrder(row); }).catch(() => {}), { enabled: !loading });
-  if (loading) return <PageContainer><LoadingPanel label={c.loading} rows={5} /></PageContainer>;
-  if (!order) return <PageContainer><EmptyState title={c.missing} description={error || c.missingHint} action={<Button variant="secondary" onClick={load}>{c.retry}</Button>} /></PageContainer>;
+  if (loading) return <PageContainer className="!p-0"><LoadingPanel label={c.loading} rows={5} /></PageContainer>;
+  if (!order) return <PageContainer className="!p-0"><EmptyState title={c.missing} description={error || c.missingHint} action={<Button variant="secondary" onClick={load}>{c.retry}</Button>} /></PageContainer>;
   const currentIndex = lifecycleStatuses.indexOf(order.status);
   const stages = [{ label: c.order, completeAt: 0 }, { label: c.payment, completeAt: 1 }, { label: c.merchant, completeAt: 3 }, { label: c.delivery, completeAt: 7 }, { label: c.completion, completeAt: 8 }];
   const activeStage = stages.reduce((active, stage, index) => currentIndex >= stage.completeAt ? index : active, 0);
-  return <PageContainer className="admin-operations-page admin-order-detail-page">
+  return <PageContainer className="!p-0 admin-operations-page admin-order-detail-page">
     <PageHeader eyebrow={c.eyebrow} title={order.orderNumber} description={c.description} actions={<Button as={Link} variant="secondary" to="/admin/transactions">{c.back}</Button>} />
     <section className="card admin-lifecycle-card"><div className="admin-lifecycle-heading"><h2>{c.lifecycle}</h2><StatusBadge status={order.status}>{statusLabel(order.status)}</StatusBadge></div><StatusTimeline currentIndex={activeStage} exception={["cancelled", "failed"].includes(order.status)} label={c.lifecycle} steps={stages.map((stage) => ({ key: stage.label, label: stage.label }))}/></section>
     <div className="admin-order-detail-grid"><div className="admin-detail-content">

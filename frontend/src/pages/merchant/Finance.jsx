@@ -2,6 +2,7 @@ import { useCallback, useEffect, useRef, useState } from "react";
 import EmptyState from "../../components/ui/EmptyState";
 import LoadingPanel from "../../components/ui/LoadingPanel";
 import PageContainer from "../../components/ui/PageContainer";
+import PageHeader from "../../components/ui/PageHeader";
 import StatusBadge from "../../components/ui/StatusBadge";
 import { usePreferences } from "../../context/PreferencesContext";
 import { financeService } from "../../services/financeService";
@@ -48,7 +49,7 @@ export default function MerchantFinance() {
   };
 
   return <PageContainer className="merchant-standard-page space-y-4">
-    <header className="grid gap-1"><span className="text-sm font-bold text-[var(--kucur-green-ink)]">{copy.eyebrow}</span><h1 className="text-2xl font-extrabold sm:text-3xl">{copy.title}</h1><p className="max-w-2xl text-[15px] text-[var(--kucur-text-muted)]">{copy.hint}</p></header>
+    <PageHeader eyebrow={copy.eyebrow} title={copy.title} description={copy.hint} />
     {feedback.text && <p className={`rounded-xl p-3 text-[15px] font-semibold ${feedback.type === "error" ? "border border-rose-300 bg-rose-50 text-rose-800 dark:border-rose-800 dark:bg-rose-950 dark:text-rose-200" : "bg-[var(--kucur-green-soft)]"}`} role={feedback.type === "error" ? "alert" : "status"}>{feedback.text}</p>}
     {error && <p className="rounded-xl border border-rose-300 bg-rose-50 p-4 text-rose-800 dark:border-rose-800 dark:bg-rose-950 dark:text-rose-200" role="alert">{error} <button className="ml-2 font-bold underline" type="button" onClick={load}>{t("merchantFinancePage.retry")}</button></p>}
     <div className="grid min-w-0 items-start gap-4 lg:grid-cols-2">
