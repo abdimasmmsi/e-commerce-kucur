@@ -92,6 +92,7 @@ export default function About() {
             <div className="grid min-w-0 gap-0.5">
               <strong className="text-base">{APP_INFO.developer.name}</strong>
               <span className="text-sm text-[var(--kucur-text-muted)]">{APP_INFO.developer.affiliation}</span>
+              <span className="text-sm text-[var(--kucur-text-muted)] [overflow-wrap:anywhere]">{APP_INFO.developer.email}</span>
             </div>
           </div>
           <p className="m-0 text-sm leading-relaxed text-[var(--kucur-text-muted)]">{copy.builtByNote}</p>

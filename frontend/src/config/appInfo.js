@@ -8,6 +8,7 @@ export const APP_INFO = Object.freeze({
   developer: Object.freeze({
     name: "Steven Danendra",
     affiliation: "Sistem Informasi, Universitas Ma Chung",
+    email: "stevendanendra16@gmail.com",
   }),
   // Foto profesional pengembang: taruh berkas di frontend/public/about/developer.webp. Kosongkan ("") untuk memakai pola kosong.
   photoUrl: "/about/developer.webp",
